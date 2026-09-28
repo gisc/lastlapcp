@@ -1063,5 +1063,615 @@
       }
     ],
     "explanation": "Binary search halves the data each step: 2^20 is about a million, so about 20 comparisons. It requires sorted data, so a one-off search on unsorted data should just be linear; repeated searches justify sorting once."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Table: Employee(EmployeeID, EmployeeName, SkillID, SkillName, CostPerHour), primary key EmployeeID. Why is this table NOT in third normal form (3NF)?",
+    "options": [
+      {
+        "text": "SkillName and CostPerHour depend on SkillID, not on EmployeeID - a transitive dependency",
+        "correct": true
+      },
+      {
+        "text": "It has no primary key",
+        "correct": false
+      },
+      {
+        "text": "One employee appears on more than one row",
+        "correct": false
+      },
+      {
+        "text": "CostPerHour should be stored as text",
+        "correct": false
+      }
+    ],
+    "explanation": "In 3NF every non-key attribute must depend on the key, the whole key and nothing but the key. SkillName and CostPerHour are determined by SkillID (a non-key attribute), so this is a transitive dependency. Fix: split out Skill(SkillID, SkillName, CostPerHour). (2021 P1 Q2b.)",
+    "misconception": "Thinking that having a primary key is enough to make a table 3NF."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A link table ProjectEmployee(ProjectID, EmployeeID, HoursWorked) records which employees worked on which projects. What is its primary key?",
+    "options": [
+      {
+        "text": "A composite key made of ProjectID and EmployeeID together",
+        "correct": true
+      },
+      {
+        "text": "ProjectID alone",
+        "correct": false
+      },
+      {
+        "text": "EmployeeID alone",
+        "correct": false
+      },
+      {
+        "text": "HoursWorked alone",
+        "correct": false
+      }
+    ],
+    "explanation": "One employee works on many projects and one project has many employees, so neither column alone is unique. The pair (ProjectID, EmployeeID) identifies each row; HoursWorked is a fact about that pairing. (2021 P1 Q2d.)",
+    "misconception": "Assuming every primary key is a single column."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In the unnormalised Employee table, the skill 'Electrical' with cost per hour $50 is repeated on several rows. The rate rises to $52. What problem can arise when the table is updated?",
+    "options": [
+      {
+        "text": "An update anomaly - some rows may be changed while others are missed, leaving inconsistent data",
+        "correct": true
+      },
+      {
+        "text": "A deadlock - the table locks forever",
+        "correct": false
+      },
+      {
+        "text": "A syntax error - SQL forbids updating repeated values",
+        "correct": false
+      },
+      {
+        "text": "A cascade delete - related rows are removed automatically",
+        "correct": false
+      }
+    ],
+    "explanation": "Redundant copies of the same fact must all be updated together. Miss one and the database contradicts itself. Normalising the rate into a Skill table means changing it in exactly one place. (2021 P1 Q2g.)",
+    "misconception": "Believing SQL will automatically find and update every copy of a repeated value."
+  },
+  {
+    "topic": "Ethics",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A company collects employees' names, addresses and bank details for payroll. Which actions does the Personal Data Protection Act (PDPA) require?",
+    "options": [
+      {
+        "text": "Obtain consent and tell individuals the purpose of collection",
+        "correct": true
+      },
+      {
+        "text": "Use the data only for the stated purpose (payroll), not unrelated uses",
+        "correct": true
+      },
+      {
+        "text": "Protect the data with reasonable security measures and keep it accurate",
+        "correct": true
+      },
+      {
+        "text": "Keep the data forever in case it becomes useful later",
+        "correct": false
+      }
+    ],
+    "explanation": "PDPA duties: consent and notification of purpose, use limited to that purpose, reasonable protection, accuracy, and disposal when no longer needed. Hoarding data 'just in case' breaks the retention limitation obligation. (2021 P1 Q2i, 2023 P1 Q7.)",
+    "misconception": "Thinking that once data is collected with consent, it can be kept and reused indefinitely."
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "How does a denial of service (DoS) attack compromise an internet server?",
+    "options": [
+      {
+        "text": "It floods the server with more requests than it can handle, so legitimate users cannot get a response",
+        "correct": true
+      },
+      {
+        "text": "It guesses the administrator password and takes control",
+        "correct": false
+      },
+      {
+        "text": "It encrypts the server's files and demands payment",
+        "correct": false
+      },
+      {
+        "text": "It intercepts packets and reads their contents",
+        "correct": false
+      }
+    ],
+    "explanation": "A DoS attack exhausts the server's capacity (bandwidth, connections, processing) with bogus traffic, so real requests time out. Monitoring software may flag a sudden surge from unusual locations. Password guessing is brute force; encrypting files is ransomware; interception is a man-in-the-middle attack. (2021 P1 Q3a.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Jeffrey sends Kim a message with a digital signature. Which steps are correct?",
+    "options": [
+      {
+        "text": "Jeffrey's app hashes the message and encrypts the hash with his PRIVATE key to create the signature",
+        "correct": true
+      },
+      {
+        "text": "Kim's app decrypts the signature with Jeffrey's PUBLIC key to recover the hash",
+        "correct": true
+      },
+      {
+        "text": "Kim's app hashes the received message again and compares it with the decrypted hash",
+        "correct": true
+      },
+      {
+        "text": "Jeffrey's app encrypts the whole message with his private key as the signature",
+        "correct": false
+      }
+    ],
+    "explanation": "Only the hash is signed, not the whole message. If any bit of the message changes in transit, the re-computed hash will not match the decrypted one, so alteration is detected. Only Jeffrey's private key could have produced the signature, which also authenticates him. (2021 P1 Q3e, 2023 P1 Q5a.)",
+    "misconception": "Thinking the entire message gets encrypted with the sender's private key."
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A firewall is placed between a LAN and the internet. How does it protect the LAN?",
+    "options": [
+      {
+        "text": "It examines incoming and outgoing packets and blocks traffic that breaks its rules (by port, address or protocol)",
+        "correct": true
+      },
+      {
+        "text": "It encrypts all traffic leaving the LAN",
+        "correct": false
+      },
+      {
+        "text": "It scans files on the LAN's computers for viruses",
+        "correct": false
+      },
+      {
+        "text": "It physically disconnects the LAN whenever an attack starts",
+        "correct": false
+      }
+    ],
+    "explanation": "A firewall filters packets against a rule set: allowed ports, known addresses, expected protocols. Unsolicited or suspicious traffic is dropped before it reaches the LAN. It does not encrypt (that is TLS/VPN) and it is not antivirus software. (2021 P1 Q3d, 2022 P1 Q7d.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "checkbox",
+    "stem": "Which features should a good hashing algorithm have?",
+    "options": [
+      {
+        "text": "It is fast to compute",
+        "correct": true
+      },
+      {
+        "text": "It always maps the same key to the same slot (deterministic)",
+        "correct": true
+      },
+      {
+        "text": "It spreads keys evenly across the table to minimise collisions",
+        "correct": true
+      },
+      {
+        "text": "It encrypts the key so the table contents stay secret",
+        "correct": false
+      }
+    ],
+    "explanation": "A hash function must be quick, deterministic, and uniform - clustering keys in a few slots means long collision chains and slow lookups. Hashing is one-way mixing for placement, not encryption for secrecy. (2021 P1 Q5a, 2022 P1 Q8d.)",
+    "misconception": "Confusing hashing (one-way, for placement or integrity) with encryption (reversible, for secrecy)."
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A social media company hashes each user's ID to locate their record. What is the advantage of this over a linear search, in Big-O terms?",
+    "options": [
+      {
+        "text": "Average O(1) direct access instead of O(n) checking records one by one",
+        "correct": true
+      },
+      {
+        "text": "O(log n) instead of O(n^2)",
+        "correct": false
+      },
+      {
+        "text": "O(n) instead of O(n^2)",
+        "correct": false
+      },
+      {
+        "text": "It removes the need to store the records at all",
+        "correct": false
+      }
+    ],
+    "explanation": "The hash function computes the slot directly from the key, so lookup is on average constant time regardless of table size. Linear search may examine every record: O(n). Binary search is O(log n) but requires sorted data, which a huge, constantly changing user base makes expensive to maintain. (2021 P1 Q5c, 2022 P1 Q8a.)"
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In ASCII, 'A' is denary 65 and 'a' is 97. What value must be added to an uppercase ASCII letter's code to get its lowercase equivalent?",
+    "options": [
+      {
+        "text": "32 (hexadecimal 20)",
+        "correct": true
+      },
+      {
+        "text": "26 (the number of letters)",
+        "correct": false
+      },
+      {
+        "text": "16 (hexadecimal 10)",
+        "correct": false
+      },
+      {
+        "text": "65",
+        "correct": false
+      }
+    ],
+    "explanation": "97 - 65 = 32. Uppercase A-Z sit at 65-90, lowercase a-z at 97-122: a fixed gap of 32 (one bit, 0x20). That is why case conversion is cheap. (2021 P1 Q6b.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A binary search tree is stored in an array where each element has LPtr, Data and RPtr, and a variable Root holds the index of the root node. What does a Null value in a node's LPtr indicate?",
+    "options": [
+      {
+        "text": "The node has no left child",
+        "correct": true
+      },
+      {
+        "text": "The array is unsorted",
+        "correct": false
+      },
+      {
+        "text": "The node is the root",
+        "correct": false
+      },
+      {
+        "text": "The node must be deleted",
+        "correct": false
+      }
+    ],
+    "explanation": "The pointers hold the array index of each child; Null means there is nothing further in that direction. Root simply holds the index of the root node - any node could be the root, and the root can also have Null pointers. (2021 P1 Q7.)",
+    "misconception": "Assuming the root is always at index 0 of the array."
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Merge sort and quicksort both average O(n log n). Why might merge sort be faster than quicksort on a fixed-capacity array that is nearly sorted already?",
+    "options": [
+      {
+        "text": "Quicksort's worst case is O(n^2), which nearly sorted data can trigger with a poor pivot; merge sort is always O(n log n)",
+        "correct": true
+      },
+      {
+        "text": "Merge sort uses less memory than quicksort",
+        "correct": false
+      },
+      {
+        "text": "Quicksort cannot sort arrays, only linked lists",
+        "correct": false
+      },
+      {
+        "text": "Merge sort is always O(n) on any data",
+        "correct": false
+      }
+    ],
+    "explanation": "Quicksort's guarantee depends on balanced pivots; sorted or nearly sorted input with an end-pivot degenerates to O(n^2). Merge sort splits evenly every time, so its O(n log n) is guaranteed. (2022 P1 Q4e, 2023 P1 Q6b.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Data sent across the internet is divided into packets. Why are the packets given sequential numbers?",
+    "options": [
+      {
+        "text": "So the destination can reassemble them in the correct order and detect any that are missing",
+        "correct": true
+      },
+      {
+        "text": "So routers can read the message contents",
+        "correct": false
+      },
+      {
+        "text": "So the packets travel faster",
+        "correct": false
+      },
+      {
+        "text": "So the message is encrypted",
+        "correct": false
+      }
+    ],
+    "explanation": "Packets may take different routes and arrive out of order or not at all. Sequence numbers let the receiver reorder them and request retransmission of missing ones. (2022 P1 Q7a.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Besides the packet (sequence) number, which items are found in a packet header?",
+    "options": [
+      {
+        "text": "The sender's (source) address",
+        "correct": true
+      },
+      {
+        "text": "The destination address",
+        "correct": true
+      },
+      {
+        "text": "The entire message being sent",
+        "correct": false
+      },
+      {
+        "text": "Error-checking data such as a checksum",
+        "correct": true
+      }
+    ],
+    "explanation": "A packet is header plus payload. The header carries the source and destination addresses, the sequence number and error-checking data; the payload is only a small chunk of the message, never the whole thing. (2022 P1 Q7a.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is the role of a router in a packet-switching network?",
+    "options": [
+      {
+        "text": "It reads each packet's destination address and forwards the packet towards that destination, choosing the next hop",
+        "correct": true
+      },
+      {
+        "text": "It stores every packet until the full message arrives, then sends it on",
+        "correct": false
+      },
+      {
+        "text": "It converts all packets from IPv4 to IPv6",
+        "correct": false
+      },
+      {
+        "text": "It assigns domain names to websites",
+        "correct": false
+      }
+    ],
+    "explanation": "Routers forward packets hop by hop using the destination address and their routing tables. Store-and-forward of the whole message is not required - that is the point of packet switching. (2022 P1 Q7c, 2023 P1 Q5b.)"
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "An event organiser records a club score that must be a whole number from 0 to 25 inclusive. What is the most suitable validation technique for this input?",
+    "options": [
+      {
+        "text": "Range check - reject values below 0 or above 25",
+        "correct": true
+      },
+      {
+        "text": "Presence check - reject an empty field",
+        "correct": false
+      },
+      {
+        "text": "Format check - match the pattern of an email address",
+        "correct": false
+      },
+      {
+        "text": "Double entry - type the score twice",
+        "correct": false
+      }
+    ],
+    "explanation": "A range check tests that a value lies between set bounds: exactly what 0-25 needs. Presence and format checks do not test the bounds, and double entry is verification (catching typos), not validation. (2022 P1 Q1e.)"
+  },
+  {
+    "topic": "Software engineering",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "An elevator controller allocates memory for the chosen floor number but only releases it on the path where the elevator moves. After many months the system stops working, works again after a power cycle, then fails months later. What is the cause?",
+    "options": [
+      {
+        "text": "A memory leak - unreleased memory accumulates on the other path until none is left; restarting resets it",
+        "correct": true
+      },
+      {
+        "text": "A virus that activates every few months",
+        "correct": false
+      },
+      {
+        "text": "Worn-out buttons sending double signals",
+        "correct": false
+      },
+      {
+        "text": "The hard disk filling up with log files",
+        "correct": false
+      }
+    ],
+    "explanation": "Memory grabbed but never released is lost for the lifetime of the process. The slow buildup explains why failure takes months and why a restart 'fixes' it temporarily. Fix: release the memory on every path through the algorithm. (2022 P1 Q5.)",
+    "misconception": "Assuming allocated memory is automatically freed when the code path ends."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is the difference between a class and an object?",
+    "options": [
+      {
+        "text": "A class is the blueprint defining attributes and methods; an object is one instance created from that blueprint, holding its own attribute values",
+        "correct": true
+      },
+      {
+        "text": "A class holds data; an object holds only methods",
+        "correct": false
+      },
+      {
+        "text": "An object is the blueprint; a class is one instance of it",
+        "correct": false
+      },
+      {
+        "text": "They are two names for the same thing",
+        "correct": false
+      }
+    ],
+    "explanation": "You define a class once (e.g. Apartment) and instantiate many objects from it (apt1, apt2...), each with its own address and owner but sharing the class's method code. (2022 P1 Q2a.)",
+    "misconception": "Using 'class' and 'object' interchangeably in definitions."
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Which of these is VERIFICATION of entered data, rather than validation?",
+    "options": [
+      {
+        "text": "Entering the data twice and comparing the two copies, or visually checking it against the source document",
+        "correct": true
+      },
+      {
+        "text": "A range check that rejects values outside set bounds",
+        "correct": false
+      },
+      {
+        "text": "A presence check that rejects an empty field",
+        "correct": false
+      },
+      {
+        "text": "A format check that requires a specific pattern",
+        "correct": false
+      }
+    ],
+    "explanation": "Validation checks data against rules (range, presence, format, type, length). Verification checks the data matches the original source - by double entry or a human/visual check. (2023 P1 Q1d asked for verification methods for a licence number.)",
+    "misconception": "Treating verification and validation as the same thing; exam mark schemes keep them separate."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is polymorphism?",
+    "options": [
+      {
+        "text": "The same method call behaves differently depending on the class of the object it is called on",
+        "correct": true
+      },
+      {
+        "text": "A class inheriting attributes from more than one superclass",
+        "correct": false
+      },
+      {
+        "text": "Hiding an object's data from outside code",
+        "correct": false
+      },
+      {
+        "text": "Creating several objects from one class",
+        "correct": false
+      }
+    ],
+    "explanation": "Polymorphism lets code treat different subclasses uniformly: calling updateEnergy() on any Bee subclass runs that subclass's own version. Inheriting from two superclasses is multiple inheritance (excluded from 9569); hiding data is encapsulation. (2023 P1 Q3d.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "checkbox",
+    "stem": "Which statements about a queue are correct?",
+    "options": [
+      {
+        "text": "It works first in, first out (FIFO)",
+        "correct": true
+      },
+      {
+        "text": "It needs a front pointer (where items leave) and a rear pointer (where items join)",
+        "correct": true
+      },
+      {
+        "text": "Print jobs waiting for a printer are a natural application",
+        "correct": true
+      },
+      {
+        "text": "Items are added and removed at the same end",
+        "correct": false
+      }
+    ],
+    "explanation": "A queue joins at the rear and leaves from the front: FIFO, needing both pointers. Same-end add/remove describes a stack. Print spooling, task scheduling and buffering are classic queue uses. (2023 P1 Q4d.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is the format of an IPv4 address?",
+    "options": [
+      {
+        "text": "Four denary numbers, each from 0 to 255, separated by dots - e.g. 192.168.0.1",
+        "correct": true
+      },
+      {
+        "text": "Eight groups of four hexadecimal digits separated by colons",
+        "correct": false
+      },
+      {
+        "text": "A 48-bit value written as six pairs of hex digits",
+        "correct": false
+      },
+      {
+        "text": "Any text string registered with a DNS server",
+        "correct": false
+      }
+    ],
+    "explanation": "IPv4 is 32 bits written as four 8-bit (0-255) octets in dotted decimal. Eight hex groups with colons is IPv6; six hex pairs is a MAC address. (2023 P1 Q5b.)"
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "The letter M is encoded by the hexadecimal value 4D. What is 4D in denary?",
+    "options": [
+      {
+        "text": "77",
+        "correct": true
+      },
+      {
+        "text": "413",
+        "correct": false
+      },
+      {
+        "text": "68",
+        "correct": false
+      },
+      {
+        "text": "79",
+        "correct": false
+      }
+    ],
+    "explanation": "4 x 16 + 13 = 77. D is digit 13 in hex. (2023 P1 Q5c.)"
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "An appliance control system has a base class Appliance, a subclass ConventionalOven, and FanOven which includes all ConventionalOven features plus fan controls. Microwave has its own extra features. Which statements are correct?",
+    "options": [
+      {
+        "text": "ConventionalOven, FanOven and Microwave are all subclasses of Appliance",
+        "correct": true
+      },
+      {
+        "text": "FanOven is a subclass of ConventionalOven, giving multi-level inheritance",
+        "correct": true
+      },
+      {
+        "text": "FanOven inherits the timer and temperature features without re-declaring them",
+        "correct": true
+      },
+      {
+        "text": "Microwave should inherit from ConventionalOven to get the fan controls",
+        "correct": false
+      }
+    ],
+    "explanation": "Inheritance chains: Appliance -> ConventionalOven -> FanOven, and Appliance -> Microwave. A subclass inherits everything above it in its chain, so FanOven gets timer and temperature methods for free. Microwave has no fan, so inheriting from ConventionalOven would model it wrongly. (2023 P1 Q3a.)"
   }
 ]
