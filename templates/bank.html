@@ -20,7 +20,7 @@
 {% for it in items %}
 <div class="card">
   <div class="qmeta"><span class="tag">{{ it.q['topic'] }}</span><span class="tag paper">{{ it.q['paper'] }}</span>
-    <span class="tag">{{ 'Pick ALL that apply' if it.q['qtype']=='checkbox' else 'Pick ONE' }}</span>
+    <span class="tag">{{ 'Pick ALL that apply' if it.q['qtype']=='checkbox' else ('Type your answer' if it.q['qtype']=='fib' else 'Pick ONE') }}</span>
     <span class="tag">#{{ it.q['id'] }}</span></div>
   <div class="stem">{{ it.q['stem'] }}</div>
   {% if it.q['code'] %}<pre class="codeblock">{{ it.q['code'] }}</pre>{% endif %}

@@ -24,6 +24,9 @@ def _norm_email(e):
         return local + "@gmail.com"
     return e
 
+def _norm_answer(s):
+    return " ".join((s or "").strip().lower().split())
+
 TEACHER_EMAILS = {_norm_email(e) for e in os.environ.get("TEACHER_EMAILS", "").split(",") if e.strip()}
 ALLOWED_EMAILS = {_norm_email(e) for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
 
@@ -287,6 +290,24 @@ def answer(qid):
     q, opts = load_question(db, qid)
     if not q:
         abort(404)
+    if q["qtype"] == "fib":
+        typed = request.form.get("fib_text", "")
+        accepted = {_norm_answer(o["text"]) for o in opts}
+        correct = 1 if _norm_answer(typed) in accepted else 0
+        if correct:
+            best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM attempts WHERE user_id=? AND question_id=?",
+                              (u["id"], qid)).fetchone()["b"]
+            xp = 2 if best > 0 else 10
+        else:
+            xp = 0
+        db.execute("INSERT INTO attempts(user_id,question_id,correct,xp,chosen,created_at) VALUES(?,?,?,?,?,?)",
+                   (u["id"], qid, correct, xp, typed.strip()[:200],
+                    datetime.now(timezone.utc).isoformat()))
+        db.commit()
+        stats = user_stats(db, u["id"])
+        return render_template("quiz.html", q=q, opts=opts, topic=topic, empty=False,
+                               feedback={"correct": correct, "xp": xp, "typed": typed.strip(),
+                                         "accepted": [o["text"] for o in opts]}, stats=stats)
     correct_ids = {o["id"] for o in opts if o["is_correct"]}
     if q["qtype"] == "checkbox":
         chosen = {int(x) for x in request.form.getlist("opt")}
@@ -427,8 +448,8 @@ def _read_qform(count=None):
     errs = []
     if not form["topic"]:
         errs.append("Topic is required.")
-    if form["qtype"] not in ("mcq", "checkbox"):
-        errs.append("Type must be mcq or checkbox.")
+    if form["qtype"] not in ("mcq", "checkbox", "fib"):
+        errs.append("Type must be mcq, checkbox or fib.")
     if not form["stem"]:
         errs.append("The question stem is required.")
     if not form["explanation"]:
@@ -442,6 +463,9 @@ def _read_qform(count=None):
         errs.append("An MCQ needs exactly one correct option ticked.")
     if form["qtype"] == "checkbox" and nc < 2:
         errs.append("A checkbox question needs at least two correct options ticked.")
+    if form["qtype"] == "fib":
+        for o in form["opts"]:
+            o["correct"] = True  # every listed answer is an accepted answer
     return form, errs
 
 def _insert_question(db, form):

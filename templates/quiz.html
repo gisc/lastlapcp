@@ -9,26 +9,37 @@
 {% else %}
 <div class="card">
   <div class="qmeta"><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
-    <span class="tag">{{ 'Pick ALL that apply' if q['qtype']=='checkbox' else 'Pick ONE' }}</span></div>
+    <span class="tag">{{ 'Pick ALL that apply' if q['qtype']=='checkbox' else ('Type your answer' if q['qtype']=='fib' else 'Pick ONE') }}</span></div>
   <div class="stem">{{ q['stem'] }}</div>
   {% if q['code'] %}<pre class="codeblock">{{ q['code'] }}</pre>{% endif %}
   {% if not feedback %}
   <form method="post" action="{{ url_for('answer', qid=q['id']) }}">
     <input type="hidden" name="topic" value="{{ topic }}">
+    {% if q['qtype']=='fib' %}
+    <input class="field code-input" name="fib_text" autocomplete="off" autocapitalize="off"
+           spellcheck="false" placeholder="Type the missing keyword or code" required>
+    {% endif %}
+    {% if q['qtype']!='fib' %}
     {% for o in opts %}
     <label class="opt">
       <input type="{{ 'checkbox' if q['qtype']=='checkbox' else 'radio' }}" name="opt" value="{{ o['id'] }}">
       <span>{{ o['text'] }}</span>
     </label>
     {% endfor %}
+    {% endif %}
     <button class="btn big" type="submit">Check</button>
   </form>
   {% else %}
+    {% if q['qtype']=='fib' %}
+    <div class="opt result {{ 'good' if feedback.correct else 'bad' }}"><span>Your answer: {{ feedback.typed }}</span></div>
+    <div class="opt result good"><span>Accepted: {{ feedback.accepted|join('  |  ') }}</span></div>
+    {% else %}
     {% for o in opts %}
     <div class="opt result {{ 'good' if o['id'] in feedback.correct_ids else ('bad' if o['id'] in feedback.chosen else '') }}">
       <span>{{ o['text'] }}</span>
     </div>
     {% endfor %}
+    {% endif %}
     <div class="verdict {{ 'good' if feedback.correct else 'bad' }}">
       {% if feedback.correct %}Correct! +{{ feedback.xp }} XP{% else %}Not quite.{% endif %}
     </div>
