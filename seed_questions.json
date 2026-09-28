@@ -108,7 +108,7 @@
         "correct": true
       },
       {
-        "text": "Compilation - converting the classes into machine code",
+        "text": "Compilation - converting all three subclasses into machine code before the simulation runs",
         "correct": false
       }
     ],
@@ -121,19 +121,19 @@
     "stem": "A class Order contains a list of OrderLine objects. Which relationship is this, and how is it drawn?",
     "options": [
       {
-        "text": "Composition - a connecting line between the classes (a filled diamond at the whole's end in UML), read as \"has-a\"",
+        "text": "Composition - a connecting line between the classes (filled diamond at the whole in UML); 'has-a'",
         "correct": true
       },
       {
-        "text": "Inheritance - an arrow from OrderLine up to Order",
+        "text": "Inheritance - an upward arrow from OrderLine to Order, read as 'OrderLine is-a Order'",
         "correct": false
       },
       {
-        "text": "Inheritance - an arrow from Order up to OrderLine",
+        "text": "Inheritance - an upward arrow from Order to OrderLine, read as 'Order is-a OrderLine'",
         "correct": false
       },
       {
-        "text": "Polymorphism - no connecting line is needed",
+        "text": "Polymorphism - no line is drawn between the classes, since any OrderLine can stand in for an Order",
         "correct": false
       }
     ],
@@ -150,15 +150,15 @@
         "correct": true
       },
       {
-        "text": "A many-to-many relationship drawn directly between MEMBER and BOOK",
+        "text": "A many-to-many relationship drawn directly between MEMBER and BOOK in the final tables",
         "correct": false
       },
       {
-        "text": "A comma-separated list of book IDs stored inside the MEMBER table",
+        "text": "A comma-separated list of borrowed book IDs stored in a column of the MEMBER table",
         "correct": false
       },
       {
-        "text": "A foreign key to BOOK placed inside the MEMBER table",
+        "text": "A foreign key BookID added to the MEMBER table, and also a foreign key MemberID added to BOOK",
         "correct": false
       }
     ],
@@ -175,15 +175,15 @@
         "correct": true
       },
       {
-        "text": "Integers cannot hold 8 digits",
+        "text": "Integers cannot reliably store an 8-digit phone number without risking overflow",
         "correct": false
       },
       {
-        "text": "SQL does not allow digits in a numeric column",
+        "text": "SQL does not allow digits to be stored in a numeric column",
         "correct": false
       },
       {
-        "text": "Text always uses less storage than an integer",
+        "text": "Text always uses less storage space than an integer column",
         "correct": false
       }
     ],
@@ -271,19 +271,19 @@
     "stem": "Which pair correctly matches the purpose of backing up and archiving data?",
     "options": [
       {
-        "text": "Backup: recovery after loss or corruption. Archive: long-term storage of data no longer needed day-to-day",
+        "text": "Backup: recovery after loss or corruption. Archive: long-term storage of data no longer needed daily",
         "correct": true
       },
       {
-        "text": "Backup: long-term storage for legal reasons. Archive: fast daily recovery",
+        "text": "Backup: long-term storage kept for legal reasons. Archive: fast daily recovery of recently lost files",
         "correct": false
       },
       {
-        "text": "They are two names for the same process",
+        "text": "They are two names for the same process, done on different schedules",
         "correct": false
       },
       {
-        "text": "Backup deletes old data. Archive encrypts current data",
+        "text": "Backup deletes old data. Archive encrypts current data for storage",
         "correct": false
       }
     ],
@@ -404,7 +404,7 @@
         "correct": false
       },
       {
-        "text": "All items are shifted down to make room at the end",
+        "text": "All existing items are shifted down one place to make room at the end",
         "correct": false
       },
       {
@@ -471,19 +471,19 @@
     "stem": "In a hash table, what is a collision?",
     "options": [
       {
-        "text": "Two different keys produce the same hash value, so both map to the same slot",
+        "text": "Two different keys produce the same hash value and map to the same slot",
         "correct": true
       },
       {
-        "text": "The hash function returns a negative number",
+        "text": "The hash function returns a negative array index and the insert fails",
         "correct": false
       },
       {
-        "text": "Two records contain identical data values",
+        "text": "Two records contain identical data in every field",
         "correct": false
       },
       {
-        "text": "The table runs out of memory and crashes",
+        "text": "The table runs out of memory and the program crashes",
         "correct": false
       }
     ],
@@ -596,19 +596,19 @@
     "stem": "FUNCTION S(n): IF n = 1 THEN RETURN 12 ELSE RETURN S(n-1) - 3. What happens when S(0) is called?",
     "options": [
       {
-        "text": "It recurses without ever reaching the base case, until the call stack overflows",
+        "text": "It recurses without reaching the base case, until the call stack overflows",
         "correct": true
       },
       {
-        "text": "It returns 12",
+        "text": "It returns 12, because the base case stops the recursion when n finally reaches 1",
         "correct": false
       },
       {
-        "text": "It returns -3",
+        "text": "It returns -3, because S(0) takes the ELSE branch only once",
         "correct": false
       },
       {
-        "text": "It returns 0 immediately",
+        "text": "It returns 0 immediately, treating 0 as another base case",
         "correct": false
       }
     ],
@@ -621,19 +621,19 @@
     "stem": "When a recursive function calls itself, how does the call stack make the recursion work?",
     "options": [
       {
-        "text": "Each call pushes a new stack frame holding that call's parameters and return address; frames pop as calls return",
+        "text": "Each call pushes a frame with its parameters and return address; frames pop as calls return",
         "correct": true
       },
       {
-        "text": "All calls share one set of variables, which is what makes recursion fast",
+        "text": "All calls share one set of variables, which is why recursion uses little memory",
         "correct": false
       },
       {
-        "text": "The stack stores the final answer so the function can skip the base case",
+        "text": "The stack stores the final answer, so deeper calls can skip re-checking the base case each time",
         "correct": false
       },
       {
-        "text": "The operating system runs each recursive call in a separate program",
+        "text": "The operating system starts each recursive call as a separate running program",
         "correct": false
       }
     ],
@@ -700,15 +700,15 @@
         "correct": true
       },
       {
-        "text": "20",
+        "text": "20 - the upper boundary value, which should be accepted",
         "correct": false
       },
       {
-        "text": "10",
+        "text": "10 - a normal mid-range value, which should be accepted",
         "correct": false
       },
       {
-        "text": "0",
+        "text": "0 - the lower boundary value, which should be accepted",
         "correct": false
       }
     ],
@@ -750,15 +750,15 @@
         "correct": true
       },
       {
-        "text": "The domain name of the web server",
+        "text": "The registered domain name of the web server being contacted",
         "correct": false
       },
       {
-        "text": "The hostname of the specific server",
+        "text": "The hostname of the specific web server that is actually handling this request",
         "correct": false
       },
       {
-        "text": "The path to a file on the server",
+        "text": "The path to the requested file within the server's folders",
         "correct": false
       }
     ],
@@ -775,7 +775,7 @@
         "correct": true
       },
       {
-        "text": "The browser calculates the IP address from the URL using a hash function",
+        "text": "The browser calculates the matching IP address from the URL using a hash function",
         "correct": false
       },
       {
@@ -804,7 +804,7 @@
         "correct": true
       },
       {
-        "text": "It encrypts all data leaving the network",
+        "text": "It encrypts all data packets leaving the network so attackers cannot read them",
         "correct": false
       },
       {
@@ -829,7 +829,7 @@
         "correct": true
       },
       {
-        "text": "A native app runs in any browser without installation",
+        "text": "A native app runs inside any modern browser without needing installation",
         "correct": false
       },
       {
@@ -871,19 +871,19 @@
     "stem": "A Flask form that saves a student's score should use which HTTP method, and why?",
     "options": [
       {
-        "text": "POST - the data travels in the request body, not visible in the URL, and the request changes server-side data",
+        "text": "POST - the data travels in the request body, not the URL, and it changes server data",
         "correct": true
       },
       {
-        "text": "GET - it is faster and the browser can cache the result",
+        "text": "GET - it is faster, and the browser can cache the submitted score for the student's next visit",
         "correct": false
       },
       {
-        "text": "GET - parameters in the URL are encrypted automatically",
+        "text": "GET - parameters in the URL are automatically encrypted by the browser",
         "correct": false
       },
       {
-        "text": "HEAD - it sends the data without a response",
+        "text": "HEAD - it sends the data to the server without needing a response body",
         "correct": false
       }
     ],
@@ -900,15 +900,15 @@
         "correct": true
       },
       {
-        "text": "It creates a new database table called score",
+        "text": "It creates a new database table named score to permanently store all the points",
         "correct": false
       },
       {
-        "text": "It redirects the browser to a page named score",
+        "text": "It redirects the browser away to a different page named score",
         "correct": false
       },
       {
-        "text": "It starts the Flask development server on port /score",
+        "text": "It starts the Flask development server listening on port /score",
         "correct": false
       }
     ],
@@ -921,19 +921,19 @@
     "stem": "A Flask app runs cursor.execute(\"SELECT * FROM users WHERE name = '\" + name + \"'\"). What is the main risk, and the fix?",
     "options": [
       {
-        "text": "SQL injection - use parameterised queries: cursor.execute(\"SELECT * FROM users WHERE name = ?\", (name,))",
+        "text": "SQL injection - fix by using a parameterised query with ? placeholders",
         "correct": true
       },
       {
-        "text": "Slow queries - add an index to the name column",
+        "text": "Slow queries - fix by adding an index on the name column of the users table",
         "correct": false
       },
       {
-        "text": "Data loss - switch from SQLite to a client-server database",
+        "text": "Data loss - fix by switching from SQLite to a client-server database engine",
         "correct": false
       },
       {
-        "text": "Cross-site scripting - escape the output with |safe",
+        "text": "Cross-site scripting - fix by escaping every rendered value with the |safe filter",
         "correct": false
       }
     ],
@@ -950,15 +950,15 @@
         "correct": true
       },
       {
-        "text": "socket() -> connect() -> listen() -> recv()",
+        "text": "socket() -> connect() -> listen() -> accept() -> recv()/send()",
         "correct": false
       },
       {
-        "text": "bind() -> socket() -> accept() -> listen()",
+        "text": "bind() -> socket() -> accept() -> listen() -> recv()/send()",
         "correct": false
       },
       {
-        "text": "socket() -> listen() -> connect() -> bind()",
+        "text": "socket() -> listen() -> connect() -> bind() -> recv()/send()",
         "correct": false
       }
     ],
@@ -1025,7 +1025,7 @@
         "correct": true
       },
       {
-        "text": "A linked list - because seats are added one at a time",
+        "text": "A linked list - because seats are added one at a time as bookings come in",
         "correct": false
       },
       {
@@ -1054,7 +1054,7 @@
         "correct": true
       },
       {
-        "text": "Binary search works on any list, sorted or not",
+        "text": "Binary search works on any list, whether it is sorted or not",
         "correct": false
       },
       {
@@ -1071,19 +1071,19 @@
     "stem": "Table: Employee(EmployeeID, EmployeeName, SkillID, SkillName, CostPerHour), primary key EmployeeID. Why is this table NOT in third normal form (3NF)?",
     "options": [
       {
-        "text": "SkillName and CostPerHour depend on SkillID, not on EmployeeID - a transitive dependency",
+        "text": "SkillName and CostPerHour depend on SkillID, not EmployeeID - a transitive dependency",
         "correct": true
       },
       {
-        "text": "It has no primary key",
+        "text": "It has no primary key, so individual rows cannot be uniquely identified",
         "correct": false
       },
       {
-        "text": "One employee appears on more than one row",
+        "text": "One employee can appear on more than one row, which wastes storage space and invites errors",
         "correct": false
       },
       {
-        "text": "CostPerHour should be stored as text",
+        "text": "CostPerHour is stored as a number when it should be stored as text",
         "correct": false
       }
     ],
@@ -1101,15 +1101,15 @@
         "correct": true
       },
       {
-        "text": "ProjectID alone",
+        "text": "ProjectID on its own is enough to identify each row",
         "correct": false
       },
       {
-        "text": "EmployeeID alone",
+        "text": "EmployeeID on its own is enough to identify each row",
         "correct": false
       },
       {
-        "text": "HoursWorked alone",
+        "text": "HoursWorked on its own is enough to uniquely identify each row",
         "correct": false
       }
     ],
@@ -1127,15 +1127,15 @@
         "correct": true
       },
       {
-        "text": "A deadlock - the table locks forever",
+        "text": "A deadlock - the table locks itself forever once the update begins",
         "correct": false
       },
       {
-        "text": "A syntax error - SQL forbids updating repeated values",
+        "text": "A syntax error - SQL refuses to update a value that is repeated across many different table rows",
         "correct": false
       },
       {
-        "text": "A cascade delete - related rows are removed automatically",
+        "text": "A cascade delete - the change removes related rows in other tables",
         "correct": false
       }
     ],
@@ -1175,19 +1175,19 @@
     "stem": "How does a denial of service (DoS) attack compromise an internet server?",
     "options": [
       {
-        "text": "It floods the server with more requests than it can handle, so legitimate users cannot get a response",
+        "text": "It floods the server with more requests than it can handle, so real users get no response",
         "correct": true
       },
       {
-        "text": "It guesses the administrator password and takes control",
+        "text": "It keeps guessing the administrator password until it takes complete control of the web server",
         "correct": false
       },
       {
-        "text": "It encrypts the server's files and demands payment",
+        "text": "It encrypts the server's files and demands a payment to unlock them",
         "correct": false
       },
       {
-        "text": "It intercepts packets and reads their contents",
+        "text": "It intercepts the server's packets and reads their contents secretly",
         "correct": false
       }
     ],
@@ -1226,19 +1226,19 @@
     "stem": "A firewall is placed between a LAN and the internet. How does it protect the LAN?",
     "options": [
       {
-        "text": "It examines incoming and outgoing packets and blocks traffic that breaks its rules (by port, address or protocol)",
+        "text": "It examines packets in both directions and blocks traffic that breaks its rules",
         "correct": true
       },
       {
-        "text": "It encrypts all traffic leaving the LAN",
+        "text": "It encrypts every packet leaving the LAN so outsiders cannot read it",
         "correct": false
       },
       {
-        "text": "It scans files on the LAN's computers for viruses",
+        "text": "It scans the files on every computer in the LAN for known viruses",
         "correct": false
       },
       {
-        "text": "It physically disconnects the LAN whenever an attack starts",
+        "text": "It physically disconnects the LAN from the internet whenever an attack starts",
         "correct": false
       }
     ],
@@ -1281,15 +1281,15 @@
         "correct": true
       },
       {
-        "text": "O(log n) instead of O(n^2)",
+        "text": "O(log n) per lookup instead of O(n^2) comparisons across the whole list",
         "correct": false
       },
       {
-        "text": "O(n) instead of O(n^2)",
+        "text": "O(n) per lookup instead of O(n^2) for the whole list",
         "correct": false
       },
       {
-        "text": "It removes the need to store the records at all",
+        "text": "It removes the need to store the records in memory at all",
         "correct": false
       }
     ],
@@ -1353,19 +1353,19 @@
     "stem": "Merge sort and quicksort both average O(n log n). Why might merge sort be faster than quicksort on a fixed-capacity array that is nearly sorted already?",
     "options": [
       {
-        "text": "Quicksort's worst case is O(n^2), which nearly sorted data can trigger with a poor pivot; merge sort is always O(n log n)",
+        "text": "A bad pivot on nearly-sorted data makes quicksort O(n^2); merge sort stays O(n log n)",
         "correct": true
       },
       {
-        "text": "Merge sort uses less memory than quicksort",
+        "text": "Merge sort needs less extra memory than quicksort when sorting a large fixed-capacity array",
         "correct": false
       },
       {
-        "text": "Quicksort cannot sort arrays, only linked lists",
+        "text": "Quicksort cannot be implemented on plain arrays, only on linked list structures",
         "correct": false
       },
       {
-        "text": "Merge sort is always O(n) on any data",
+        "text": "Merge sort always runs in O(n) time no matter how the data is ordered",
         "correct": false
       }
     ],
@@ -1378,19 +1378,19 @@
     "stem": "Data sent across the internet is divided into packets. Why are the packets given sequential numbers?",
     "options": [
       {
-        "text": "So the destination can reassemble them in the correct order and detect any that are missing",
+        "text": "So the destination can reassemble them in order and detect missing packets",
         "correct": true
       },
       {
-        "text": "So routers can read the message contents",
+        "text": "So the routers along the way can read and check the contents of each message",
         "correct": false
       },
       {
-        "text": "So the packets travel faster",
+        "text": "So each packet can be sent along the fastest available route",
         "correct": false
       },
       {
-        "text": "So the message is encrypted",
+        "text": "So the message contents stay encrypted from sender to receiver",
         "correct": false
       }
     ],
@@ -1428,19 +1428,19 @@
     "stem": "What is the role of a router in a packet-switching network?",
     "options": [
       {
-        "text": "It reads each packet's destination address and forwards the packet towards that destination, choosing the next hop",
+        "text": "It reads each packet's destination address and forwards it towards that destination",
         "correct": true
       },
       {
-        "text": "It stores every packet until the full message arrives, then sends it on",
+        "text": "It stores every packet until the complete message has arrived, then sends them all on",
         "correct": false
       },
       {
-        "text": "It converts all packets from IPv4 to IPv6",
+        "text": "It converts every passing packet from IPv4 format to IPv6 format",
         "correct": false
       },
       {
-        "text": "It assigns domain names to websites",
+        "text": "It assigns domain names to the websites on its network",
         "correct": false
       }
     ],
@@ -1478,19 +1478,19 @@
     "stem": "An elevator controller allocates memory for the chosen floor number but only releases it on the path where the elevator moves. After many months the system stops working, works again after a power cycle, then fails months later. What is the cause?",
     "options": [
       {
-        "text": "A memory leak - unreleased memory accumulates on the other path until none is left; restarting resets it",
+        "text": "A memory leak - unreleased memory accumulates until none is left, and a restart resets it",
         "correct": true
       },
       {
-        "text": "A virus that activates every few months",
+        "text": "A dormant virus that wakes up and corrupts the controller software every few months or so",
         "correct": false
       },
       {
-        "text": "Worn-out buttons sending double signals",
+        "text": "Worn-out floor buttons that begin sending double signals",
         "correct": false
       },
       {
-        "text": "The hard disk filling up with log files",
+        "text": "The controller's hard disk gradually filling up with log files",
         "correct": false
       }
     ],
@@ -1504,19 +1504,19 @@
     "stem": "What is the difference between a class and an object?",
     "options": [
       {
-        "text": "A class is the blueprint defining attributes and methods; an object is one instance created from that blueprint, holding its own attribute values",
+        "text": "A class is the blueprint; an object is one instance of it with its own attribute values",
         "correct": true
       },
       {
-        "text": "A class holds data; an object holds only methods",
+        "text": "A class holds the data values; an object holds only the method definitions for those values",
         "correct": false
       },
       {
-        "text": "An object is the blueprint; a class is one instance of it",
+        "text": "An object is the blueprint and a class is one instance built from it",
         "correct": false
       },
       {
-        "text": "They are two names for the same thing",
+        "text": "They are two names for the same thing, used interchangeably",
         "correct": false
       }
     ],
@@ -1530,19 +1530,19 @@
     "stem": "Which of these is VERIFICATION of entered data, rather than validation?",
     "options": [
       {
-        "text": "Entering the data twice and comparing the two copies, or visually checking it against the source document",
+        "text": "Double entry or a visual check of the entered data against the original source",
         "correct": true
       },
       {
-        "text": "A range check that rejects values outside set bounds",
+        "text": "A range check that automatically rejects any value falling outside the allowed bounds",
         "correct": false
       },
       {
-        "text": "A presence check that rejects an empty field",
+        "text": "A presence check that rejects the entry when the field is left empty",
         "correct": false
       },
       {
-        "text": "A format check that requires a specific pattern",
+        "text": "A format check that requires the entry to match a specific pattern",
         "correct": false
       }
     ],
@@ -1556,19 +1556,19 @@
     "stem": "What is polymorphism?",
     "options": [
       {
-        "text": "The same method call behaves differently depending on the class of the object it is called on",
+        "text": "The same method call behaves differently depending on the object's class",
         "correct": true
       },
       {
-        "text": "A class inheriting attributes from more than one superclass",
+        "text": "A class inheriting attributes and methods from more than one superclass",
         "correct": false
       },
       {
-        "text": "Hiding an object's data from outside code",
+        "text": "Hiding an object's internal data from code in other classes",
         "correct": false
       },
       {
-        "text": "Creating several objects from one class",
+        "text": "Creating several independent objects from a single class definition",
         "correct": false
       }
     ],
@@ -1610,15 +1610,15 @@
         "correct": true
       },
       {
-        "text": "Eight groups of four hexadecimal digits separated by colons",
+        "text": "Eight groups of four hexadecimal digits, separated by colons, as used in IPv6 addresses",
         "correct": false
       },
       {
-        "text": "A 48-bit value written as six pairs of hex digits",
+        "text": "A 48-bit value written as six pairs of hexadecimal digits",
         "correct": false
       },
       {
-        "text": "Any text string registered with a DNS server",
+        "text": "Any unique text string registered with a DNS server",
         "correct": false
       }
     ],
@@ -1681,19 +1681,19 @@
     "stem": "A vehicle hire program has a superclass Vehicle and subclasses Car and Van (2020 P1 Q1). What is the purpose of a superclass?",
     "options": [
       {
-        "text": "It defines the properties and methods shared by all its subclasses once, so each subclass inherits them",
+        "text": "It defines the shared properties and methods once, and each subclass inherits them",
         "correct": true
       },
       {
-        "text": "It stores every hire record in one place",
+        "text": "It stores every hire record for all vehicles in one place",
         "correct": false
       },
       {
-        "text": "It creates the Car and Van objects automatically",
+        "text": "It creates the Car and Van objects automatically every time the program first starts",
         "correct": false
       },
       {
-        "text": "It prevents subclasses from having their own properties",
+        "text": "It prevents Car and Van from having any properties of their own",
         "correct": false
       }
     ],
@@ -1707,19 +1707,19 @@
     "stem": "Cars must now charge $0.05 per km on top of the daily rate, so Car needs its own version of the hire-cost method that Vehicle already defines (2020 P1 Q1). What is the purpose of polymorphism here?",
     "options": [
       {
-        "text": "It lets the same method call run different code depending on which class the object belongs to, by overriding the inherited method in Car",
+        "text": "It lets each class run its own version of the same method call - Car overrides what it inherits",
         "correct": true
       },
       {
-        "text": "It lets one object store several different values at the same time",
+        "text": "It lets one single object hold several different values in the same property at the very same time",
         "correct": false
       },
       {
-        "text": "It hides the properties of a class from other classes",
+        "text": "It hides a class's properties from code outside that class",
         "correct": false
       },
       {
-        "text": "It lets a subclass inherit from more than one superclass",
+        "text": "It lets one subclass inherit from two or more superclasses at once",
         "correct": false
       }
     ],
@@ -1741,11 +1741,11 @@
         "correct": true
       },
       {
-        "text": "Making the program run faster",
+        "text": "Making the program run faster by keeping related code physically together in one class",
         "correct": false
       },
       {
-        "text": "Removing the need to test the class",
+        "text": "Removing the need to test the class once it has been written and compiled",
         "correct": false
       }
     ],
@@ -1759,19 +1759,19 @@
     "stem": "A data set is already largely sorted. Why might a programmer choose insertion sort rather than quicksort for it (2020 P1 Q2)?",
     "options": [
       {
-        "text": "Insertion sort runs in close to linear time on nearly-sorted data, while quicksort can degrade towards its worst case, especially with a first- or last-item pivot",
+        "text": "On nearly-sorted data insertion sort nears O(n); a bad pivot degrades quicksort toward O(n^2)",
         "correct": true
       },
       {
-        "text": "Insertion sort is always faster than quicksort on every data set",
+        "text": "Insertion sort is always the faster sorting algorithm on any data set, whether already sorted or not",
         "correct": false
       },
       {
-        "text": "Quicksort cannot sort data that is already partly ordered",
+        "text": "Quicksort is unable to sort data that arrives already partly ordered",
         "correct": false
       },
       {
-        "text": "Insertion sort uses less memory because it never compares items",
+        "text": "Insertion sort never compares items, so it always uses less memory",
         "correct": false
       }
     ],
@@ -1837,19 +1837,19 @@
     "stem": "When a recursive procedure runs, what is the role of the stack (2020 P1 Q3e)?",
     "options": [
       {
-        "text": "Each recursive call pushes its return address and local data (such as the parameter value) onto the stack, and they are popped when the call finishes",
+        "text": "Each call pushes a frame with its return address and local data; frames pop on return",
         "correct": true
       },
       {
-        "text": "The stack stores the tree's nodes permanently so they are never lost",
+        "text": "The stack stores the tree's nodes permanently so no node is ever lost",
         "correct": false
       },
       {
-        "text": "The stack queues output values in the order they will be printed",
+        "text": "The stack queues up the output values in the exact order in which they will be printed",
         "correct": false
       },
       {
-        "text": "The stack counts how many times the procedure has been called",
+        "text": "The stack simply counts how many times the procedure has been called",
         "correct": false
       }
     ],
@@ -1863,19 +1863,19 @@
     "stem": "Which of these are real differences between a circular queue and a linear queue implemented in a 1-dimensional array? Select all that apply.",
     "options": [
       {
-        "text": "In a circular queue the rear wraps back to index 0 when it reaches the end, reusing spaces freed by deletions; in a linear queue those front spaces are wasted",
+        "text": "In a circular queue the rear wraps to index 0, reusing freed spaces; a linear queue wastes them",
         "correct": true
       },
       {
-        "text": "A linear queue can report 'full' while empty spaces still exist at the front; a circular queue only fills when every slot is used",
+        "text": "A linear queue can report 'full' with front spaces empty; a circular queue fills every slot first",
         "correct": true
       },
       {
-        "text": "A circular queue stores its items in a random order",
+        "text": "A circular queue stores its items in a random order within the array, which is how it saves space",
         "correct": false
       },
       {
-        "text": "A linear queue does not need a front pointer",
+        "text": "A linear queue can manage with a rear pointer only, because it never needs to track a front pointer",
         "correct": false
       }
     ],
@@ -1889,19 +1889,19 @@
     "stem": "What does packet-switching mean on the internet (2020 P1 Q4)?",
     "options": [
       {
-        "text": "The data is split into packets that are routed independently across the network and reassembled in order at the destination",
+        "text": "Data is split into packets that travel independently and are reassembled at the destination",
         "correct": true
       },
       {
-        "text": "A dedicated physical circuit is reserved between sender and receiver for the whole message",
+        "text": "A dedicated physical circuit is reserved between the sender and receiver for the entire message",
         "correct": false
       },
       {
-        "text": "Every packet must travel along the single shortest path",
+        "text": "Every packet of the message must travel along the single shortest path",
         "correct": false
       },
       {
-        "text": "Each packet carries a complete copy of the whole message",
+        "text": "Each packet carries a complete copy of the whole message for safety",
         "correct": false
       }
     ],
@@ -1941,19 +1941,19 @@
     "stem": "Which statement correctly distinguishes validation from verification during data entry (2020 P1 Q5)?",
     "options": [
       {
-        "text": "Validation checks that entered data is reasonable and follows rules (e.g. a check digit); verification checks the entered data matches the original source (e.g. double entry or proofreading)",
+        "text": "Validation checks data against rules like check digits; verification checks the source",
         "correct": true
       },
       {
-        "text": "Validation and verification are two names for the same check",
+        "text": "Validation and verification are two names for exactly the same check",
         "correct": false
       },
       {
-        "text": "Validation is done by the computer and verification is always done on paper",
+        "text": "Validation is always done by the computer; verification is always done on paper",
         "correct": false
       },
       {
-        "text": "Verification checks data against format rules; validation re-types the data twice",
+        "text": "Verification checks data against format rules; validation means re-typing the data twice",
         "correct": false
       }
     ],
@@ -1967,19 +1967,19 @@
     "stem": "A college table stores one row per student with that student's four courses crammed into the same row (repeating group of Course ID, Subject, Teacher ID, Teacher Name, Room Number values) (2020 P1 Q6). Why is this table NOT in first normal form (1NF)?",
     "options": [
       {
-        "text": "Some attributes hold multiple values for one row - 1NF requires every attribute to hold a single atomic value, with no repeating groups",
+        "text": "Some attributes hold several values in one row, breaking 1NF's rule of atomic values",
         "correct": true
       },
       {
-        "text": "The table has no primary key",
+        "text": "The table has no primary key, so its individual rows cannot ever be uniquely identified",
         "correct": false
       },
       {
-        "text": "Student names are stored as two separate columns",
+        "text": "Student names are split across two separate columns",
         "correct": false
       },
       {
-        "text": "Room Number is stored as a number instead of text",
+        "text": "Room Number is stored as a number when it should be text",
         "correct": false
       }
     ],
@@ -1993,19 +1993,19 @@
     "stem": "Table: Course(CourseID, Subject, TeacherID, TeacherName, RoomNumber), primary key CourseID. Each teacher delivers all their lessons in one room (2020 P1 Q6). Why is this table NOT in third normal form (3NF)?",
     "options": [
       {
-        "text": "TeacherName and RoomNumber depend on TeacherID, not on CourseID - a transitive dependency",
+        "text": "TeacherName and RoomNumber depend on TeacherID - a transitive dependency",
         "correct": true
       },
       {
-        "text": "CourseID is not unique",
+        "text": "CourseID is not unique, so the individual rows cannot be told apart at all",
         "correct": false
       },
       {
-        "text": "Subject appears in more than one row",
+        "text": "Subject is repeated on many rows, which breaks 3NF",
         "correct": false
       },
       {
-        "text": "The table has a foreign key",
+        "text": "The table contains a foreign key, which 3NF forbids",
         "correct": false
       }
     ],
