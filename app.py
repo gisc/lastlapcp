@@ -352,7 +352,7 @@ def answer(qid):
         return render_template("quiz.html", q=q, opts=opts, topic=topic, tier=tier, paper=paper,
                                empty=False,
                                feedback={"correct": correct, "xp": xp, "typed": typed.strip(),
-                                         "accepted": [o["text"] for o in opts]}, stats=stats)
+                                         "accepted": sorted({o["text"] for o in opts})}, stats=stats)
     correct_ids = {o["id"] for o in opts if o["is_correct"]}
     if q["qtype"] == "checkbox":
         chosen = {int(x) for x in request.form.getlist("opt")}
