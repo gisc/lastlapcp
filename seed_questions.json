@@ -21,7 +21,7 @@
     "topic": "Databases",
     "paper": "P1",
     "qtype": "checkbox",
-    "stem": "ER diagrams can have ___ relationships.",
+    "stem": "An ER diagram for a relational database in third normal form (3NF) can contain which relationships?",
     "options": [
       {
         "text": "one-to-one",
@@ -36,8 +36,8 @@
         "correct": false
       }
     ],
-    "explanation": "One-to-one and one-to-many relationships can be implemented directly with foreign keys. A many-to-many relationship cannot be implemented directly in a relational database: resolve it with a link (junction) entity and two one-to-many relationships before implementation.",
-    "misconception": "Assuming every relationship seen in real life, including many-to-many, belongs in the final ER diagram."
+    "explanation": "In 3NF every relationship is implemented with foreign keys, which only give one-to-one or one-to-many. A many-to-many relationship cannot be represented directly: it must be resolved into a link (junction) entity with two one-to-many relationships. So a fully normalised ER diagram in 3NF contains only one-to-one and one-to-many relationships.",
+    "misconception": "Drawing a many-to-many relationship straight between two entities in a normalised design instead of resolving it with a link entity."
   },
   {
     "topic": "OOP",
