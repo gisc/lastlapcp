@@ -43,7 +43,7 @@ def _parse_roster():
         out.append({"class": cls, "name": name, "email": email, "norm": _norm_email(email)})
     return out
 
-ROSTER = _parse_roster()
+ROSTER_ENV = _parse_roster()
 ROSTER_GROUPS = [("25S11 + 25S22 (combined lessons)", ("25S11", "25S22")), ("25S21", ("25S21",))]
 
 app = Flask(__name__)
@@ -102,6 +102,9 @@ CREATE TABLE IF NOT EXISTS attempts(
   chosen TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_q ON attempts(question_id);
+CREATE TABLE IF NOT EXISTS roster(
+  email TEXT PRIMARY KEY, name TEXT, class TEXT
+);
 """
 
 def seed_questions(db):
@@ -320,10 +323,14 @@ def teacher():
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
-    if ROSTER:
+    roster = [{"name": r["name"], "norm": _norm_email(r["email"]), "class": r["class"]}
+              for r in db.execute("SELECT name,email,class FROM roster").fetchall()]
+    if not roster:
+        roster = ROSTER_ENV
+    if roster:
         groups = []
         for label, classes in ROSTER_GROUPS:
-            members = [r for r in ROSTER if r["class"] in classes]
+            members = [r for r in roster if r["class"] in classes]
             rows = [row_for(r["name"], r["norm"]) for r in members]
             rows.sort(key=lambda r: (not r["signed_in"], -(r["stats"]["xp"] if r["signed_in"] else 0)))
             groups.append({"label": label, "rows": rows})
@@ -334,6 +341,31 @@ def teacher():
     rows.sort(key=lambda r: -r["stats"]["xp"])
     return render_template("teacher.html", groups=[{"label": "Signed-in students", "rows": rows}],
                            topics=topics, roster=False)
+
+@app.route("/teacher/admin/roster", methods=["GET", "POST"])
+@teacher_required
+def roster_admin():
+    db = get_db()
+    if request.method == "POST":
+        text = request.form.get("roster_text", "")
+        entries = []
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            bits = line.split(":", 2)
+            if len(bits) != 3 or "@" not in bits[2]:
+                continue
+            cls, name, email = (b.strip() for b in bits)
+            entries.append((_norm_email(email), name, cls))
+        db.execute("DELETE FROM roster")
+        db.executemany("INSERT INTO roster(email,name,class) VALUES(?,?,?)", entries)
+        db.commit()
+        return redirect(url_for("roster_admin", saved=len(entries)))
+    rows = db.execute("SELECT * FROM roster ORDER BY class, name").fetchall()
+    current = "\n".join(f"{r['class']}:{r['name']}:{r['email']}" for r in rows)
+    return render_template("roster.html", current=current, saved=request.args.get("saved"),
+                           count=len(rows))
 
 @app.route("/healthz")
 def healthz():

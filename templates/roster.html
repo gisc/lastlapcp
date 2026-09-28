@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - Class roster{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Class roster</h1>
+  <p class="muted">The teacher dashboard lists these students by class, including any who have not signed in yet.</p>
+  {% if saved %}<p class="ok">Roster saved: {{ saved }} students.</p>{% endif %}
+  <form method="post">
+    <label>One student per line: <b>class:name:email</b> (use the personal Gmail students sign in with)</label>
+    <textarea name="roster_text" rows="16" placeholder="25S11:Chan Hao Yang:haoyang2318@gmail.com">{{ current }}</textarea>
+    <button class="btn" type="submit">Save roster</button>
+  </form>
+  <p class="muted small">Saving replaces the whole roster. It never touches student progress.</p>
+  <a href="{{ url_for('teacher') }}">Back to dashboard</a>
+</div>
+{% endblock %}

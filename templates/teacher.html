@@ -9,6 +9,7 @@
     {{ ns.signed }} of {{ ns.total }} students signed in so far.{% if not roster %} Roster not configured.{% endif %}
   </p>
   <a class="btn" href="{{ url_for('bank') }}">Question bank</a>
+  <a class="btn ghost" href="{{ url_for('roster_admin') }}">Edit roster</a>
 </div>
 {% for g in groups %}
 <div class="card">
