@@ -14,8 +14,16 @@ from authlib.integrations.flask_client import OAuth
 
 SGT = timezone(timedelta(hours=8))
 DB_PATH = os.environ.get("DATABASE_PATH", "/data/lastlapcp.db")
-TEACHER_EMAILS = {e.strip().lower() for e in os.environ.get("TEACHER_EMAILS", "").split(",") if e.strip()}
-ALLOWED_EMAILS = {e.strip().lower() for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
+def _norm_email(e):
+    e = e.strip().lower()
+    local, sep, domain = e.partition("@")
+    if sep and domain in ("gmail.com", "googlemail.com"):
+        local = local.replace(".", "")
+        return local + "@gmail.com"
+    return e
+
+TEACHER_EMAILS = {_norm_email(e) for e in os.environ.get("TEACHER_EMAILS", "").split(",") if e.strip()}
+ALLOWED_EMAILS = {_norm_email(e) for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-secret-change-me")
@@ -196,7 +204,7 @@ def login_google():
 def auth_callback():
     token = google.authorize_access_token()
     info = token.get("userinfo") or {}
-    email = (info.get("email") or "").lower()
+    email = _norm_email(info.get("email") or "")
     if not email:
         return render_template("denied.html", reason="Google did not return an email address."), 403
     if ALLOWED_EMAILS and email not in ALLOWED_EMAILS:
