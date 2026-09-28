@@ -307,3 +307,118 @@ init_db()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
+
+
+# ---------------- teacher question bank ----------------
+
+def _topics(db):
+    return [r["topic"] for r in db.execute("SELECT DISTINCT topic FROM questions ORDER BY topic")]
+
+@app.route("/teacher/questions")
+@teacher_required
+def bank():
+    db = get_db()
+    topic = request.args.get("topic") or ""
+    if topic:
+        qs = db.execute("SELECT * FROM questions WHERE topic=? ORDER BY id", (topic,)).fetchall()
+    else:
+        qs = db.execute("SELECT * FROM questions ORDER BY topic, id").fetchall()
+    items = [{"q": q, "opts": db.execute("SELECT * FROM options WHERE question_id=? ORDER BY ord", (q["id"],)).fetchall()}
+             for q in qs]
+    return render_template("bank.html", items=items, topics=_topics(db), topic=topic)
+
+def _read_qform(count=None):
+    """Parse the add/edit form. count forces exactly that many option rows (edit);
+    None (add) drops blank rows."""
+    texts = [t.strip() for t in request.form.getlist("opt_text")]
+    if count is not None:
+        texts = (texts + [""] * count)[:count]
+    corrects = set(request.form.getlist("opt_correct"))
+    opts = []
+    for i, t in enumerate(texts):
+        if count is not None or t or str(i) in corrects:
+            opts.append({"text": t, "correct": str(i) in corrects})
+    form = {
+        "topic": request.form.get("topic", "").strip(),
+        "paper": request.form.get("paper", "").strip() or "P1",
+        "qtype": request.form.get("qtype", "mcq"),
+        "stem": request.form.get("stem", "").strip(),
+        "explanation": request.form.get("explanation", "").strip(),
+        "misconception": request.form.get("misconception", "").strip(),
+        "opts": opts,
+    }
+    errs = []
+    if not form["topic"]:
+        errs.append("Topic is required.")
+    if form["qtype"] not in ("mcq", "checkbox"):
+        errs.append("Type must be mcq or checkbox.")
+    if not form["stem"]:
+        errs.append("The question stem is required.")
+    if not form["explanation"]:
+        errs.append("The Why explanation is required.")
+    if len(opts) < 2:
+        errs.append("At least two options are required.")
+    elif any(not o["text"] for o in opts):
+        errs.append("Every option needs text.")
+    nc = sum(1 for o in opts if o["correct"])
+    if form["qtype"] == "mcq" and nc != 1:
+        errs.append("An MCQ needs exactly one correct option ticked.")
+    if form["qtype"] == "checkbox" and nc < 2:
+        errs.append("A checkbox question needs at least two correct options ticked.")
+    return form, errs
+
+def _insert_question(db, form):
+    cur = db.execute(
+        "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception) VALUES(?,?,?,?,?,?)",
+        (form["topic"], form["paper"], form["qtype"], form["stem"], form["explanation"], form["misconception"]))
+    qid = cur.lastrowid
+    for i, o in enumerate(form["opts"]):
+        db.execute("INSERT INTO options(question_id,ord,text,is_correct) VALUES(?,?,?,?)",
+                   (qid, i, o["text"], 1 if o["correct"] else 0))
+    return qid
+
+@app.route("/teacher/questions/new", methods=["GET", "POST"])
+@teacher_required
+def bank_new():
+    db = get_db()
+    if request.method == "POST":
+        form, errs = _read_qform()
+        if not errs:
+            qid = _insert_question(db, form)
+            db.commit()
+            return redirect(url_for("bank_edit", qid=qid, saved=1))
+        return render_template("qform.html", form=form, errs=errs, topics=_topics(db),
+                               qid=None, natt=None, saved=None), 400
+    form = {"topic": "", "paper": "P1", "qtype": "mcq", "stem": "", "explanation": "",
+            "misconception": "", "opts": [{"text": "", "correct": False} for _ in range(4)]}
+    return render_template("qform.html", form=form, errs=[], topics=_topics(db),
+                           qid=None, natt=None, saved=None)
+
+@app.route("/teacher/questions/<int:qid>/edit", methods=["GET", "POST"])
+@teacher_required
+def bank_edit(qid):
+    db = get_db()
+    q, opts = load_question(db, qid)
+    if not q:
+        abort(404)
+    n = len(opts)
+    natt = db.execute("SELECT COUNT(*) c FROM attempts WHERE question_id=?", (qid,)).fetchone()["c"]
+    if request.method == "POST":
+        form, errs = _read_qform(count=n)
+        if not errs:
+            db.execute(
+                "UPDATE questions SET topic=?,paper=?,qtype=?,stem=?,explanation=?,misconception=? WHERE id=?",
+                (form["topic"], form["paper"], form["qtype"], form["stem"],
+                 form["explanation"], form["misconception"], qid))
+            for o, row in zip(form["opts"], opts):
+                db.execute("UPDATE options SET text=?, is_correct=? WHERE id=?",
+                           (o["text"], 1 if o["correct"] else 0, row["id"]))
+            db.commit()
+            return redirect(url_for("bank_edit", qid=qid, saved=1))
+        return render_template("qform.html", form=form, errs=errs, topics=_topics(db),
+                               qid=qid, natt=natt, saved=None), 400
+    form = {"topic": q["topic"], "paper": q["paper"], "qtype": q["qtype"], "stem": q["stem"],
+            "explanation": q["explanation"], "misconception": q["misconception"] or "",
+            "opts": [{"text": o["text"], "correct": bool(o["is_correct"])} for o in opts]}
+    return render_template("qform.html", form=form, errs=[], topics=_topics(db),
+                           qid=qid, natt=natt, saved=request.args.get("saved"))

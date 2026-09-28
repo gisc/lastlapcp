@@ -58,3 +58,9 @@ h1 { margin: 6px 0 10px; font-size: 1.5rem; } h2 { margin: 4px 0 10px; font-size
 
 .flame { width: 15px; height: 15px; fill: #e25822; vertical-align: -2px; }
 .streak .flame { width: 18px; height: 18px; }
+
+/* teacher question bank forms */
+.flabel { display: block; font-weight: 700; margin: 14px 0 6px; }
+.field { width: 100%; padding: 10px; border: 1px solid #cdd7e4; border-radius: 8px; font: inherit; box-sizing: border-box; background: #fff; color: inherit; }
+.optedit { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.optedit input[type=checkbox] { transform: scale(1.4); accent-color: var(--good); flex: 0 0 auto; }

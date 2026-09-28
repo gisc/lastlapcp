@@ -4,6 +4,7 @@
 <div class="card">
   <h1>Class progress</h1>
   <p class="muted">{{ rows|length }} students signed in so far. Sorted by XP.</p>
+  <a class="btn" href="{{ url_for('bank') }}">Question bank</a>
 </div>
 {% for r in rows %}
 <div class="card">

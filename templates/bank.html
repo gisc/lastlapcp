@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - Question bank{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Question bank</h1>
+  <p class="muted">{{ items|length }} question{{ 's' if items|length != 1 }}{% if topic %} in {{ topic }}{% endif %}. Correct answers are green.</p>
+  <div class="chips">
+    <a class="chip" href="{{ url_for('bank') }}">All</a>
+    {% for t in topics %}<a class="chip" href="{{ url_for('bank', topic=t) }}">{{ t }}</a>{% endfor %}
+  </div>
+</div>
+<div class="card center">
+  <a class="btn" href="{{ url_for('bank_new') }}">Add a question</a>
+  <a class="btn ghost" href="{{ url_for('teacher') }}">Teacher dashboard</a>
+</div>
+{% for it in items %}
+<div class="card">
+  <div class="qmeta"><span class="tag">{{ it.q['topic'] }}</span><span class="tag paper">{{ it.q['paper'] }}</span>
+    <span class="tag">{{ 'Pick ALL that apply' if it.q['qtype']=='checkbox' else 'Pick ONE' }}</span>
+    <span class="tag">#{{ it.q['id'] }}</span></div>
+  <div class="stem">{{ it.q['stem'] }}</div>
+  {% for o in it.opts %}
+  <div class="opt result {{ 'good' if o['is_correct'] else '' }}"><span>{{ o['text'] }}</span></div>
+  {% endfor %}
+  <div class="expl"><b>Why:</b> {{ it.q['explanation'] }}</div>
+  {% if it.q['misconception'] %}<div class="expl trap"><b>Common trap:</b> {{ it.q['misconception'] }}</div>{% endif %}
+  <a class="btn ghost" href="{{ url_for('bank_edit', qid=it.q['id']) }}">Edit</a>
+</div>
+{% endfor %}
+{% endblock %}

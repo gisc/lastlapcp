@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ 'Edit question' if qid else 'Add question' }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ 'Edit question #' ~ qid if qid else 'Add a question' }}</h1>
+  {% if saved %}<div class="verdict good">Saved.</div>{% endif %}
+  {% for e in errs %}<div class="verdict bad">{{ e }}</div>{% endfor %}
+  <form method="post">
+    <label class="flabel">Topic</label>
+    <input class="field" name="topic" list="topiclist" value="{{ form.topic }}" required>
+    <datalist id="topiclist">{% for t in topics %}<option value="{{ t }}">{% endfor %}</datalist>
+    <label class="flabel">Paper</label>
+    <input class="field" name="paper" value="{{ form.paper }}">
+    <label class="flabel">Type</label>
+    <label class="opt"><input type="radio" name="qtype" value="mcq" {{ 'checked' if form.qtype == 'mcq' }}><span>MCQ - pick ONE</span></label>
+    <label class="opt"><input type="radio" name="qtype" value="checkbox" {{ 'checked' if form.qtype == 'checkbox' }}><span>Checkbox - pick ALL that apply</span></label>
+    <label class="flabel">Question stem</label>
+    <textarea class="field" name="stem" rows="3" required>{{ form.stem }}</textarea>
+    <label class="flabel">Options - tick the correct answer{{ 's (at least two)' if form.qtype == 'checkbox' else ' (exactly one)' }}</label>
+    {% for o in form.opts %}
+    <div class="optedit">
+      <input type="checkbox" name="opt_correct" value="{{ loop.index0 }}" {{ 'checked' if o.correct }}>
+      <input class="field" name="opt_text" value="{{ o.text }}" placeholder="Option {{ loop.index }}" required>
+    </div>
+    {% endfor %}
+    <label class="flabel">Why (shown after the student answers)</label>
+    <textarea class="field" name="explanation" rows="3" required>{{ form.explanation }}</textarea>
+    <label class="flabel">Common trap (optional)</label>
+    <textarea class="field" name="misconception" rows="2">{{ form.misconception }}</textarea>
+    <button class="btn big" type="submit">Save question</button>
+  </form>
+  {% if natt is not none %}
+  <p class="muted small">{{ natt }} student attempt{{ 's' if natt != 1 }} already recorded on this question. Edits apply to future attempts only - past XP and stats stay as recorded.</p>
+  {% endif %}
+  <a class="btn ghost" href="{{ url_for('bank') }}">Back to question bank</a>
+</div>
+{% endblock %}
