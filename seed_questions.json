@@ -1,0 +1,1067 @@
+[
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In a class diagram, inheritance shows ___ pointing arrows from subclasses to their superclass.",
+    "options": [
+      {
+        "text": "downward",
+        "correct": false
+      },
+      {
+        "text": "upward",
+        "correct": true
+      }
+    ],
+    "explanation": "The inheritance arrow points UP from each subclass to its superclass - read it as \"is-a\" (a Worker is-a Bee). Composition (\"has-a\") is a different relationship: the classes sit side by side joined by a line - in full UML, with a filled diamond at the whole's end.",
+    "misconception": "Drawing inheritance arrows from the superclass down to its subclasses, because the superclass is written at the top."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "ER diagrams can have ___ relationships.",
+    "options": [
+      {
+        "text": "one-to-one",
+        "correct": true
+      },
+      {
+        "text": "one-to-many",
+        "correct": true
+      },
+      {
+        "text": "many-to-many",
+        "correct": false
+      }
+    ],
+    "explanation": "One-to-one and one-to-many relationships can be implemented directly with foreign keys. A many-to-many relationship cannot be implemented directly in a relational database: resolve it with a link (junction) entity and two one-to-many relationships before implementation.",
+    "misconception": "Assuming every relationship seen in real life, including many-to-many, belongs in the final ER diagram."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In a class diagram, which symbol marks a PRIVATE attribute or method?",
+    "options": [
+      {
+        "text": "+",
+        "correct": false
+      },
+      {
+        "text": "-",
+        "correct": true
+      },
+      {
+        "text": "#",
+        "correct": false
+      },
+      {
+        "text": "*",
+        "correct": false
+      }
+    ],
+    "explanation": "+ means public, - means private. Private members can only be accessed from inside the class itself; other code must go through public get/set methods. This is what makes encapsulation work."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is instantiation?",
+    "options": [
+      {
+        "text": "Creating an object (an instance) from a class",
+        "correct": true
+      },
+      {
+        "text": "Copying the attributes of one object into another",
+        "correct": false
+      },
+      {
+        "text": "Defining a subclass that inherits from a superclass",
+        "correct": false
+      },
+      {
+        "text": "Hiding an object's attributes from outside code",
+        "correct": false
+      }
+    ],
+    "explanation": "A class is the blueprint; instantiation is creating an actual object from that blueprint, e.g. worker1 = Worker(101). The object holds its own attribute values but shares the class's methods. (2024 P1 Q3b tested this definition.)"
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A bee simulation has a Bee superclass with subclasses Queen, Worker and Drone. Each subclass calculates energy use per cycle differently, through the same method name updateEnergy(). Which OOP ideas does this design use?",
+    "options": [
+      {
+        "text": "Inheritance - the subclasses reuse the attributes and methods of Bee",
+        "correct": true
+      },
+      {
+        "text": "Polymorphism - the same method call updateEnergy() behaves differently for each subclass",
+        "correct": true
+      },
+      {
+        "text": "Encapsulation - bundling data with methods and restricting direct access to the data",
+        "correct": true
+      },
+      {
+        "text": "Compilation - converting the classes into machine code",
+        "correct": false
+      }
+    ],
+    "explanation": "All three are core OOP ideas. Compilation is a language-implementation step, not an OOP design idea. (2024 P1 Q3 asked you to describe exactly these three with examples from the simulation.)"
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A class Order contains a list of OrderLine objects. Which relationship is this, and how is it drawn?",
+    "options": [
+      {
+        "text": "Composition - a connecting line between the classes (a filled diamond at the whole's end in UML), read as \"has-a\"",
+        "correct": true
+      },
+      {
+        "text": "Inheritance - an arrow from OrderLine up to Order",
+        "correct": false
+      },
+      {
+        "text": "Inheritance - an arrow from Order up to OrderLine",
+        "correct": false
+      },
+      {
+        "text": "Polymorphism - no connecting line is needed",
+        "correct": false
+      }
+    ],
+    "explanation": "An Order HAS-A set of OrderLines, so this is composition: a line joining the classes, with the diamond at the Order (whole) end in UML. Arrows are only for inheritance (is-a)."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A library system needs to record that MEMBERS borrow many BOOKS, and each BOOK can be borrowed by many MEMBERS over time. How is this implemented in a relational database?",
+    "options": [
+      {
+        "text": "A link table LOAN with foreign keys to MEMBER and BOOK, giving two one-to-many relationships",
+        "correct": true
+      },
+      {
+        "text": "A many-to-many relationship drawn directly between MEMBER and BOOK",
+        "correct": false
+      },
+      {
+        "text": "A comma-separated list of book IDs stored inside the MEMBER table",
+        "correct": false
+      },
+      {
+        "text": "A foreign key to BOOK placed inside the MEMBER table",
+        "correct": false
+      }
+    ],
+    "explanation": "Many-to-many must be resolved with a link (junction) entity. LOAN(MemberID, BookID, LoanDate, ...) also gives you somewhere to store facts about the borrowing itself, such as the loan date."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Why should a supplier's telephone number NOT be stored as an integer?",
+    "options": [
+      {
+        "text": "A leading zero is lost, and no arithmetic is ever performed on a phone number",
+        "correct": true
+      },
+      {
+        "text": "Integers cannot hold 8 digits",
+        "correct": false
+      },
+      {
+        "text": "SQL does not allow digits in a numeric column",
+        "correct": false
+      },
+      {
+        "text": "Text always uses less storage than an integer",
+        "correct": false
+      }
+    ],
+    "explanation": "Store data in the type that matches how it is used. A phone number is an identifier, not a quantity: leading zeros matter (+65, 0812...) and you never add or average phone numbers. (2025 P1 Q3d.)"
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Table: Product(ProductCode, Description, Price, StockLevel, MinStockLevel, SupplierID). Which SQL query lists the description and price of products that need reordering?",
+    "options": [
+      {
+        "text": "SELECT Description, Price FROM Product WHERE StockLevel < MinStockLevel;",
+        "correct": true
+      },
+      {
+        "text": "SELECT Description, Price FROM Product WHERE StockLevel > MinStockLevel;",
+        "correct": false
+      },
+      {
+        "text": "SELECT ALL FROM Product WHERE StockLevel < MinStockLevel;",
+        "correct": false
+      },
+      {
+        "text": "DELETE FROM Product WHERE StockLevel < MinStockLevel;",
+        "correct": false
+      }
+    ],
+    "explanation": "Compare the two columns row by row: reorder when the current stock drops below the minimum. SELECT names the columns you want back; SELECT ALL is not valid SQL. (2025 P1 Q3c.)"
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which statements about keys in a relational database are TRUE?",
+    "options": [
+      {
+        "text": "A primary key uniquely identifies each row in its table",
+        "correct": true
+      },
+      {
+        "text": "A foreign key in one table refers to the primary key of another table",
+        "correct": true
+      },
+      {
+        "text": "A table can have several primary keys at the same time",
+        "correct": false
+      },
+      {
+        "text": "A foreign key value may be left NULL if the relationship is optional",
+        "correct": true
+      }
+    ],
+    "explanation": "One primary key per table (it may be composite, i.e. made of several columns, but it is still one key). Foreign keys create the links between tables and can be NULL for optional relationships."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A company considers replacing its relational database with a NoSQL DBMS. Which are valid reasons to STAY with the relational database?",
+    "options": [
+      {
+        "text": "The data has a fixed, well-defined structure that fits tables",
+        "correct": true
+      },
+      {
+        "text": "Complex queries with joins across several tables are needed",
+        "correct": true
+      },
+      {
+        "text": "Data integrity is enforced through keys and constraints",
+        "correct": true
+      },
+      {
+        "text": "NoSQL databases cannot store large amounts of data",
+        "correct": false
+      }
+    ],
+    "explanation": "NoSQL scales well and handles unstructured data, but you give up declarative joins, mature standardised querying, and built-in integrity constraints. (2025 P1 Q3f asked for two such reasons.)"
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Which pair correctly matches the purpose of backing up and archiving data?",
+    "options": [
+      {
+        "text": "Backup: recovery after loss or corruption. Archive: long-term storage of data no longer needed day-to-day",
+        "correct": true
+      },
+      {
+        "text": "Backup: long-term storage for legal reasons. Archive: fast daily recovery",
+        "correct": false
+      },
+      {
+        "text": "They are two names for the same process",
+        "correct": false
+      },
+      {
+        "text": "Backup deletes old data. Archive encrypts current data",
+        "correct": false
+      }
+    ],
+    "explanation": "Backups protect against loss (hardware failure, accidental deletion, ransomware). Archives move old data out of the live system for record-keeping or compliance. (2024 P1 Q4b.)"
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "The ASCII code for the character 'O' is denary 79. What is 79 in hexadecimal?",
+    "options": [
+      {
+        "text": "4F",
+        "correct": true
+      },
+      {
+        "text": "79",
+        "correct": false
+      },
+      {
+        "text": "F4",
+        "correct": false
+      },
+      {
+        "text": "413",
+        "correct": false
+      }
+    ],
+    "explanation": "79 = 4 x 16 + 15. The remainder 15 is written F, so 79 is 4F. A common slip is writing the digits the wrong way round (F4 = 244). (2024 P1 Q1d.)"
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is the denary value of the binary number 1101 0111?",
+    "options": [
+      {
+        "text": "215",
+        "correct": true
+      },
+      {
+        "text": "183",
+        "correct": false
+      },
+      {
+        "text": "135",
+        "correct": false
+      },
+      {
+        "text": "219",
+        "correct": false
+      }
+    ],
+    "explanation": "128 + 64 + 16 + 4 + 2 + 1 = 215. Read the place values left to right: 128, 64, 32, 16, 8, 4, 2, 1."
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are genuine benefits of Unicode over ASCII for encoding characters?",
+    "options": [
+      {
+        "text": "It can represent characters from many languages and scripts, not just English",
+        "correct": true
+      },
+      {
+        "text": "It can represent symbols and emoji that ASCII has no codes for",
+        "correct": true
+      },
+      {
+        "text": "It makes text files smaller than ASCII in all cases",
+        "correct": false
+      },
+      {
+        "text": "It uses a much larger range of code values than ASCII's 128",
+        "correct": true
+      }
+    ],
+    "explanation": "ASCII has 128 codes, enough for English letters, digits and basic punctuation only. Unicode assigns code points to over a hundred thousand characters. UTF-8 Unicode text is not smaller for non-English text, so size is not the benefit. (2025 P1 Q2f, 2024 P1 Q1diii.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A stack is implemented as a STATIC array of 10 string elements. Which statements are true?",
+    "options": [
+      {
+        "text": "Items are removed from the same end they were added (last in, first out)",
+        "correct": true
+      },
+      {
+        "text": "The stack can grow beyond 10 items whenever it needs to",
+        "correct": false
+      },
+      {
+        "text": "Popping from an empty stack causes a stack underflow error",
+        "correct": true
+      },
+      {
+        "text": "The oldest item is always removed first",
+        "correct": false
+      }
+    ],
+    "explanation": "A stack is LIFO: the newest item leaves first (that is why a stack of X, Y, Z reverses to Z, Y, X). A static array has a fixed size, so pushing an 11th item causes overflow; a dynamic linked list could grow instead. (2025 P1 Q4.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In a CIRCULAR queue stored in an array of size 8, the rear pointer reaches the last slot but slot 0 and slot 1 are free. What happens on the next enqueue?",
+    "options": [
+      {
+        "text": "The item is added at slot 0 - the rear wraps around to the start",
+        "correct": true
+      },
+      {
+        "text": "The item is rejected because the queue is full",
+        "correct": false
+      },
+      {
+        "text": "All items are shifted down to make room at the end",
+        "correct": false
+      },
+      {
+        "text": "The array is automatically doubled in size",
+        "correct": false
+      }
+    ],
+    "explanation": "That is the whole point of a circular queue: the rear pointer wraps to index 0 using rear = (rear + 1) MOD size, reusing slots freed by dequeues. A plain linear queue would report full even with free slots."
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are benefits of implementing a stack as a dynamic linked list instead of a static array?",
+    "options": [
+      {
+        "text": "It only uses memory for the items actually stored, growing and shrinking as needed",
+        "correct": true
+      },
+      {
+        "text": "There is no fixed maximum size to plan for in advance",
+        "correct": true
+      },
+      {
+        "text": "It removes the need for a pointer to the top of the stack",
+        "correct": false
+      },
+      {
+        "text": "Push and pop become faster than O(1)",
+        "correct": false
+      }
+    ],
+    "explanation": "Dynamic structures match memory use to actual content and avoid a hard capacity limit. You still need a top pointer, and push/pop are already O(1) for both designs. (2025 P1 Q4d asked for two benefits of the dynamic structure.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A binary SEARCH tree holds 7, 3, 9, 1, 5, 8, 12 (inserted in that order). Which traversal visits the values in ascending sorted order?",
+    "options": [
+      {
+        "text": "In-order (left, root, right)",
+        "correct": true
+      },
+      {
+        "text": "Pre-order (root, left, right)",
+        "correct": false
+      },
+      {
+        "text": "Post-order (left, right, root)",
+        "correct": false
+      },
+      {
+        "text": "Breadth-first (level by level)",
+        "correct": false
+      }
+    ],
+    "explanation": "In a BST every left subtree holds smaller values and every right subtree holds larger values, so left-root-right (in-order) yields 1, 3, 5, 7, 8, 9, 12: fully sorted."
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "In a hash table, what is a collision?",
+    "options": [
+      {
+        "text": "Two different keys produce the same hash value, so both map to the same slot",
+        "correct": true
+      },
+      {
+        "text": "The hash function returns a negative number",
+        "correct": false
+      },
+      {
+        "text": "Two records contain identical data values",
+        "correct": false
+      },
+      {
+        "text": "The table runs out of memory and crashes",
+        "correct": false
+      }
+    ],
+    "explanation": "Collisions are unavoidable once more keys exist than slots. Handle them by chaining (a linked list per slot) or open addressing (probe for the next free slot). A good hash function spreads keys evenly to keep collisions rare."
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What is the one precondition for a binary search to work on an array?",
+    "options": [
+      {
+        "text": "The data must be sorted",
+        "correct": true
+      },
+      {
+        "text": "The data must contain no duplicate values",
+        "correct": false
+      },
+      {
+        "text": "The array must have an odd number of items",
+        "correct": false
+      },
+      {
+        "text": "The data must be stored as numbers, not strings",
+        "correct": false
+      }
+    ],
+    "explanation": "Binary search discards half the remaining data each step by comparing with the middle item. That reasoning only works if the data is ordered. Duplicates, array length and data type are irrelevant. (2025 P1 Q6e.)"
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Which row gives the correct worst-case time complexities?",
+    "options": [
+      {
+        "text": "Bubble sort: O(n^2)   Merge sort: O(n log n)",
+        "correct": true
+      },
+      {
+        "text": "Bubble sort: O(n log n)   Merge sort: O(n^2)",
+        "correct": false
+      },
+      {
+        "text": "Bubble sort: O(n)   Merge sort: O(n log n)",
+        "correct": false
+      },
+      {
+        "text": "Bubble sort: O(n^2)   Merge sort: O(n^2)",
+        "correct": false
+      }
+    ],
+    "explanation": "Bubble sort compares adjacent pairs across up to n passes: O(n^2). Merge sort splits the data in half (log n levels) and merges n items per level: O(n log n). (2025 P1 Q6c.)"
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Merge sort is much faster on large data. Which are still valid reasons to choose bubble sort instead?",
+    "options": [
+      {
+        "text": "Bubble sort is simpler to understand and implement correctly",
+        "correct": true
+      },
+      {
+        "text": "The data set is very small, so the complexity difference does not matter",
+        "correct": true
+      },
+      {
+        "text": "Bubble sort is always faster on sorted data than merge sort",
+        "correct": false
+      },
+      {
+        "text": "Bubble sort uses less extra memory than merge sort",
+        "correct": true
+      }
+    ],
+    "explanation": "Simplicity, tiny inputs and lower extra memory (bubble sort works in place; merge sort needs temporary arrays) are the standard accepted reasons. (2025 P1 Q6d.)"
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "FUNCTION Puzzle(N): repeatedly set R = N MOD 2, N = N DIV 2, and prefix ToString(R) to S, until N = 0. What does Puzzle(109) return?",
+    "options": [
+      {
+        "text": "\"1101101\" - the binary representation of 109",
+        "correct": true
+      },
+      {
+        "text": "\"1011011\" - the binary digits in reverse order",
+        "correct": false
+      },
+      {
+        "text": "\"109\" - the original number as a string",
+        "correct": false
+      },
+      {
+        "text": "\"901\" - the decimal digits reversed",
+        "correct": false
+      }
+    ],
+    "explanation": "Repeated MOD 2 / DIV 2 extracts binary digits least-significant first; prefixing each digit to S rebuilds them in the correct order: 109 = 1101101 in binary. (2025 P1 Q2 used exactly this function.)"
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "FUNCTION S(n): IF n = 1 THEN RETURN 12 ELSE RETURN S(n-1) - 3. What happens when S(0) is called?",
+    "options": [
+      {
+        "text": "It recurses without ever reaching the base case, until the call stack overflows",
+        "correct": true
+      },
+      {
+        "text": "It returns 12",
+        "correct": false
+      },
+      {
+        "text": "It returns -3",
+        "correct": false
+      },
+      {
+        "text": "It returns 0 immediately",
+        "correct": false
+      }
+    ],
+    "explanation": "The base case is n = 1. Starting at 0, each call moves AWAY from 1 (0, -1, -2, ...), so the base case is never hit and the recursion only stops when memory for the call stack runs out. (2024 P1 Q2d.)"
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "When a recursive function calls itself, how does the call stack make the recursion work?",
+    "options": [
+      {
+        "text": "Each call pushes a new stack frame holding that call's parameters and return address; frames pop as calls return",
+        "correct": true
+      },
+      {
+        "text": "All calls share one set of variables, which is what makes recursion fast",
+        "correct": false
+      },
+      {
+        "text": "The stack stores the final answer so the function can skip the base case",
+        "correct": false
+      },
+      {
+        "text": "The operating system runs each recursive call in a separate program",
+        "correct": false
+      }
+    ],
+    "explanation": "Every call gets its own frame with its own copy of the parameters and local variables, pushed above the caller's frame. Returns pop frames in LIFO order, unwinding back to the first call. (2024 P1 Q2c.)"
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are genuine advantages of an ITERATIVE solution over the equivalent recursive one?",
+    "options": [
+      {
+        "text": "It uses less memory - no growing call stack of frames",
+        "correct": true
+      },
+      {
+        "text": "It cannot crash with a stack overflow on large inputs",
+        "correct": true
+      },
+      {
+        "text": "It always runs in a better Big-O time complexity",
+        "correct": false
+      },
+      {
+        "text": "It avoids the overhead of many function calls, so it is usually faster",
+        "correct": true
+      }
+    ],
+    "explanation": "Iteration and the matching recursion usually have the same time complexity; the gains are memory (one loop vs many frames) and call overhead. (2025 P1 Q2e asked for two advantages of the iterative version.)"
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A program accepts an integer from 0 to 20 inclusive. Which values are EXTREME (boundary) test data?",
+    "options": [
+      {
+        "text": "0",
+        "correct": true
+      },
+      {
+        "text": "20",
+        "correct": true
+      },
+      {
+        "text": "7",
+        "correct": false
+      },
+      {
+        "text": "-1",
+        "correct": false
+      }
+    ],
+    "explanation": "Extreme values sit exactly on the valid boundaries: 0 and 20. 7 is normal (typical valid), -1 is abnormal (outside the range, should be rejected). (2024 P1 Q3d, 2025 P1 Q1d.)"
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A program accepts an integer from 0 to 20 inclusive. Which value is ABNORMAL test data?",
+    "options": [
+      {
+        "text": "\"twenty\" - data of the wrong type that should be rejected",
+        "correct": true
+      },
+      {
+        "text": "20",
+        "correct": false
+      },
+      {
+        "text": "10",
+        "correct": false
+      },
+      {
+        "text": "0",
+        "correct": false
+      }
+    ],
+    "explanation": "Abnormal data is outside what the program should accept: wrong type or outside the range. It tests that validation rejects bad input. 0 and 20 are extreme, 10 is normal."
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are suitable validation checks when a customer email address is entered?",
+    "options": [
+      {
+        "text": "Format check - matches the pattern text@text.domain",
+        "correct": true
+      },
+      {
+        "text": "Presence check - the field is not left empty",
+        "correct": true
+      },
+      {
+        "text": "Range check - the address lies between two dates",
+        "correct": false
+      },
+      {
+        "text": "Length check - the address does not exceed a set maximum",
+        "correct": true
+      }
+    ],
+    "explanation": "Presence, format and length checks all apply to an email field. A range check only applies to ordered data such as numbers and dates. (2025 P1 Q3e asked for two suitable checks.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "In the URL https://www.newbank.com/onlinebanking/sign-in.html, what does the part \"https\" specify?",
+    "options": [
+      {
+        "text": "The protocol - the browser uses HTTP over a secure, encrypted connection",
+        "correct": true
+      },
+      {
+        "text": "The domain name of the web server",
+        "correct": false
+      },
+      {
+        "text": "The hostname of the specific server",
+        "correct": false
+      },
+      {
+        "text": "The path to a file on the server",
+        "correct": false
+      }
+    ],
+    "explanation": "https is the scheme/protocol (secure HTTP). www is the hostname, newbank.com is the domain name, and /onlinebanking/sign-in.html is the path. (2025 P1 Q5a.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "You type a URL into a browser. How is the web server's IP address found?",
+    "options": [
+      {
+        "text": "The domain name is sent to a DNS server, which returns the matching IP address",
+        "correct": true
+      },
+      {
+        "text": "The browser calculates the IP address from the URL using a hash function",
+        "correct": false
+      },
+      {
+        "text": "Every URL already contains its IP address in the domain name",
+        "correct": false
+      },
+      {
+        "text": "The ISP assigns a random IP address to each URL typed",
+        "correct": false
+      }
+    ],
+    "explanation": "DNS (the Domain Name System) is the lookup service: the resolver queries DNS servers, which map the domain name to an IP address, often cached for speed. (2025 P1 Q5b.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are features of an intrusion detection system (IDS)?",
+    "options": [
+      {
+        "text": "It monitors network traffic for suspicious patterns",
+        "correct": true
+      },
+      {
+        "text": "It keeps logs of events and alerts administrators about possible attacks",
+        "correct": true
+      },
+      {
+        "text": "It encrypts all data leaving the network",
+        "correct": false
+      },
+      {
+        "text": "It can compare traffic against a database of known attack signatures",
+        "correct": true
+      }
+    ],
+    "explanation": "An IDS detects and reports: monitoring, signature matching, anomaly detection, logging and alerts. Encryption is a different control (TLS/VPN), and blocking actively is an IPS, not an IDS. (2025 P1 Q5c asked for three features.)"
+  },
+  {
+    "topic": "Software engineering",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A bank considers a NATIVE mobile app instead of its web app. Which statements are correct?",
+    "options": [
+      {
+        "text": "A native app is written for a specific platform (e.g. iOS or Android) using that platform's tools",
+        "correct": true
+      },
+      {
+        "text": "A native app can use device hardware such as the camera, GPS and biometrics directly",
+        "correct": true
+      },
+      {
+        "text": "A native app runs in any browser without installation",
+        "correct": false
+      },
+      {
+        "text": "A native app can give better performance than a web app on the same phone",
+        "correct": true
+      }
+    ],
+    "explanation": "Native means platform-specific code, installed on the device, with full hardware access and strong performance - at the cost of writing and maintaining a version per platform. (2025 P1 Q5d.)"
+  },
+  {
+    "topic": "Software engineering",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which are benefits of using version control for a software project?",
+    "options": [
+      {
+        "text": "You can revert to an earlier working version after a bad change",
+        "correct": true
+      },
+      {
+        "text": "Several developers can work on the same project and merge their changes",
+        "correct": true
+      },
+      {
+        "text": "Every change is recorded with who made it and why",
+        "correct": true
+      },
+      {
+        "text": "It automatically tests the code for logical errors",
+        "correct": false
+      }
+    ],
+    "explanation": "History, rollback, collaboration and accountability are the core benefits. Version control does not test anything - that is what your test suite is for. (2025 P1 Q5e.)"
+  },
+  {
+    "topic": "Web applications",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A Flask form that saves a student's score should use which HTTP method, and why?",
+    "options": [
+      {
+        "text": "POST - the data travels in the request body, not visible in the URL, and the request changes server-side data",
+        "correct": true
+      },
+      {
+        "text": "GET - it is faster and the browser can cache the result",
+        "correct": false
+      },
+      {
+        "text": "GET - parameters in the URL are encrypted automatically",
+        "correct": false
+      },
+      {
+        "text": "HEAD - it sends the data without a response",
+        "correct": false
+      }
+    ],
+    "explanation": "Use POST for form input that changes data: values sit in the request body (not the URL, where they would leak into history and logs) and GET is meant for safe retrieval. URL parameters are never encrypted by GET itself."
+  },
+  {
+    "topic": "Web applications",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "In Flask, what does the decorator @app.route('/score') do?",
+    "options": [
+      {
+        "text": "It maps the URL path /score to the Python function written directly below it",
+        "correct": true
+      },
+      {
+        "text": "It creates a new database table called score",
+        "correct": false
+      },
+      {
+        "text": "It redirects the browser to a page named score",
+        "correct": false
+      },
+      {
+        "text": "It starts the Flask development server on port /score",
+        "correct": false
+      }
+    ],
+    "explanation": "The route decorator binds a URL rule to a view function. A request to /score runs that function, and whatever the function returns becomes the response."
+  },
+  {
+    "topic": "Web applications",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A Flask app runs cursor.execute(\"SELECT * FROM users WHERE name = '\" + name + \"'\"). What is the main risk, and the fix?",
+    "options": [
+      {
+        "text": "SQL injection - use parameterised queries: cursor.execute(\"SELECT * FROM users WHERE name = ?\", (name,))",
+        "correct": true
+      },
+      {
+        "text": "Slow queries - add an index to the name column",
+        "correct": false
+      },
+      {
+        "text": "Data loss - switch from SQLite to a client-server database",
+        "correct": false
+      },
+      {
+        "text": "Cross-site scripting - escape the output with |safe",
+        "correct": false
+      }
+    ],
+    "explanation": "String-building SQL lets an attacker type input that changes the query's meaning (e.g. ' OR '1'='1). Parameterised queries keep data and SQL separate. (|safe in Jinja would make XSS worse, not better.)"
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A Python server uses sockets to talk to one client. Which sequence of server calls is correct?",
+    "options": [
+      {
+        "text": "socket() -> bind() -> listen() -> accept() -> recv()/send()",
+        "correct": true
+      },
+      {
+        "text": "socket() -> connect() -> listen() -> recv()",
+        "correct": false
+      },
+      {
+        "text": "bind() -> socket() -> accept() -> listen()",
+        "correct": false
+      },
+      {
+        "text": "socket() -> listen() -> connect() -> bind()",
+        "correct": false
+      }
+    ],
+    "explanation": "The server creates the socket, binds it to an address and port, listens for incoming connections, then accept() returns a new socket for that client. connect() is what the CLIENT calls."
+  },
+  {
+    "topic": "Ethics",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A city plans driverless taxis. Which are genuine ethical issues raised?",
+    "options": [
+      {
+        "text": "Who is responsible when an autonomous taxi causes an accident",
+        "correct": true
+      },
+      {
+        "text": "Job losses for professional drivers",
+        "correct": true
+      },
+      {
+        "text": "Whether the AI's decision-making in unavoidable accidents can be audited and trusted",
+        "correct": true
+      },
+      {
+        "text": "Whether electric vehicles use more electricity than petrol cars",
+        "correct": false
+      }
+    ],
+    "explanation": "Accountability, employment impact and transparency of AI decisions are the standard ethical angles. Energy use is an environmental/engineering comparison, not an ethical issue of autonomy. (2025 P1 Q7 was a 6-mark discuss question on this.)"
+  },
+  {
+    "topic": "Software engineering",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A company sells a maximum of 50 components per order. Which set contains only suitable EXTREME test values for the order quantity?",
+    "options": [
+      {
+        "text": "1 and 50",
+        "correct": true
+      },
+      {
+        "text": "0 and 51",
+        "correct": false
+      },
+      {
+        "text": "25 and 30",
+        "correct": false
+      },
+      {
+        "text": "50 and 51",
+        "correct": false
+      }
+    ],
+    "explanation": "Extreme values are the boundaries of the VALID range: 1 and 50. 0 and 51 are just outside, so they are abnormal data, which tests rejection instead. (2025 P1 Q1d.)"
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "mcq",
+    "stem": "A program stores a rectangular seating plan of a hall. Which structure is the natural fit, and why?",
+    "options": [
+      {
+        "text": "A 2-D array - fixed rows and columns, direct access by seat position",
+        "correct": true
+      },
+      {
+        "text": "A linked list - because seats are added one at a time",
+        "correct": false
+      },
+      {
+        "text": "A hash table - because every seat needs a unique hash",
+        "correct": false
+      },
+      {
+        "text": "A stack - because the last seat booked is freed first",
+        "correct": false
+      }
+    ],
+    "explanation": "Grids (seating plans, game boards, spreadsheets) map onto 2-D arrays: seat[3][5] gives O(1) access by position. (2-D array tasks appeared in the 2017 and 2023 practical papers.)"
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P2",
+    "qtype": "checkbox",
+    "stem": "You must find one name in a contact list of 1,000,000 entries. Which statements are correct?",
+    "options": [
+      {
+        "text": "If the list is sorted, binary search needs at most about 20 comparisons",
+        "correct": true
+      },
+      {
+        "text": "A linear search may need all 1,000,000 comparisons in the worst case",
+        "correct": true
+      },
+      {
+        "text": "Binary search works on any list, sorted or not",
+        "correct": false
+      },
+      {
+        "text": "Sorting the list first is worthwhile if you will search it many times",
+        "correct": true
+      }
+    ],
+    "explanation": "Binary search halves the data each step: 2^20 is about a million, so about 20 comparisons. It requires sorted data, so a one-off search on unsorted data should just be linear; repeated searches justify sorting once."
+  }
+]

@@ -1,0 +1,4 @@
+# LastLapCP chart values
+workloads:
+  lastlapcp:
+    replicaCount: 1

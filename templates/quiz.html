@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+{% if empty %}
+<div class="card center">
+  <h1>All done{% if topic %} in {{ topic }}{% endif %}!</h1>
+  <p class="muted">No more questions here right now.</p>
+  <a class="btn" href="{{ url_for('home') }}">Back home</a>
+</div>
+{% else %}
+<div class="card">
+  <div class="qmeta"><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
+    <span class="tag">{{ 'Pick ALL that apply' if q['qtype']=='checkbox' else 'Pick ONE' }}</span></div>
+  <div class="stem">{{ q['stem'] }}</div>
+  {% if not feedback %}
+  <form method="post" action="{{ url_for('answer', qid=q['id']) }}">
+    <input type="hidden" name="topic" value="{{ topic }}">
+    {% for o in opts %}
+    <label class="opt">
+      <input type="{{ 'checkbox' if q['qtype']=='checkbox' else 'radio' }}" name="opt" value="{{ o['id'] }}">
+      <span>{{ o['text'] }}</span>
+    </label>
+    {% endfor %}
+    <button class="btn big" type="submit">Check</button>
+  </form>
+  {% else %}
+    {% for o in opts %}
+    <div class="opt result {{ 'good' if o['id'] in feedback.correct_ids else ('bad' if o['id'] in feedback.chosen else '') }}">
+      <span>{{ o['text'] }}</span>
+    </div>
+    {% endfor %}
+    <div class="verdict {{ 'good' if feedback.correct else 'bad' }}">
+      {% if feedback.correct %}Correct! +{{ feedback.xp }} XP{% else %}Not quite.{% endif %}
+    </div>
+    <div class="expl"><b>Why:</b> {{ q['explanation'] }}</div>
+    {% if q['misconception'] %}<div class="expl trap"><b>Common trap:</b> {{ q['misconception'] }}</div>{% endif %}
+    <a class="btn big" href="{{ url_for('quiz', topic=topic) if topic else url_for('quiz') }}">Next question</a>
+    <a class="btn ghost" href="{{ url_for('home') }}">Home</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

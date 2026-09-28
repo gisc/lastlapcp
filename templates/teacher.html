@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - Teacher{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Class progress</h1>
+  <p class="muted">{{ rows|length }} students signed in so far. Sorted by XP.</p>
+</div>
+{% for r in rows %}
+<div class="card">
+  <div class="srow">
+    <div>
+      <div class="sname">{{ r.name }}</div>
+      <div class="muted small">{{ r.email }} &middot; last active {{ r.last }}</div>
+    </div>
+    <div class="sxp">{{ r.stats.xp }} XP{% if r.stats.streak %} &#128293;{{ r.stats.streak }}{% endif %}</div>
+  </div>
+  <div class="muted small">{{ r.stats.correct }}/{{ r.stats.attempts }} correct
+    {% if r.stats.attempts %}({{ (100 * r.stats.correct / r.stats.attempts)|round|int }}%){% endif %}</div>
+  {% if r.stats.mastery %}
+  <div class="tgrid">
+    {% for t in topics %}
+      {% set m = r.by_topic.get(t) %}
+      <div class="tcell" title="{{ t }}">
+        <div class="tname">{{ t }}</div>
+        <div class="mbar small"><div class="mfill" style="width: {{ m.pct if m else 0 }}%"></div>
+          <span class="mpct">{{ (m.pct ~ '%') if m else '-' }}</span></div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

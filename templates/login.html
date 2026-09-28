@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card center">
+  <h1>LastLap<span class="accent">CP</span></h1>
+  <p class="muted">The final sprint for H2 Computing 9569.<br>Papers 1 &amp; 2 revision, one question at a time.</p>
+  {% if configured %}
+  <a class="btn big" href="{{ url_for('login_google') }}">Sign in with Google</a>
+  <p class="muted small">Use the Gmail account your teacher registered.</p>
+  {% else %}
+  <p class="warn">Sign-in is not configured yet. Check back soon.</p>
+  {% endif %}
+</div>
+{% endblock %}

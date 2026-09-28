@@ -1,0 +1,12 @@
+{
+  "name": "LastLapCP",
+  "short_name": "LastLapCP",
+  "description": "H2 Computing 9569 revision drills",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1e38",
+  "theme_color": "#1a3a6b",
+  "icons": [
+    {"src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ]
+}

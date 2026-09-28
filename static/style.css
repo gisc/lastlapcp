@@ -1,0 +1,57 @@
+:root {
+  --navy: #1a3a6b; --navy2: #12294d; --gold: #f5b301; --bg: #0f1e38;
+  --card: #ffffff; --ink: #1c2733; --muted: #6b7a8d; --good: #128a4d; --bad: #c0392b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(180deg, var(--navy2), var(--bg)); min-height: 100vh; color: var(--ink); }
+.topbar { display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; max-width: 640px; margin: 0 auto; }
+.brand { color: #fff; font-weight: 800; font-size: 1.25rem; text-decoration: none; letter-spacing: .5px; }
+.brand span, .accent { color: var(--gold); }
+.logout { color: #cfe0f5; font-size: .85rem; text-decoration: none; }
+main { max-width: 640px; margin: 0 auto; padding: 0 12px 40px; }
+.card { background: var(--card); border-radius: 14px; padding: 18px; margin: 12px 0;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.card.center { text-align: center; }
+h1 { margin: 6px 0 10px; font-size: 1.5rem; } h2 { margin: 4px 0 10px; font-size: 1.1rem; }
+.muted { color: var(--muted); } .small { font-size: .82rem; } .warn { color: var(--bad); font-weight: 600; }
+.btn { display: inline-block; background: var(--navy); color: #fff; border: 0; border-radius: 10px;
+  padding: 12px 20px; font-size: 1rem; font-weight: 700; text-decoration: none; cursor: pointer; margin-top: 10px; }
+.btn.big { display: block; width: 100%; text-align: center; padding: 15px; font-size: 1.1rem; }
+.btn.ghost { background: #e7edf5; color: var(--navy); display: block; text-align: center; }
+.hero { text-align: center; background: linear-gradient(135deg, #ffffff, #f4f7fc); }
+.hello { font-size: 1.05rem; color: var(--muted); }
+.bigxp { font-size: 3rem; font-weight: 800; color: var(--navy); line-height: 1.1; }
+.bigxp span { font-size: 1.2rem; color: var(--gold); }
+.streak { margin: 4px 0 8px; font-weight: 600; }
+.qmeta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag { background: #e7edf5; color: var(--navy); border-radius: 999px; padding: 3px 10px;
+  font-size: .75rem; font-weight: 700; }
+.tag.paper { background: var(--gold); color: #3d2e00; }
+.stem { font-size: 1.15rem; font-weight: 600; line-height: 1.45; margin: 8px 0 14px; }
+.opt { display: flex; align-items: flex-start; gap: 10px; background: #f2f5fa; border: 2px solid transparent;
+  border-radius: 10px; padding: 13px 14px; margin: 8px 0; font-size: 1rem; cursor: pointer; }
+.opt input { margin-top: 3px; transform: scale(1.3); accent-color: var(--navy); }
+.opt.result { cursor: default; }
+.opt.result.good { background: #e6f6ec; border-color: var(--good); }
+.opt.result.bad { background: #fbeae7; border-color: var(--bad); }
+.verdict { font-size: 1.2rem; font-weight: 800; margin: 12px 0 6px; }
+.verdict.good { color: var(--good); } .verdict.bad { color: var(--bad); }
+.expl { background: #f2f5fa; border-left: 4px solid var(--navy); border-radius: 6px;
+  padding: 10px 12px; margin: 8px 0; line-height: 1.5; }
+.expl.trap { border-left-color: var(--gold); }
+.mrow { margin: 10px 0; }
+.mlabel { display: flex; justify-content: space-between; font-weight: 600; font-size: .92rem; margin-bottom: 4px; }
+.mbar { position: relative; background: #e7edf5; border-radius: 999px; height: 18px; overflow: hidden; }
+.mfill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--navy), #3f7dd1); border-radius: 999px; }
+.mpct { position: absolute; right: 8px; top: 0; line-height: 18px; font-size: .72rem; font-weight: 700; color: var(--ink); }
+.mbar.small { height: 14px; } .mbar.small .mpct { line-height: 14px; font-size: .65rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { background: #e7edf5; color: var(--navy); border-radius: 999px; padding: 8px 14px;
+  font-weight: 700; font-size: .88rem; text-decoration: none; }
+.srow { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.sname { font-weight: 700; } .sxp { font-weight: 800; color: var(--navy); white-space: nowrap; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+.tname { font-size: .72rem; font-weight: 700; color: var(--muted); margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
