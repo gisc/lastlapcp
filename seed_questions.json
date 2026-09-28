@@ -1673,5 +1673,369 @@
       }
     ],
     "explanation": "Inheritance chains: Appliance -> ConventionalOven -> FanOven, and Appliance -> Microwave. A subclass inherits everything above it in its chain, so FanOven gets timer and temperature methods for free. Microwave has no fan, so inheriting from ConventionalOven would model it wrongly. (2023 P1 Q3a.)"
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A vehicle hire program has a superclass Vehicle and subclasses Car and Van (2020 P1 Q1). What is the purpose of a superclass?",
+    "options": [
+      {
+        "text": "It defines the properties and methods shared by all its subclasses once, so each subclass inherits them",
+        "correct": true
+      },
+      {
+        "text": "It stores every hire record in one place",
+        "correct": false
+      },
+      {
+        "text": "It creates the Car and Van objects automatically",
+        "correct": false
+      },
+      {
+        "text": "It prevents subclasses from having their own properties",
+        "correct": false
+      }
+    ],
+    "explanation": "A superclass captures what subclasses have in common: Vehicle holds VRN, model, distance travelled, cost per day and so on, and Car and Van inherit these, adding only what is specific to them (number of seats, load volume). It avoids duplicating the shared definitions in every subclass. (2020 P1 Q1b.)",
+    "misconception": "Thinking a superclass is a container that holds all the objects, rather than a definition that subclasses inherit from."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Cars must now charge $0.05 per km on top of the daily rate, so Car needs its own version of the hire-cost method that Vehicle already defines (2020 P1 Q1). What is the purpose of polymorphism here?",
+    "options": [
+      {
+        "text": "It lets the same method call run different code depending on which class the object belongs to, by overriding the inherited method in Car",
+        "correct": true
+      },
+      {
+        "text": "It lets one object store several different values at the same time",
+        "correct": false
+      },
+      {
+        "text": "It hides the properties of a class from other classes",
+        "correct": false
+      },
+      {
+        "text": "It lets a subclass inherit from more than one superclass",
+        "correct": false
+      }
+    ],
+    "explanation": "Polymorphism means code written against the superclass (e.g. calculate hire cost) works for every subclass, with each subclass free to override the method with its own behaviour - Car's version adds the per-km charge while Van's stays unchanged. (2020 P1 Q1d-e.)",
+    "misconception": "Confusing polymorphism with encapsulation: hiding data is encapsulation; one call behaving differently per class is polymorphism."
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which of these are purposes of encapsulation in object-oriented programming? Select all that apply.",
+    "options": [
+      {
+        "text": "Keeping an object's data and the methods that act on that data together in one class",
+        "correct": true
+      },
+      {
+        "text": "Controlling access to an object's data, so it is read and changed only through the class's methods",
+        "correct": true
+      },
+      {
+        "text": "Making the program run faster",
+        "correct": false
+      },
+      {
+        "text": "Removing the need to test the class",
+        "correct": false
+      }
+    ],
+    "explanation": "Encapsulation bundles properties with their methods and protects the internal state from outside meddling - other code must go through the class's methods, which can enforce rules (e.g. available-for-hire is set to FALSE only when a hire is recorded). Speed and testing are unrelated. (2020 P1 Q1c.)",
+    "misconception": "Believing encapsulation is about performance; it is about protecting and organising data."
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A data set is already largely sorted. Why might a programmer choose insertion sort rather than quicksort for it (2020 P1 Q2)?",
+    "options": [
+      {
+        "text": "Insertion sort runs in close to linear time on nearly-sorted data, while quicksort can degrade towards its worst case, especially with a first- or last-item pivot",
+        "correct": true
+      },
+      {
+        "text": "Insertion sort is always faster than quicksort on every data set",
+        "correct": false
+      },
+      {
+        "text": "Quicksort cannot sort data that is already partly ordered",
+        "correct": false
+      },
+      {
+        "text": "Insertion sort uses less memory because it never compares items",
+        "correct": false
+      }
+    ],
+    "explanation": "Insertion sort's inner loop stops as soon as an item is in place, so on nearly-sorted data it does very little work (near O(n)). Quicksort still partitions recursively, and a poor pivot (first or last item of a sorted set) gives unbalanced partitions and O(n^2) behaviour - which is why a random pivot helps. (2020 P1 Q2b-c.)",
+    "misconception": "Assuming the algorithm with the better average-case big-O is the best choice for every input."
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A binary search tree is stored in an array where each element holds l_ptr, data_item and r_ptr, and -1 is the null pointer: index 0 (-1, A, -1), index 1 (0, +, 2), index 2 (-1, B, -1), index 3 (1, *, 5) (2020 P1 Q3). Which index holds a leaf node?",
+    "options": [
+      {
+        "text": "0",
+        "correct": true
+      },
+      {
+        "text": "1",
+        "correct": false
+      },
+      {
+        "text": "3",
+        "correct": false
+      },
+      {
+        "text": "None of them - the tree has no leaves",
+        "correct": false
+      }
+    ],
+    "explanation": "A leaf has no children, so both pointers must be null (-1). Index 0 (A) has l_ptr = -1 and r_ptr = -1, as does index 2 (B). Index 1 points to 0 and 2, and index 3 (the root) points to 1 and 5. (2020 P1 Q3b.)",
+    "misconception": "Only checking one pointer: a node with one null pointer can still have a child on the other side."
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A recursive procedure on a binary tree calls itself on the left subtree, then on the right subtree, and only then outputs the current node's data (2020 P1 Q3). Which tree traversal is this?",
+    "options": [
+      {
+        "text": "Post-order traversal",
+        "correct": true
+      },
+      {
+        "text": "Pre-order traversal",
+        "correct": false
+      },
+      {
+        "text": "In-order traversal",
+        "correct": false
+      },
+      {
+        "text": "Breadth-first (level-order) traversal",
+        "correct": false
+      }
+    ],
+    "explanation": "The name comes from when the node is visited: pre-order outputs before the recursive calls, in-order outputs between the left and right calls, and post-order outputs after both - which is what this procedure does. Breadth-first uses a queue, not recursion. (2020 P1 Q3f.)",
+    "misconception": "Mixing up pre-order and post-order: focus on whether the node is output before or after its subtrees."
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "When a recursive procedure runs, what is the role of the stack (2020 P1 Q3e)?",
+    "options": [
+      {
+        "text": "Each recursive call pushes its return address and local data (such as the parameter value) onto the stack, and they are popped when the call finishes",
+        "correct": true
+      },
+      {
+        "text": "The stack stores the tree's nodes permanently so they are never lost",
+        "correct": false
+      },
+      {
+        "text": "The stack queues output values in the order they will be printed",
+        "correct": false
+      },
+      {
+        "text": "The stack counts how many times the procedure has been called",
+        "correct": false
+      }
+    ],
+    "explanation": "Every call creates a new stack frame holding the return address and that call's parameters/local variables, so when the innermost call returns, execution resumes correctly in the caller with its own value of Index. An endless recursion exhausts this stack. (2020 P1 Q3e.)",
+    "misconception": "Thinking all calls share one copy of the parameter; each frame has its own."
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "Which of these are real differences between a circular queue and a linear queue implemented in a 1-dimensional array? Select all that apply.",
+    "options": [
+      {
+        "text": "In a circular queue the rear wraps back to index 0 when it reaches the end, reusing spaces freed by deletions; in a linear queue those front spaces are wasted",
+        "correct": true
+      },
+      {
+        "text": "A linear queue can report 'full' while empty spaces still exist at the front; a circular queue only fills when every slot is used",
+        "correct": true
+      },
+      {
+        "text": "A circular queue stores its items in a random order",
+        "correct": false
+      },
+      {
+        "text": "A linear queue does not need a front pointer",
+        "correct": false
+      }
+    ],
+    "explanation": "Both are FIFO with front and rear pointers. The circular design treats the array as a ring, so dequeued slots at the front can be reused; the linear queue marches towards the end of the array and can appear full while space sits unused at the front. Order is still FIFO in both. (2020 P1 Q3h.)",
+    "misconception": "Thinking 'circular' changes the order items leave the queue; it only changes how array positions are reused."
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "What does packet-switching mean on the internet (2020 P1 Q4)?",
+    "options": [
+      {
+        "text": "The data is split into packets that are routed independently across the network and reassembled in order at the destination",
+        "correct": true
+      },
+      {
+        "text": "A dedicated physical circuit is reserved between sender and receiver for the whole message",
+        "correct": false
+      },
+      {
+        "text": "Every packet must travel along the single shortest path",
+        "correct": false
+      },
+      {
+        "text": "Each packet carries a complete copy of the whole message",
+        "correct": false
+      }
+    ],
+    "explanation": "Packet-switching breaks the message into addressed packets; routers forward each one over whatever links are available (so a broken cable can be routed around), and the destination reassembles them. Reserving a dedicated circuit describes circuit-switching, e.g. the old phone network. (2020 P1 Q4b.)",
+    "misconception": "Picturing one fixed pipe for the whole message, when packets of the same message can take different routes."
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Two security situations (2020 P1 Q4d): (i) no one other than the intended recipient should be able to read the message; (ii) the recipient must be confident the message really came from the identified sender. Which pairing of security features matches (i) and (ii)?",
+    "options": [
+      {
+        "text": "(i) encryption, (ii) digital signature",
+        "correct": true
+      },
+      {
+        "text": "(i) digital signature, (ii) encryption",
+        "correct": false
+      },
+      {
+        "text": "(i) encryption, (ii) encryption",
+        "correct": false
+      },
+      {
+        "text": "(i) firewall, (ii) password",
+        "correct": false
+      }
+    ],
+    "explanation": "Encryption provides confidentiality: only the holder of the right key can read the content. A digital signature provides authentication (and integrity): it could only have been produced with the sender's private key, so the recipient can trust the sender's identity. They solve different problems and are often used together. (2020 P1 Q4d.)",
+    "misconception": "Assuming encryption alone also proves who sent the message - anyone can send you an encrypted message."
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Which statement correctly distinguishes validation from verification during data entry (2020 P1 Q5)?",
+    "options": [
+      {
+        "text": "Validation checks that entered data is reasonable and follows rules (e.g. a check digit); verification checks the entered data matches the original source (e.g. double entry or proofreading)",
+        "correct": true
+      },
+      {
+        "text": "Validation and verification are two names for the same check",
+        "correct": false
+      },
+      {
+        "text": "Validation is done by the computer and verification is always done on paper",
+        "correct": false
+      },
+      {
+        "text": "Verification checks data against format rules; validation re-types the data twice",
+        "correct": false
+      }
+    ],
+    "explanation": "Validation asks 'is this data acceptable?' - range, format, length, presence, type, check-digit checks. Verification asks 'is this what was intended?' - comparing the entry against the source, by double entry or visual check. Data can pass validation yet still be wrong, which is why both are used. (2020 P1 Q5a-b.)",
+    "misconception": "Using 'validation' and 'verification' interchangeably; exams expect the distinction above."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "A college table stores one row per student with that student's four courses crammed into the same row (repeating group of Course ID, Subject, Teacher ID, Teacher Name, Room Number values) (2020 P1 Q6). Why is this table NOT in first normal form (1NF)?",
+    "options": [
+      {
+        "text": "Some attributes hold multiple values for one row - 1NF requires every attribute to hold a single atomic value, with no repeating groups",
+        "correct": true
+      },
+      {
+        "text": "The table has no primary key",
+        "correct": false
+      },
+      {
+        "text": "Student names are stored as two separate columns",
+        "correct": false
+      },
+      {
+        "text": "Room Number is stored as a number instead of text",
+        "correct": false
+      }
+    ],
+    "explanation": "1NF demands atomic values: one value per attribute per row. Here each student row carries four sets of course data, a repeating group. The fix is to move the repeated data into its own table (one row per student-course pairing), which is exactly what the Student, Course and IsTaking design does. (2020 P1 Q6a.)",
+    "misconception": "Thinking a table is 1NF as long as it has a primary key; atomicity comes first."
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "mcq",
+    "stem": "Table: Course(CourseID, Subject, TeacherID, TeacherName, RoomNumber), primary key CourseID. Each teacher delivers all their lessons in one room (2020 P1 Q6). Why is this table NOT in third normal form (3NF)?",
+    "options": [
+      {
+        "text": "TeacherName and RoomNumber depend on TeacherID, not on CourseID - a transitive dependency",
+        "correct": true
+      },
+      {
+        "text": "CourseID is not unique",
+        "correct": false
+      },
+      {
+        "text": "Subject appears in more than one row",
+        "correct": false
+      },
+      {
+        "text": "The table has a foreign key",
+        "correct": false
+      }
+    ],
+    "explanation": "In 3NF every non-key attribute must depend on the key, the whole key and nothing but the key. TeacherName and RoomNumber are facts about the teacher, so they are determined by TeacherID (a non-key attribute): a transitive dependency. Fix: split out Teacher(TeacherID, TeacherName, RoomNumber), leaving Course(CourseID, Subject, TeacherID). (2020 P1 Q6d.)",
+    "misconception": "Thinking that having a primary key is enough to make a table 3NF."
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "checkbox",
+    "stem": "A field stores 02757 with a Modulus 11 check digit appended (2020 P1 Q5). Why should the field's data type be string rather than integer? Select all that apply.",
+    "options": [
+      {
+        "text": "Stored as an integer, the leading zero of 02757 would be lost",
+        "correct": true
+      },
+      {
+        "text": "A Modulus 11 check digit can be the character 'X', which is not numeric",
+        "correct": true
+      },
+      {
+        "text": "Integers cannot hold five-digit numbers",
+        "correct": false
+      },
+      {
+        "text": "No arithmetic ever needs to be performed on the code",
+        "correct": false
+      }
+    ],
+    "explanation": "Codes like this are identifiers, not quantities: the leading zero is significant and would vanish in an integer, and a Modulus 11 remainder of 10 is written as 'X', which only a string can store. (No-arithmetic is also a reasonable argument, but the two exam-mark answers are the leading zero and the possible 'X'.) (2020 P1 Q5d.)",
+    "misconception": "Choosing integer just because the characters look numeric; if you never do maths on it, store it as a string."
   }
 ]
