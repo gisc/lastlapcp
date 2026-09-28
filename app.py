@@ -3,6 +3,7 @@ Flask + SQLite + Jinja. Mobile-first. Google sign-in with an email allowlist.
 All secrets/identity data come from env vars, never from the repo."""
 import json
 import os
+import re
 import random
 import sqlite3
 from datetime import datetime, timedelta, timezone
@@ -25,6 +26,25 @@ def _norm_email(e):
 
 TEACHER_EMAILS = {_norm_email(e) for e in os.environ.get("TEACHER_EMAILS", "").split(",") if e.strip()}
 ALLOWED_EMAILS = {_norm_email(e) for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
+
+def _parse_roster():
+    """ROSTER env: entries separated by ; or newlines, each 'class:name:email'.
+    Identity data stays in env vars, never in the repo."""
+    out = []
+    raw = os.environ.get("ROSTER", "")
+    for part in re.split(r"[;\n]+", raw):
+        part = part.strip()
+        if not part:
+            continue
+        bits = part.split(":", 2)
+        if len(bits) != 3:
+            continue
+        cls, name, email = (b.strip() for b in bits)
+        out.append({"class": cls, "name": name, "email": email, "norm": _norm_email(email)})
+    return out
+
+ROSTER = _parse_roster()
+ROSTER_GROUPS = [("25S11 + 25S22 (combined lessons)", ("25S11", "25S22")), ("25S21", ("25S21",))]
 
 app = Flask(__name__)
 # Behind the Olares TLS-terminating gateway: honor X-Forwarded-* and force https
@@ -287,18 +307,33 @@ def answer(qid):
 @teacher_required
 def teacher():
     db = get_db()
-    students = db.execute("SELECT * FROM users WHERE role='student' ORDER BY name").fetchall()
     topics = [r["topic"] for r in db.execute("SELECT DISTINCT topic FROM questions ORDER BY topic")]
-    rows = []
-    for s in students:
-        st = user_stats(db, s["id"])
-        last = db.execute("SELECT MAX(created_at) m FROM attempts WHERE user_id=?", (s["id"],)).fetchone()["m"]
-        by_topic = {m["topic"]: m for m in st["mastery"]}
-        rows.append({"name": s["name"] or s["email"], "email": s["email"], "stats": st,
-                     "by_topic": by_topic,
-                     "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")})
+    users = {u["email"]: u for u in db.execute("SELECT * FROM users WHERE role='student'").fetchall()}
+
+    def row_for(name, email):
+        u = users.get(email)
+        if not u:
+            return {"name": name, "email": email, "signed_in": False}
+        st = user_stats(db, u["id"])
+        last = db.execute("SELECT MAX(created_at) m FROM attempts WHERE user_id=?", (u["id"],)).fetchone()["m"]
+        return {"name": name, "email": email, "signed_in": True, "stats": st,
+                "by_topic": {m["topic"]: m for m in st["mastery"]},
+                "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
+
+    if ROSTER:
+        groups = []
+        for label, classes in ROSTER_GROUPS:
+            members = [r for r in ROSTER if r["class"] in classes]
+            rows = [row_for(r["name"], r["norm"]) for r in members]
+            rows.sort(key=lambda r: (not r["signed_in"], -(r["stats"]["xp"] if r["signed_in"] else 0)))
+            groups.append({"label": label, "rows": rows})
+        return render_template("teacher.html", groups=groups, topics=topics, roster=True)
+
+    rows = [row_for(u["name"] or u["email"], u["email"]) for u in users.values()]
+    rows = [r for r in rows if r["signed_in"]]
     rows.sort(key=lambda r: -r["stats"]["xp"])
-    return render_template("teacher.html", rows=rows, topics=topics)
+    return render_template("teacher.html", groups=[{"label": "Signed-in students", "rows": rows}],
+                           topics=topics, roster=False)
 
 @app.route("/healthz")
 def healthz():

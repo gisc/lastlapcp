@@ -3,11 +3,21 @@
 {% block content %}
 <div class="card">
   <h1>Class progress</h1>
-  <p class="muted">{{ rows|length }} students signed in so far. Sorted by XP.</p>
+  <p class="muted">
+    {%- set ns = namespace(signed=0, total=0) -%}
+    {%- for g in groups %}{% for r in g.rows %}{% set ns.total = ns.total + 1 %}{% if r.signed_in %}{% set ns.signed = ns.signed + 1 %}{% endif %}{% endfor %}{%- endfor -%}
+    {{ ns.signed }} of {{ ns.total }} students signed in so far.{% if not roster %} Roster not configured.{% endif %}
+  </p>
   <a class="btn" href="{{ url_for('bank') }}">Question bank</a>
 </div>
-{% for r in rows %}
+{% for g in groups %}
 <div class="card">
+  <h2>{{ g.label }}</h2>
+  <p class="muted small">{{ g.rows|selectattr('signed_in')|list|length }} of {{ g.rows|length }} signed in</p>
+</div>
+{% for r in g.rows %}
+<div class="card">
+  {% if r.signed_in %}
   <div class="srow">
     <div>
       <div class="sname">{{ r.name }}</div>
@@ -29,6 +39,16 @@
     {% endfor %}
   </div>
   {% endif %}
+  {% else %}
+  <div class="srow">
+    <div>
+      <div class="sname">{{ r.name }}</div>
+      <div class="muted small">{{ r.email }}</div>
+    </div>
+    <div class="muted">not signed in yet</div>
+  </div>
+  {% endif %}
 </div>
+{% endfor %}
 {% endfor %}
 {% endblock %}
