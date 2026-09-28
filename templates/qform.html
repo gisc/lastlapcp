@@ -20,7 +20,8 @@
     <label>Code block (optional) - a Python program or pseudocode, shown in fixed-width font on its own lines, exactly as typed</label>
     <textarea class="field code-input" name="code" rows="6" placeholder="FUNCTION S(n)&#10;    IF n = 1 THEN&#10;        RETURN 12&#10;    ENDIF&#10;ENDFUNCTION">{{ form.code }}</textarea>
     {% if form.qtype == 'fib' %}
-    <label class="flabel">Accepted answers - list every variant you will accept (matching ignores case and extra spaces)</label>
+    <label class="flabel">Accepted answers - list every variant you will accept (matching ignores extra spaces{% if not form.case_sensitive %} and case{% endif %})</label>
+    <label class="opt"><input type="checkbox" name="case_sensitive" value="1" {{ 'checked' if form.case_sensitive }}><span>Case-sensitive - require exact capitalisation (for Python identifiers like StackPointer)</span></label>
     {% else %}
     <label class="flabel">Options - tick the correct answer{{ 's (at least two)' if form.qtype == 'checkbox' else ' (exactly one)' }}</label>
     {% endif %}

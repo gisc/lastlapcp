@@ -27,11 +27,16 @@ def _norm_email(e):
 def _norm_answer(s):
     return " ".join((s or "").strip().lower().split())
 
-def _fib_match(typed, accepted):
+def _fib_match(typed, accepted, case_sensitive=False):
     """Correct when the typed answer equals an accepted variant, or one contains
     the other as a contiguous run of whole words (so 'double entry' matches the
-    keyword 'double' but 'router' does not match 'route')."""
-    t = _norm_answer(typed)
+    keyword 'double' but 'router' does not match 'route'). With case_sensitive,
+    only whitespace is normalised - identifiers like StackPointer must match
+    exactly, as Python names are case-sensitive."""
+    if case_sensitive:
+        t = " ".join((typed or "").strip().split())
+    else:
+        t = _norm_answer(typed)
     if not t:
         return False
     tw = t.split()
@@ -112,7 +117,8 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS questions(
   id INTEGER PRIMARY KEY, topic TEXT NOT NULL, paper TEXT NOT NULL,
   qtype TEXT NOT NULL, stem TEXT NOT NULL, explanation TEXT NOT NULL,
-  misconception TEXT DEFAULT '', code TEXT DEFAULT '');
+  misconception TEXT DEFAULT '', code TEXT DEFAULT '',
+  case_sensitive INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS options(
   id INTEGER PRIMARY KEY, question_id INTEGER NOT NULL REFERENCES questions(id),
   ord INTEGER NOT NULL, text TEXT NOT NULL, is_correct INTEGER NOT NULL DEFAULT 0);
@@ -136,8 +142,9 @@ def seed_questions(db):
         bank = json.load(f)
     for q in bank:
         cur = db.execute(
-            "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code) VALUES(?,?,?,?,?,?,?)",
-            (q["topic"], q["paper"], q["qtype"], q["stem"], q["explanation"], q.get("misconception", ""), q.get("code", "")))
+            "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code,case_sensitive) VALUES(?,?,?,?,?,?,?,?)",
+            (q["topic"], q["paper"], q["qtype"], q["stem"], q["explanation"], q.get("misconception", ""), q.get("code", ""),
+             1 if q.get("case_sensitive") else 0))
         qid = cur.lastrowid
         for i, opt in enumerate(q["options"]):
             db.execute("INSERT INTO options(question_id,ord,text,is_correct) VALUES(?,?,?,?)",
@@ -152,7 +159,9 @@ def init_db():
     cols = [r["name"] for r in db.execute("PRAGMA table_info(questions)")]
     if "code" not in cols:
         db.execute("ALTER TABLE questions ADD COLUMN code TEXT DEFAULT ''")
-        db.commit()
+    if "case_sensitive" not in cols:
+        db.execute("ALTER TABLE questions ADD COLUMN case_sensitive INTEGER NOT NULL DEFAULT 0")
+    db.commit()
     seed_questions(db)
     db.close()
 
@@ -326,8 +335,9 @@ def answer(qid):
         abort(404)
     if q["qtype"] == "fib":
         typed = request.form.get("fib_text", "")
-        accepted = {_norm_answer(o["text"]) for o in opts}
-        correct = 1 if _fib_match(typed, accepted) else 0
+        cs = bool(q["case_sensitive"])
+        accepted = {(" ".join(o["text"].strip().split()) if cs else _norm_answer(o["text"])) for o in opts}
+        correct = 1 if _fib_match(typed, accepted, case_sensitive=cs) else 0
         if correct:
             best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM attempts WHERE user_id=? AND question_id=?",
                               (u["id"], qid)).fetchone()["b"]
@@ -479,6 +489,7 @@ def _read_qform(count=None):
         "code": request.form.get("code", "").strip(),
         "explanation": request.form.get("explanation", "").strip(),
         "misconception": request.form.get("misconception", "").strip(),
+        "case_sensitive": bool(request.form.get("case_sensitive")),
         "opts": opts,
     }
     errs = []
@@ -506,8 +517,9 @@ def _read_qform(count=None):
 
 def _insert_question(db, form):
     cur = db.execute(
-        "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code) VALUES(?,?,?,?,?,?,?)",
-        (form["topic"], form["paper"], form["qtype"], form["stem"], form["explanation"], form["misconception"], form["code"]))
+        "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code,case_sensitive) VALUES(?,?,?,?,?,?,?,?)",
+        (form["topic"], form["paper"], form["qtype"], form["stem"], form["explanation"], form["misconception"], form["code"],
+         1 if form["case_sensitive"] else 0))
     qid = cur.lastrowid
     for i, o in enumerate(form["opts"]):
         db.execute("INSERT INTO options(question_id,ord,text,is_correct) VALUES(?,?,?,?)",
@@ -527,7 +539,8 @@ def bank_new():
         return render_template("qform.html", form=form, errs=errs, topics=_topics(db),
                                qid=None, natt=None, saved=None), 400
     form = {"topic": "", "paper": "P1", "qtype": "mcq", "stem": "", "explanation": "",
-            "misconception": "", "code": "", "opts": [{"text": "", "correct": False} for _ in range(4)]}
+            "misconception": "", "code": "", "case_sensitive": False,
+            "opts": [{"text": "", "correct": False} for _ in range(4)]}
     return render_template("qform.html", form=form, errs=[], topics=_topics(db),
                            qid=None, natt=None, saved=None)
 
@@ -544,9 +557,10 @@ def bank_edit(qid):
         form, errs = _read_qform(count=n)
         if not errs:
             db.execute(
-                "UPDATE questions SET topic=?,paper=?,qtype=?,stem=?,explanation=?,misconception=?,code=? WHERE id=?",
+                "UPDATE questions SET topic=?,paper=?,qtype=?,stem=?,explanation=?,misconception=?,code=?,case_sensitive=? WHERE id=?",
                 (form["topic"], form["paper"], form["qtype"], form["stem"],
-                 form["explanation"], form["misconception"], form["code"], qid))
+                 form["explanation"], form["misconception"], form["code"],
+                 1 if form["case_sensitive"] else 0, qid))
             for o, row in zip(form["opts"], opts):
                 db.execute("UPDATE options SET text=?, is_correct=? WHERE id=?",
                            (o["text"], 1 if o["correct"] else 0, row["id"]))
@@ -556,6 +570,7 @@ def bank_edit(qid):
                                qid=qid, natt=natt, saved=None), 400
     form = {"topic": q["topic"], "paper": q["paper"], "qtype": q["qtype"], "stem": q["stem"],
             "explanation": q["explanation"], "misconception": q["misconception"] or "", "code": q["code"] or "",
+            "case_sensitive": bool(q["case_sensitive"]),
             "opts": [{"text": o["text"], "correct": bool(o["is_correct"])} for o in opts]}
     return render_template("qform.html", form=form, errs=[], topics=_topics(db),
                            qid=qid, natt=natt, saved=request.args.get("saved"))
