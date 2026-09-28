@@ -4,7 +4,21 @@
   <div class="hello">Hi {{ u['name'].split(' ')[0] if u['name'] else u['email'] }}</div>
   <div class="bigxp">{{ stats.xp }} <span>XP</span></div>
   <div class="streak">{% if stats.streak > 0 %}<svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg> {{ stats.streak }}-day streak{% else %}Answer a question today to start a streak{% endif %}</div>
-  <a class="btn big" href="{{ url_for('quiz') }}">Start mixed drill</a>
+</div>
+<div class="card">
+  <h2>Tier 1 - MCQ &amp; checkbox</h2>
+  <p class="muted">Pick ONE, or pick ALL that apply.</p>
+  <a class="btn big" href="{{ url_for('quiz', tier=1) }}">Start Tier 1 mixed drill</a>
+  <h3 class="sub">Drill one topic</h3>
+  <div class="chips">
+    {% for t in topics %}<a class="chip" href="{{ url_for('quiz', topic=t, tier=1) }}">{{ t }}</a>{% endfor %}
+  </div>
+</div>
+<div class="card">
+  <h2>Tier 2 - Fill in the blank</h2>
+  <p class="muted">Type the missing keyword or code. No need to finish Tier 1 first - jump straight in.</p>
+  <a class="btn big" href="{{ url_for('quiz', tier=2, paper='P1') }}">Paper 1 - theory keywords</a>
+  <a class="btn big" href="{{ url_for('quiz', tier=2, paper='P2') }}">Paper 2 - practical code</a>
 </div>
 <div class="card">
   <h2>Topic mastery</h2>
@@ -18,12 +32,6 @@
   {% else %}
   <p class="muted">No attempts yet. Your mastery per topic shows up here.</p>
   {% endif %}
-</div>
-<div class="card">
-  <h2>Drill one topic</h2>
-  <div class="chips">
-    {% for t in topics %}<a class="chip" href="{{ url_for('quiz', topic=t) }}">{{ t }}</a>{% endfor %}
-  </div>
 </div>
 {% if u['role'] == 'teacher' %}
 <div class="card center"><a class="btn" href="{{ url_for('teacher') }}">Teacher dashboard</a></div>

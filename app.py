@@ -207,10 +207,19 @@ def user_stats(db, uid):
     return {"xp": row["xp"], "attempts": row["n"], "correct": row["c"],
             "streak": streak, "mastery": mastery}
 
-def pick_question(db, uid, topic=None):
+TIER_QTYPES = {1: ("mcq", "checkbox"), 2: ("fib",)}
+
+def pick_question(db, uid, topic=None, tier=None, paper=None):
     params, where = [], ""
     if topic:
-        where, params = "AND q.topic=?", [topic]
+        where += " AND q.topic=?"
+        params.append(topic)
+    if tier in TIER_QTYPES:
+        where += " AND q.qtype IN (%s)" % ",".join("?" * len(TIER_QTYPES[tier]))
+        params.extend(TIER_QTYPES[tier])
+    if paper in ("P1", "P2"):
+        where += " AND q.paper=?"
+        params.append(paper)
     row = db.execute(
         f"""SELECT q.id FROM questions q
             WHERE NOT EXISTS(SELECT 1 FROM attempts a WHERE a.question_id=q.id AND a.user_id=?) {where}
@@ -283,26 +292,33 @@ def logout():
 @login_required
 def quiz():
     topic = request.args.get("topic") or None
-    qid = pick_question(get_db(), session["uid"], topic)
+    tier = request.args.get("tier", type=int)
+    paper = request.args.get("paper") or None
+    qid = pick_question(get_db(), session["uid"], topic, tier, paper)
     if qid is None:
-        return render_template("quiz.html", empty=True, topic=topic)
-    return redirect(url_for("question", qid=qid, topic=topic or ""))
+        return render_template("quiz.html", empty=True, topic=topic, tier=tier, paper=paper)
+    return redirect(url_for("question", qid=qid, topic=topic or "", tier=tier or "", paper=paper or ""))
 
 @app.route("/q/<int:qid>")
 @login_required
 def question(qid):
     topic = request.args.get("topic") or ""
+    tier = request.args.get("tier", type=int)
+    paper = request.args.get("paper") or ""
     q, opts = load_question(get_db(), qid)
     if not q:
         abort(404)
     opts = list(opts)
     random.shuffle(opts)
-    return render_template("quiz.html", q=q, opts=opts, topic=topic, empty=False, feedback=None)
+    return render_template("quiz.html", q=q, opts=opts, topic=topic, tier=tier, paper=paper,
+                           empty=False, feedback=None)
 
 @app.route("/q/<int:qid>", methods=["POST"])
 @login_required
 def answer(qid):
     topic = request.form.get("topic", "")
+    tier = request.form.get("tier", type=int)
+    paper = request.form.get("paper", "")
     db = get_db()
     u = current_user()
     q, opts = load_question(db, qid)
@@ -323,7 +339,8 @@ def answer(qid):
                     datetime.now(timezone.utc).isoformat()))
         db.commit()
         stats = user_stats(db, u["id"])
-        return render_template("quiz.html", q=q, opts=opts, topic=topic, empty=False,
+        return render_template("quiz.html", q=q, opts=opts, topic=topic, tier=tier, paper=paper,
+                               empty=False,
                                feedback={"correct": correct, "xp": xp, "typed": typed.strip(),
                                          "accepted": [o["text"] for o in opts]}, stats=stats)
     correct_ids = {o["id"] for o in opts if o["is_correct"]}
@@ -345,7 +362,8 @@ def answer(qid):
                 datetime.now(timezone.utc).isoformat()))
     db.commit()
     stats = user_stats(db, u["id"])
-    return render_template("quiz.html", q=q, opts=opts, topic=topic, empty=False,
+    return render_template("quiz.html", q=q, opts=opts, topic=topic, tier=tier, paper=paper,
+                           empty=False,
                            feedback={"correct": correct, "xp": xp, "chosen": chosen,
                                      "correct_ids": correct_ids}, stats=stats)
 

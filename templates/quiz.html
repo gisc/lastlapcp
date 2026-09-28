@@ -2,19 +2,21 @@
 {% block content %}
 {% if empty %}
 <div class="card center">
-  <h1>All done{% if topic %} in {{ topic }}{% endif %}!</h1>
+  <h1>All done{% if topic %} in {{ topic }}{% elif tier == 2 %} in Tier 2 {{ paper }}{% elif tier == 1 %} in Tier 1{% endif %}!</h1>
   <p class="muted">No more questions here right now.</p>
   <a class="btn" href="{{ url_for('home') }}">Back home</a>
 </div>
 {% else %}
 <div class="card">
-  <div class="qmeta"><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
+  <div class="qmeta"><span class="tag tier">{{ 'Tier 2' if q['qtype']=='fib' else 'Tier 1' }}</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
     <span class="tag">{{ 'Pick ALL that apply' if q['qtype']=='checkbox' else ('Type your answer' if q['qtype']=='fib' else 'Pick ONE') }}</span></div>
   <div class="stem">{{ q['stem'] }}</div>
   {% if q['code'] %}<pre class="codeblock">{{ q['code'] }}</pre>{% endif %}
   {% if not feedback %}
   <form method="post" action="{{ url_for('answer', qid=q['id']) }}">
     <input type="hidden" name="topic" value="{{ topic }}">
+    <input type="hidden" name="tier" value="{{ tier or '' }}">
+    <input type="hidden" name="paper" value="{{ paper }}">
     {% if q['qtype']=='fib' %}
     <input class="field code-input" name="fib_text" autocomplete="off" autocapitalize="off"
            spellcheck="false" placeholder="Type the missing keyword or code" required>
@@ -45,7 +47,7 @@
     </div>
     <div class="expl"><b>Why:</b> {{ q['explanation'] }}</div>
     {% if q['misconception'] %}<div class="expl trap"><b>Common trap:</b> {{ q['misconception'] }}</div>{% endif %}
-    <a class="btn big" href="{{ url_for('quiz', topic=topic) if topic else url_for('quiz') }}">Next question</a>
+    <a class="btn big" href="{{ url_for('quiz', topic=topic, tier=tier or '', paper=paper) }}">Next question</a>
     <a class="btn ghost" href="{{ url_for('home') }}">Home</a>
   {% endif %}
 </div>

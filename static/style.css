@@ -70,3 +70,8 @@ h1 { margin: 6px 0 10px; font-size: 1.5rem; } h2 { margin: 4px 0 10px; font-size
   overflow-x: auto; font-size: 0.95rem; line-height: 1.5; margin: 6px 0 14px;
   white-space: pre; }
 .code-input { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+/* tier separation */
+h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
+.card .btn.big + .btn.big { margin-top: 10px; }
+.tag.tier { background: #1a3a6b; color: #fff; }
