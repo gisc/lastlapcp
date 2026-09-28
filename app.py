@@ -27,6 +27,24 @@ def _norm_email(e):
 def _norm_answer(s):
     return " ".join((s or "").strip().lower().split())
 
+def _fib_match(typed, accepted):
+    """Correct when the typed answer equals an accepted variant, or one contains
+    the other as a contiguous run of whole words (so 'double entry' matches the
+    keyword 'double' but 'router' does not match 'route')."""
+    t = _norm_answer(typed)
+    if not t:
+        return False
+    tw = t.split()
+    for a in accepted:
+        aw = a.split()
+        if t == " ".join(aw):
+            return True
+        for hay, needle in ((tw, aw), (aw, tw)):
+            for i in range(len(hay) - len(needle) + 1):
+                if hay[i:i + len(needle)] == needle:
+                    return True
+    return False
+
 TEACHER_EMAILS = {_norm_email(e) for e in os.environ.get("TEACHER_EMAILS", "").split(",") if e.strip()}
 ALLOWED_EMAILS = {_norm_email(e) for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
 
@@ -293,7 +311,7 @@ def answer(qid):
     if q["qtype"] == "fib":
         typed = request.form.get("fib_text", "")
         accepted = {_norm_answer(o["text"]) for o in opts}
-        correct = 1 if _norm_answer(typed) in accepted else 0
+        correct = 1 if _fib_match(typed, accepted) else 0
         if correct:
             best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM attempts WHERE user_id=? AND question_id=?",
                               (u["id"], qid)).fetchone()["b"]
