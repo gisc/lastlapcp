@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS questions(
   id INTEGER PRIMARY KEY, topic TEXT NOT NULL, paper TEXT NOT NULL,
   qtype TEXT NOT NULL, stem TEXT NOT NULL, explanation TEXT NOT NULL,
-  misconception TEXT DEFAULT '');
+  misconception TEXT DEFAULT '', code TEXT DEFAULT '');
 CREATE TABLE IF NOT EXISTS options(
   id INTEGER PRIMARY KEY, question_id INTEGER NOT NULL REFERENCES questions(id),
   ord INTEGER NOT NULL, text TEXT NOT NULL, is_correct INTEGER NOT NULL DEFAULT 0);
@@ -115,8 +115,8 @@ def seed_questions(db):
         bank = json.load(f)
     for q in bank:
         cur = db.execute(
-            "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception) VALUES(?,?,?,?,?,?)",
-            (q["topic"], q["paper"], q["qtype"], q["stem"], q["explanation"], q.get("misconception", "")))
+            "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code) VALUES(?,?,?,?,?,?,?)",
+            (q["topic"], q["paper"], q["qtype"], q["stem"], q["explanation"], q.get("misconception", ""), q.get("code", "")))
         qid = cur.lastrowid
         for i, opt in enumerate(q["options"]):
             db.execute("INSERT INTO options(question_id,ord,text,is_correct) VALUES(?,?,?,?)",
@@ -128,6 +128,10 @@ def init_db():
     db = sqlite3.connect(DB_PATH)
     db.executescript(SCHEMA)
     db.row_factory = sqlite3.Row
+    cols = [r["name"] for r in db.execute("PRAGMA table_info(questions)")]
+    if "code" not in cols:
+        db.execute("ALTER TABLE questions ADD COLUMN code TEXT DEFAULT ''")
+        db.commit()
     seed_questions(db)
     db.close()
 
@@ -415,6 +419,7 @@ def _read_qform(count=None):
         "paper": request.form.get("paper", "").strip() or "P1",
         "qtype": request.form.get("qtype", "mcq"),
         "stem": request.form.get("stem", "").strip(),
+        "code": request.form.get("code", "").strip(),
         "explanation": request.form.get("explanation", "").strip(),
         "misconception": request.form.get("misconception", "").strip(),
         "opts": opts,
@@ -441,8 +446,8 @@ def _read_qform(count=None):
 
 def _insert_question(db, form):
     cur = db.execute(
-        "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception) VALUES(?,?,?,?,?,?)",
-        (form["topic"], form["paper"], form["qtype"], form["stem"], form["explanation"], form["misconception"]))
+        "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code) VALUES(?,?,?,?,?,?,?)",
+        (form["topic"], form["paper"], form["qtype"], form["stem"], form["explanation"], form["misconception"], form["code"]))
     qid = cur.lastrowid
     for i, o in enumerate(form["opts"]):
         db.execute("INSERT INTO options(question_id,ord,text,is_correct) VALUES(?,?,?,?)",
@@ -462,7 +467,7 @@ def bank_new():
         return render_template("qform.html", form=form, errs=errs, topics=_topics(db),
                                qid=None, natt=None, saved=None), 400
     form = {"topic": "", "paper": "P1", "qtype": "mcq", "stem": "", "explanation": "",
-            "misconception": "", "opts": [{"text": "", "correct": False} for _ in range(4)]}
+            "misconception": "", "code": "", "opts": [{"text": "", "correct": False} for _ in range(4)]}
     return render_template("qform.html", form=form, errs=[], topics=_topics(db),
                            qid=None, natt=None, saved=None)
 
@@ -479,9 +484,9 @@ def bank_edit(qid):
         form, errs = _read_qform(count=n)
         if not errs:
             db.execute(
-                "UPDATE questions SET topic=?,paper=?,qtype=?,stem=?,explanation=?,misconception=? WHERE id=?",
+                "UPDATE questions SET topic=?,paper=?,qtype=?,stem=?,explanation=?,misconception=?,code=? WHERE id=?",
                 (form["topic"], form["paper"], form["qtype"], form["stem"],
-                 form["explanation"], form["misconception"], qid))
+                 form["explanation"], form["misconception"], form["code"], qid))
             for o, row in zip(form["opts"], opts):
                 db.execute("UPDATE options SET text=?, is_correct=? WHERE id=?",
                            (o["text"], 1 if o["correct"] else 0, row["id"]))
@@ -490,7 +495,7 @@ def bank_edit(qid):
         return render_template("qform.html", form=form, errs=errs, topics=_topics(db),
                                qid=qid, natt=natt, saved=None), 400
     form = {"topic": q["topic"], "paper": q["paper"], "qtype": q["qtype"], "stem": q["stem"],
-            "explanation": q["explanation"], "misconception": q["misconception"] or "",
+            "explanation": q["explanation"], "misconception": q["misconception"] or "", "code": q["code"] or "",
             "opts": [{"text": o["text"], "correct": bool(o["is_correct"])} for o in opts]}
     return render_template("qform.html", form=form, errs=[], topics=_topics(db),
                            qid=qid, natt=natt, saved=request.args.get("saved"))

@@ -23,6 +23,7 @@
     <span class="tag">{{ 'Pick ALL that apply' if it.q['qtype']=='checkbox' else 'Pick ONE' }}</span>
     <span class="tag">#{{ it.q['id'] }}</span></div>
   <div class="stem">{{ it.q['stem'] }}</div>
+  {% if it.q['code'] %}<pre class="codeblock">{{ it.q['code'] }}</pre>{% endif %}
   {% for o in it.opts %}
   <div class="opt result {{ 'good' if o['is_correct'] else '' }}"><span>{{ o['text'] }}</span></div>
   {% endfor %}

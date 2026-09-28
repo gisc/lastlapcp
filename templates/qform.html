@@ -16,6 +16,8 @@
     <label class="opt"><input type="radio" name="qtype" value="checkbox" {{ 'checked' if form.qtype == 'checkbox' }}><span>Checkbox - pick ALL that apply</span></label>
     <label class="flabel">Question stem</label>
     <textarea class="field" name="stem" rows="3" required>{{ form.stem }}</textarea>
+    <label>Code block (optional) - a Python program or pseudocode, shown in fixed-width font on its own lines, exactly as typed</label>
+    <textarea class="field code-input" name="code" rows="6" placeholder="FUNCTION S(n)&#10;    IF n = 1 THEN&#10;        RETURN 12&#10;    ENDIF&#10;ENDFUNCTION">{{ form.code }}</textarea>
     <label class="flabel">Options - tick the correct answer{{ 's (at least two)' if form.qtype == 'checkbox' else ' (exactly one)' }}</label>
     {% for o in form.opts %}
     <div class="optedit">
