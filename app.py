@@ -327,7 +327,7 @@ def teacher():
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
-    roster = [{"name": r["name"], "norm": _norm_email(r["email"]), "class": r["class"]}
+    roster = [{"name": r["name"], "email": r["email"], "norm": _norm_email(r["email"]), "class": r["class"]}
               for r in db.execute("SELECT name,email,class FROM roster").fetchall()]
     if not roster:
         roster = ROSTER_ENV
@@ -361,7 +361,7 @@ def roster_admin():
             if len(bits) != 3 or "@" not in bits[2]:
                 continue
             cls, name, email = (b.strip() for b in bits)
-            entries.append((_norm_email(email), name, cls))
+            entries.append((email, name, cls))
         db.execute("DELETE FROM roster")
         db.executemany("INSERT INTO roster(email,name,class) VALUES(?,?,?)", entries)
         db.commit()
