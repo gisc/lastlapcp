@@ -2041,5 +2041,491 @@
     ],
     "explanation": "Codes like this are identifiers, not quantities: the leading zero is significant and would vanish in an integer, and a Modulus 11 remainder of 10 is written as 'X', which only a string can store. (No-arithmetic is also a reasonable argument, but the two exam-mark answers are the leading zero and the possible 'X'.) (2020 P1 Q5d.)",
     "misconception": "Choosing integer just because the characters look numeric; if you never do maths on it, store it as a string."
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "A ________ check rejects input where a required field has been left empty.",
+    "explanation": "A presence check makes sure required data was actually entered. It is validation, not verification - it cannot tell whether the entry is correct, only that it exists. (2025 P1 validation checks.)",
+    "misconception": "Calling it a format check: format checks pattern-match (e.g. an email must contain @), presence only asks 'was anything typed?'.",
+    "code": "",
+    "options": [
+      {
+        "text": "presence",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "A Modulus 11 ________ digit is appended to a number such as 02757 so that entry errors can be detected.",
+    "explanation": "A check digit is calculated from the other digits and recalculated on entry; a mismatch flags a mistyped number. It catches errors but cannot fix them. (2020 P1 Q5.)",
+    "misconception": "Calling it a 'verification digit': check digits are validation (rule-based), while verification compares against the source document.",
+    "code": "",
+    "options": [
+      {
+        "text": "check",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Testing",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "________ entry - typing the same data twice and comparing the two versions - is a method of verification, not validation.",
+    "explanation": "Double entry catches transcription slips by making the typist enter the data twice; mismatches are re-checked against the source. It verifies against the original, which no rule-based validation can do. (2020 P1 Q5.)",
+    "misconception": "Writing 'dual' or 'repeat': the expected keyword is 'double entry' (visual checking is the other accepted verification method).",
+    "code": "",
+    "options": [
+      {
+        "text": "double",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "Keeping an object's data and its methods together, and restricting direct outside access to that data, is called ________.",
+    "explanation": "Encapsulation bundles attributes with the methods that act on them and forces other code to go through those methods, so the data cannot be corrupted from outside. (2024 P1 bee class diagram.)",
+    "misconception": "Answering 'abstraction': abstraction hides complexity behind a simple interface; encapsulation specifically protects the data.",
+    "code": "",
+    "options": [
+      {
+        "text": "encapsulation",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "When a subclass provides its own version of an inherited method, so the same method call behaves differently depending on the object's class, this is ________.",
+    "explanation": "Polymorphism lets the same call (e.g. computeHireCost()) run the Car version or the Van version depending on the object, via overriding. (2020 P1 Q1.)",
+    "misconception": "Answering 'inheritance': inheritance is reusing the superclass's code; polymorphism is the same call behaving differently per class.",
+    "code": "",
+    "options": [
+      {
+        "text": "polymorphism",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "OOP",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "In a class diagram, the upward-pointing arrow from a subclass to its superclass shows ________.",
+    "explanation": "The arrow points from subclass UP to superclass and is read as 'is-a': a Queen is-a Bee, inheriting its attributes and methods. (2024 P1 bee class diagram.)",
+    "misconception": "Composition uses a plain line ('has-a') with a filled diamond in UML - only the arrow shows inheritance.",
+    "code": "",
+    "options": [
+      {
+        "text": "inheritance",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "The ________ key of a table uniquely identifies each row.",
+    "explanation": "A primary key has a unique value in every row, so each row can be referenced unambiguously - e.g. CourseID in Course(CourseID, Subject, ...). (2020 P1 Q6.)",
+    "misconception": "A foreign key references another table's primary key; it does not identify rows in its own table.",
+    "code": "",
+    "options": [
+      {
+        "text": "primary",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "In Course(CourseID, Subject, TeacherID, TeacherName, RoomNumber), TeacherName depends on TeacherID rather than on CourseID. This ________ dependency is what stops the table being in 3NF.",
+    "explanation": "A transitive dependency means a non-key attribute depends on another non-key attribute, not on the key. 3NF removes it by splitting Teacher into its own table. (2020 P1 Q6.)",
+    "misconception": "'Partial' dependency is a 2NF issue (depending on part of a composite key); depending on a non-key attribute is transitive, a 3NF issue.",
+    "code": "",
+    "options": [
+      {
+        "text": "transitive",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "A many-to-many relationship between two entities is implemented in a relational database using a ________ table holding the two foreign keys.",
+    "explanation": "The link table (e.g. LOAN with MemberID and BookID) turns one many-to-many into two one-to-many relationships, which a relational database can enforce. (2024 P1 ER diagrams.)",
+    "misconception": "You cannot store many-to-many directly - repeating groups break 1NF, and a single foreign key only models one-to-many.",
+    "code": "",
+    "options": [
+      {
+        "text": "link",
+        "correct": true
+      },
+      {
+        "text": "junction",
+        "correct": true
+      },
+      {
+        "text": "bridge",
+        "correct": true
+      },
+      {
+        "text": "link table",
+        "correct": true
+      },
+      {
+        "text": "junction table",
+        "correct": true
+      },
+      {
+        "text": "bridge table",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "On the internet, data is split into packets that are routed independently and reassembled at the destination. This is called packet ________.",
+    "explanation": "Packet-switching lets packets of one message travel different routes; sequence numbers let the destination reassemble them and detect loss. (2020 P1 Q4.)",
+    "misconception": "Circuit-switching (the telephone model) reserves one dedicated path for the whole message - the internet does not do this.",
+    "code": "",
+    "options": [
+      {
+        "text": "switching",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "A ________ sits between a LAN and the internet, examining packets and blocking traffic that breaks its rules on ports, addresses or protocols.",
+    "explanation": "A firewall filters traffic in both directions against a rule set, blocking unwanted connections before they reach the LAN. (2024/2025 P1 security.)",
+    "misconception": "An IDS only detects and alerts; the device that blocks the traffic is the firewall.",
+    "code": "",
+    "options": [
+      {
+        "text": "firewall",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "An ________ (three letters) monitors network traffic for suspicious patterns, compares it against known attack signatures and alerts administrators.",
+    "explanation": "An intrusion detection system (IDS) watches traffic and logs/alerts on anomalies or signature matches - detection, not blocking (that is a firewall/IPS). (2025 P1.)",
+    "misconception": "'Antivirus' scans files on one machine; an IDS watches the network traffic itself.",
+    "code": "",
+    "options": [
+      {
+        "text": "ids",
+        "correct": true
+      },
+      {
+        "text": "intrusion detection system",
+        "correct": true
+      },
+      {
+        "text": "intrusion detection",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Number representation",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "In hexadecimal, the single digit that represents denary 15 is ________.",
+    "explanation": "Hex digits run 0-9 then A=10, B=11, C=12, D=13, E=14, F=15. So 79 = 4x16 + 15 = 4F. (2024 P1 Q1d.)",
+    "misconception": "Writing '15' - 15 is not a single hex digit; each hex digit covers 0 to 15, and 15 is F.",
+    "code": "",
+    "options": [
+      {
+        "text": "f",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P1",
+    "qtype": "fib",
+    "stem": "Backing up is for fast recovery after data loss; ________ is the long-term storage of data that is no longer needed day-to-day but must be kept.",
+    "explanation": "Archiving moves old data to long-term storage (for legal or historical reasons), freeing live storage; backups are copies for restoring recent data. (2024 P1 backup vs archive.)",
+    "misconception": "An archive is not a second backup - backup assumes you will restore soon; archive assumes the data is no longer in daily use.",
+    "code": "",
+    "options": [
+      {
+        "text": "archiving",
+        "correct": true
+      },
+      {
+        "text": "archive",
+        "correct": true
+      },
+      {
+        "text": "archival storage",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the pseudocode for pushing an item onto a stack stored in the array Stack.",
+    "explanation": "After incrementing, StackPointer holds the index of the free top slot, so the item is stored at Stack[StackPointer]. The overflow check must come first. (Stack as OOP class / static array - 2025 P1 Q4 and P2 data structures.)",
+    "misconception": "Using MaxSize as the index: MaxSize is the capacity, not the current top. Storing before incrementing would overwrite the previous top item.",
+    "code": "PROCEDURE Push(Item)\n    IF StackPointer = MaxSize THEN\n        OUTPUT \"Stack full\"\n    ELSE\n        StackPointer = StackPointer + 1\n        Stack[________] <- Item\n    ENDIF\nENDPROCEDURE",
+    "options": [
+      {
+        "text": "stackpointer",
+        "correct": true
+      },
+      {
+        "text": "stack pointer",
+        "correct": true
+      },
+      {
+        "text": "sp",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the wrap-around for a circular queue's rear pointer.",
+    "explanation": "When the rear reaches the last index it wraps to 0, reusing the slots freed by deletions at the front - the whole point of a circular queue. (2020 P1 Q2-style queues; P2 circular queue code.)",
+    "misconception": "Wrapping to 1: arrays here are indexed from 0, so the first slot is index 0.",
+    "code": "IF Rear = MaxIndex THEN\n    Rear <- ________\nELSE\n    Rear <- Rear + 1\nENDIF",
+    "options": [
+      {
+        "text": "0",
+        "correct": true
+      },
+      {
+        "text": "zero",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Data structures",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "A hash table stores synonyms by giving each slot a pointer to a linked list of colliding records. This collision-handling method is called ________.",
+    "explanation": "Chaining keeps a linked list per slot, so colliding keys coexist. The alternative is open addressing (probe for the next free slot). (P2 hash tables.)",
+    "misconception": "'Linear probing' is the open-addressing alternative - it searches for a free slot instead of linking records together.",
+    "code": "",
+    "options": [
+      {
+        "text": "chaining",
+        "correct": true
+      },
+      {
+        "text": "separate chaining",
+        "correct": true
+      },
+      {
+        "text": "closed addressing",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the reason bubble sort works: on each pass it compares and swaps ________ items that are in the wrong order.",
+    "explanation": "Bubble sort only ever compares adjacent pairs (A[i] and A[i+1]), so larger values 'bubble' one place right per pass. (2025 P1 bubble vs merge sort; P2 sorting code.)",
+    "misconception": "'Random' or 'alternate' items would not guarantee the largest unsorted value reaches the end each pass - adjacency is what makes it work.",
+    "code": "FOR i <- 0 TO n - 2\n    IF A[i] > A[i + 1] THEN\n        Temp <- A[i]\n        A[i] <- A[i + 1]\n        A[i + 1] <- Temp\n    ENDIF\nENDFOR",
+    "options": [
+      {
+        "text": "adjacent",
+        "correct": true
+      },
+      {
+        "text": "neighbouring",
+        "correct": true
+      },
+      {
+        "text": "neighboring",
+        "correct": true
+      },
+      {
+        "text": "consecutive",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Algorithms",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the binary search step: mid is the ________ index of the current search range.",
+    "explanation": "Each probe takes the middle element, halving the range every step - that is what gives O(log n). The data must be sorted. (2025 P1 Q6e; P2 searching code.)",
+    "misconception": "'Median' is a statistics term and the wrong keyword; the expected answer is the middle item of the current range.",
+    "code": "WHILE Low <= High\n    Mid <- (Low + High) DIV 2\n    IF A[Mid] = Target THEN\n        RETURN Mid\n    ...",
+    "options": [
+      {
+        "text": "middle",
+        "correct": true
+      },
+      {
+        "text": "midpoint",
+        "correct": true
+      },
+      {
+        "text": "mid",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Recursion",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Every recursive function needs a ________ case - the branch that returns without calling itself again.",
+    "explanation": "The base case (n = 0 here) stops the recursion; without it the calls never unwind and the call stack overflows. (2024 P1 recursion; P2 recursive code.)",
+    "misconception": "'Default' or 'else' case: the ELSE branch is the recursive one - the expected keyword is base case.",
+    "code": "FUNCTION Fact(n)\n    IF n = 0 THEN\n        RETURN 1\n    ELSE\n        RETURN n * Fact(n - 1)\n    ENDIF\nENDFUNCTION",
+    "options": [
+      {
+        "text": "base",
+        "correct": true
+      },
+      {
+        "text": "base case",
+        "correct": true
+      },
+      {
+        "text": "stopping",
+        "correct": true
+      },
+      {
+        "text": "terminal",
+        "correct": true
+      },
+      {
+        "text": "termination",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the SQL so it returns only student rows.",
+    "explanation": "WHERE filters which rows the query returns. Without it, SELECT returns every row in the table. (2025 P1 SQL select; P2 SQL.)",
+    "misconception": "'IF' is pseudocode, not SQL - SQL filters rows with WHERE.",
+    "code": "SELECT Name, XP\nFROM Users\n________ Role = 'student'",
+    "options": [
+      {
+        "text": "where",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the SQL that counts how many attempts a student has made.",
+    "explanation": "SELECT introduces the columns or aggregates to return; COUNT(*) counts the matching rows. Every SQL query starts with SELECT. (2025 P1 SQL; P2 SQL.)",
+    "misconception": "'GET' or 'SHOW' are not SQL keywords - the expected keyword is SELECT.",
+    "code": "________ COUNT(*)\nFROM Attempts\nWHERE UserID = 7",
+    "options": [
+      {
+        "text": "select",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Web applications",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the Flask decorator that maps the URL /score to the function below it.",
+    "explanation": "@app.route registers save_score() as the handler for that URL path. methods=['POST'] lets it receive form data in the request body. (P2 Flask.)",
+    "misconception": "'get' or 'post' are HTTP methods, not the decorator name - routing is done by route().",
+    "code": "@app.________('/score', methods=['POST'])\ndef save_score():\n    ...",
+    "options": [
+      {
+        "text": "route",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Web applications",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "A Flask form that saves a score must send its data in the request body, so its tag reads: <form method=\"________\">",
+    "explanation": "POST puts the form fields in the request body and is used when the request changes server-side data. GET appends them visibly to the URL and is for retrieval. (P2 Flask forms.)",
+    "misconception": "GET would leak the data into the URL and browser history, and implies no state change - wrong for saving.",
+    "code": "",
+    "options": [
+      {
+        "text": "post",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Networks and web",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "Complete the Python server code: after creating the socket, ________ attaches it to the IP address and port before listen() is called.",
+    "explanation": "bind() fixes the socket to an address and port; listen() then queues incoming connections and accept() takes one. Order: socket, bind, listen, accept. (P2 sockets.)",
+    "misconception": "'connect' is the client-side call - the server binds, listens and accepts.",
+    "code": "import socket\ns = socket.socket()\ns.________(('0.0.0.0', 5000))\ns.listen()\nconn, addr = s.accept()",
+    "options": [
+      {
+        "text": "bind",
+        "correct": true
+      }
+    ]
+  },
+  {
+    "topic": "Databases",
+    "paper": "P2",
+    "qtype": "fib",
+    "stem": "In a NoSQL document store such as MongoDB, records are stored as ________ rather than rows in tables.",
+    "explanation": "Document databases keep each record as a self-contained document (JSON-like), so fields can vary between records - flexible schema, unlike the fixed rows/columns of SQL. (2025 P1 NoSQL trade-offs.)",
+    "misconception": "'Objects' is tempting from OOP, but the NoSQL keyword expected is documents.",
+    "code": "",
+    "options": [
+      {
+        "text": "documents",
+        "correct": true
+      },
+      {
+        "text": "document",
+        "correct": true
+      }
+    ]
   }
 ]

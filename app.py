@@ -454,8 +454,8 @@ def _read_qform(count=None):
         errs.append("The question stem is required.")
     if not form["explanation"]:
         errs.append("The Why explanation is required.")
-    if len(opts) < 2:
-        errs.append("At least two options are required.")
+    if len(opts) < (1 if form["qtype"] == "fib" else 2):
+        errs.append("At least one accepted answer is required." if form["qtype"] == "fib" else "At least two options are required.")
     elif any(not o["text"] for o in opts):
         errs.append("Every option needs text.")
     nc = sum(1 for o in opts if o["correct"])
