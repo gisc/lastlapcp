@@ -4,6 +4,8 @@ metadata:
   name: lastlapcp
 spec:
   replicas: {{ .Values.workloads.lastlapcp.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: lastlapcp

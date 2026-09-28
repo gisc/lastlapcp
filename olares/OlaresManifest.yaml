@@ -10,7 +10,7 @@ metadata:
   title: LastLapCP
   description: Gamified A-level H2 Computing 9569 revision drills for Papers 1 and 2
   icon: https://app.cdn.olares.com/appstore/default/defaulticon.webp
-  version: 0.1.1
+  version: 0.1.2
   categories:
     - Education
 
@@ -45,7 +45,7 @@ envs:
     editable: true
 
 spec:
-  versionName: '0.1.1'
+  versionName: '0.1.2'
   requiredCpu: 250m
   limitedCpu: 1000m
   requiredMemory: 256Mi
