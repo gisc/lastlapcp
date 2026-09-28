@@ -422,3 +422,20 @@ def bank_edit(qid):
             "opts": [{"text": o["text"], "correct": bool(o["is_correct"])} for o in opts]}
     return render_template("qform.html", form=form, errs=[], topics=_topics(db),
                            qid=qid, natt=natt, saved=request.args.get("saved"))
+
+
+@app.route("/teacher/admin/reset-bank", methods=["POST"])
+@teacher_required
+def bank_reset():
+    """Re-seed the bundled question bank. Only allowed while no student attempts
+    exist, so live stats can never be wiped. Teacher-added questions are removed too."""
+    db = get_db()
+    natt = db.execute("SELECT COUNT(*) c FROM attempts").fetchone()["c"]
+    if natt:
+        abort(409)
+    db.execute("DELETE FROM options")
+    db.execute("DELETE FROM questions")
+    db.commit()
+    seed_questions(db)
+    n = db.execute("SELECT COUNT(*) c FROM questions").fetchone()["c"]
+    return redirect(url_for("bank", reset=n))

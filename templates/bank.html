@@ -4,6 +4,7 @@
 <div class="card">
   <h1>Question bank</h1>
   <p class="muted">{{ items|length }} question{{ 's' if items|length != 1 }}{% if topic %} in {{ topic }}{% endif %}. Correct answers are green.</p>
+  {% if request.args.get('reset') %}<div class="verdict good">Bank reset to the bundled {{ request.args.get('reset') }} questions.</div>{% endif %}
   <div class="chips">
     <a class="chip" href="{{ url_for('bank') }}">All</a>
     {% for t in topics %}<a class="chip" href="{{ url_for('bank', topic=t) }}">{{ t }}</a>{% endfor %}
@@ -12,6 +13,9 @@
 <div class="card center">
   <a class="btn" href="{{ url_for('bank_new') }}">Add a question</a>
   <a class="btn ghost" href="{{ url_for('teacher') }}">Teacher dashboard</a>
+  <form method="post" action="{{ url_for('bank_reset') }}" onsubmit="return confirm('Replace the whole bank with the bundled questions? Only possible before any student attempts exist.');">
+    <button class="btn ghost" type="submit">Reset bank to bundled questions</button>
+  </form>
 </div>
 {% for it in items %}
 <div class="card">
