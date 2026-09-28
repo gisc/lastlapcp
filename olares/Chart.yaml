@@ -2,4 +2,4 @@ apiVersion: v2
 name: lastlapcp
 description: Gamified A-level H2 Computing 9569 revision drills (Papers 1 and 2)
 type: application
-version: 0.1.0
+version: 0.1.1
