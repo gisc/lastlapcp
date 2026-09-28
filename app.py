@@ -11,6 +11,7 @@ from functools import wraps
 from flask import (Flask, abort, g, redirect, render_template, request,
                    session, url_for)
 from authlib.integrations.flask_client import OAuth
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 SGT = timezone(timedelta(hours=8))
 DB_PATH = os.environ.get("DATABASE_PATH", "/data/lastlapcp.db")
@@ -26,6 +27,10 @@ TEACHER_EMAILS = {_norm_email(e) for e in os.environ.get("TEACHER_EMAILS", "").s
 ALLOWED_EMAILS = {_norm_email(e) for e in os.environ.get("ALLOWED_EMAILS", "").split(",") if e.strip()} | TEACHER_EMAILS
 
 app = Flask(__name__)
+# Behind the Olares TLS-terminating gateway: honor X-Forwarded-* and force https
+# so url_for(_external=True) builds https URLs (Google OAuth redirect_uri).
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+app.config["PREFERRED_URL_SCHEME"] = "https"
 app.secret_key = os.environ.get("SECRET_KEY", "dev-only-secret-change-me")
 app.config.update(
     SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "1") == "1",
