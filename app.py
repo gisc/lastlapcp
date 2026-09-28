@@ -315,15 +315,15 @@ def answer(qid):
 def teacher():
     db = get_db()
     topics = [r["topic"] for r in db.execute("SELECT DISTINCT topic FROM questions ORDER BY topic")]
-    users = {u["email"]: u for u in db.execute("SELECT * FROM users WHERE role='student'").fetchall()}
+    users = {_norm_email(u["email"]): u for u in db.execute("SELECT * FROM users WHERE role='student'").fetchall()}
 
-    def row_for(name, email):
-        u = users.get(email)
+    def row_for(name, display_email, norm_email=None):
+        u = users.get(norm_email or display_email)
         if not u:
-            return {"name": name, "email": email, "signed_in": False}
+            return {"name": name, "email": display_email, "signed_in": False}
         st = user_stats(db, u["id"])
         last = db.execute("SELECT MAX(created_at) m FROM attempts WHERE user_id=?", (u["id"],)).fetchone()["m"]
-        return {"name": name, "email": email, "signed_in": True, "stats": st,
+        return {"name": name, "email": display_email, "signed_in": True, "stats": st,
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
@@ -335,12 +335,12 @@ def teacher():
         groups = []
         for label, classes in ROSTER_GROUPS:
             members = [r for r in roster if r["class"] in classes]
-            rows = [row_for(r["name"], r["norm"]) for r in members]
+            rows = [row_for(r["name"], r.get("email") or r["norm"], r["norm"]) for r in members]
             rows.sort(key=lambda r: (not r["signed_in"], -(r["stats"]["xp"] if r["signed_in"] else 0)))
             groups.append({"label": label, "rows": rows})
         return render_template("teacher.html", groups=groups, topics=topics, roster=True)
 
-    rows = [row_for(u["name"] or u["email"], u["email"]) for u in users.values()]
+    rows = [row_for(u["name"] or u["email"], u["email"], _norm_email(u["email"])) for u in users.values()]
     rows = [r for r in rows if r["signed_in"]]
     rows.sort(key=lambda r: -r["stats"]["xp"])
     return render_template("teacher.html", groups=[{"label": "Signed-in students", "rows": rows}],
