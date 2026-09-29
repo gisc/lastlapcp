@@ -3090,5 +3090,28 @@
     "correct": false
    }
   ]
+ },
+ {
+  "topic": "Data structures",
+  "paper": "P1",
+  "qtype": "fib",
+  "stem": "When deleting a node that has two children from a binary search tree, replace its value with the ________ (the smallest value in its right subtree), then delete that node from the right subtree.",
+  "code": "IF node.left <> NULL AND node.right <> NULL THEN\n    node.data <- ________\n    // then delete that node from the right subtree\nENDIF",
+  "explanation": "The in-order successor is the smallest value in the right subtree. Copying it up keeps the BST ordering (everything left is smaller, everything right is larger), and because it is the leftmost node of that subtree it has at most one child, so removing it is the easy case. (Syllabus 1.3.6 P1 pseudocode: delete for a binary tree.)",
+  "misconception": "Deleting the node and stitching its children back directly - that breaks the left-smaller, right-larger ordering. The swap with the successor must happen first.",
+  "options": [
+   {
+    "text": "in-order successor",
+    "correct": true
+   },
+   {
+    "text": "inorder successor",
+    "correct": true
+   },
+   {
+    "text": "in order successor",
+    "correct": true
+   }
+  ]
  }
 ]

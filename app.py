@@ -9,7 +9,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 
-from flask import (Flask, abort, g, redirect, render_template, request,
+from flask import (Flask, abort, g, redirect, render_template, request, send_from_directory,
                    session, url_for)
 from authlib.integrations.flask_client import OAuth
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -102,6 +102,8 @@ def get_db():
         g.db = sqlite3.connect(DB_PATH)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
+        g.db.execute("PRAGMA journal_mode=WAL")
+        g.db.execute("PRAGMA busy_timeout=5000")
     return g.db
 
 @app.teardown_appcontext
@@ -149,12 +151,13 @@ CREATE INDEX IF NOT EXISTS idx_t3att_part ON t3_attempts(part_id);
 """
 
 def seed_questions(db):
-    if db.execute("SELECT COUNT(*) c FROM questions").fetchone()["c"]:
-        return
+    have = {r["stem"] for r in db.execute("SELECT stem FROM questions").fetchall()}
     seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_questions.json")
     with open(seed_path, encoding="utf-8") as f:
         bank = json.load(f)
     for q in bank:
+        if q["stem"] in have:
+            continue
         cur = db.execute(
             "INSERT INTO questions(topic,paper,qtype,stem,explanation,misconception,code,case_sensitive) VALUES(?,?,?,?,?,?,?,?)",
             (q["topic"], q["paper"], q["qtype"], q["stem"], q["explanation"], q.get("misconception", ""), q.get("code", ""),
@@ -186,6 +189,8 @@ def seed_t3(db):
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = sqlite3.connect(DB_PATH)
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA busy_timeout=5000")
     db.executescript(SCHEMA)
     db.row_factory = sqlite3.Row
     cols = [r["name"] for r in db.execute("PRAGMA table_info(questions)")]
@@ -315,6 +320,14 @@ def login_google():
         abort(500, "OAuth not configured")
     return google.authorize_redirect(url_for("auth_callback", _external=True))
 
+def _is_allowed_email(db, email):
+    """Deny by default: an email gets in only via TEACHER_EMAILS, the
+    ALLOWED_EMAILS env list, or the roster table managed by the teacher."""
+    email = _norm_email(email)
+    if email in ALLOWED_EMAILS:
+        return True
+    return db.execute("SELECT 1 FROM roster WHERE lower(email)=?", (email,)).fetchone() is not None
+
 @app.route("/login/callback")
 def auth_callback():
     token = google.authorize_access_token()
@@ -322,10 +335,12 @@ def auth_callback():
     email = _norm_email(info.get("email") or "")
     if not email:
         return render_template("denied.html", reason="Google did not return an email address."), 403
-    if ALLOWED_EMAILS and email not in ALLOWED_EMAILS:
+    if info.get("email_verified") is False:
+        return render_template("denied.html", reason="Google reports this email address is not verified."), 403
+    db = get_db()
+    if not _is_allowed_email(db, email):
         return render_template("denied.html",
             reason="This account is not on the LastLapCP class list. Ask your teacher to add it."), 403
-    db = get_db()
     role = "teacher" if email in TEACHER_EMAILS else "student"
     db.execute("INSERT INTO users(email,name,role,created_at) VALUES(?,?,?,?) "
                "ON CONFLICT(email) DO UPDATE SET name=excluded.name, role=excluded.role",
@@ -491,7 +506,7 @@ def roster_admin():
             if len(bits) != 3 or "@" not in bits[2]:
                 continue
             cls, name, email = (b.strip() for b in bits)
-            entries.append((email, name, cls))
+            entries.append((_norm_email(email), name, cls))
         db.execute("DELETE FROM roster")
         db.executemany("INSERT INTO roster(email,name,class) VALUES(?,?,?)", entries)
         db.commit()
@@ -509,10 +524,12 @@ def healthz():
 def forbidden(e):
     return render_template("denied.html", reason="Teachers only."), 403
 
+@app.route("/sw.js")
+def service_worker():
+    return send_from_directory("static", "sw.js", mimetype="application/javascript")
+
 init_db()
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
 
 
 # ---------------- teacher question bank ----------------
@@ -845,3 +862,7 @@ def t3_edit(qid):
                        "tests": p["tests"], "model": p["model"]} for p in parts]}
     return render_template("t3form.html", form=form, errs=[], qid=qid,
                            nblocks=max(len(parts) + 1, 3), natt=natt)
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))

@@ -1,5 +1,7 @@
-const CACHE = 'lastlapcp-v1';
-const ASSETS = ['/static/style.css', '/static/icon.svg', '/static/manifest.json'];
+const CACHE = 'lastlapcp-v2';
+const ASSETS = ['/static/style.css', '/static/icon.svg', '/static/manifest.json',
+  '/static/pyodide/pyodide.js', '/static/pyodide/pyodide.asm.js', '/static/pyodide/pyodide.asm.wasm',
+  '/static/pyodide/python_stdlib.zip', '/static/pyodide/pyodide-lock.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting();
 });

@@ -17,7 +17,7 @@
 </header>
 <main>{% block content %}{% endblock %}</main>
 <script>
-if ('serviceWorker' in navigator) { navigator.register("{{ url_for('static', filename='sw.js') }}").catch(()=>{}); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register("/sw.js").catch(()=>{}); }
 </script>
 </body>
 </html>
