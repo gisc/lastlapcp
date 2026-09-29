@@ -349,7 +349,7 @@ def quiz():
     qid = pick_question(get_db(), session["uid"], topic, tier, paper)
     if qid is None:
         return render_template("quiz.html", empty=True, topic=topic, tier=tier, paper=paper)
-    return redirect(url_for("question", qid=qid, topic=topic or "", tier=tier or "", paper=paper or ""))
+    return redirect(url_for("question", qid=qid, topic=topic or "", tier="" if tier is None else tier, paper=paper or ""))
 
 @app.route("/q/<int:qid>")
 @login_required

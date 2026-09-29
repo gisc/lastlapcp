@@ -2,7 +2,7 @@
 {% block content %}
 {% if empty %}
 <div class="card center">
-  <h1>All done{% if topic %} in {{ topic }}{% elif tier == 2 %} in Tier 2 {{ paper }}{% elif tier == 1 %} in Tier 1{% endif %}!</h1>
+  <h1>All done{% if topic %} in {{ topic }}{% elif tier == 2 %} in Tier 2 {{ paper }}{% elif tier == 1 %} in Tier 1{% elif tier == 0 %} in Tier 0{% endif %}!</h1>
   <p class="muted">No more questions here right now.</p>
   <a class="btn" href="{{ url_for('home') }}">Back home</a>
 </div>
@@ -15,7 +15,7 @@
   {% if not feedback %}
   <form method="post" action="{{ url_for('answer', qid=q['id']) }}">
     <input type="hidden" name="topic" value="{{ topic }}">
-    <input type="hidden" name="tier" value="{{ tier or '' }}">
+    <input type="hidden" name="tier" value="{{ '' if tier is none else tier }}">
     <input type="hidden" name="paper" value="{{ paper }}">
     {% if q['qtype']=='fib' %}
     <input class="field code-input" name="fib_text" autocomplete="off" autocapitalize="off"
@@ -47,7 +47,7 @@
     </div>
     <div class="expl"><b>Why:</b> {{ q['explanation'] }}</div>
     {% if q['misconception'] %}<div class="expl trap"><b>Common trap:</b> {{ q['misconception'] }}</div>{% endif %}
-    <a class="btn big" href="{{ url_for('quiz', topic=topic, tier=tier or '', paper=paper) }}">Next question</a>
+    <a class="btn big" href="{{ url_for('quiz', topic=topic, tier=tier if tier is not none else '', paper=paper) }}">Next question</a>
     <a class="btn ghost" href="{{ url_for('home') }}">Home</a>
   {% endif %}
 </div>
