@@ -882,12 +882,17 @@
         [
          "left"
         ],
-        [
-         "great",
-         "larg",
-         "big",
-         "high"
-        ]
+        {
+         "any": [
+          "great",
+          "larg",
+          "big",
+          "high"
+         ],
+         "not_after": [
+          "right"
+         ]
+        }
        ],
        "feedback": "Larger values go to the RIGHT subtree, smaller to the left. Flip that and every search walks the wrong way."
       },

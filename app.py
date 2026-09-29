@@ -202,6 +202,18 @@ def seed_t3(db):
             db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model,rubric) VALUES(?,?,?,?,?,?,?)",
                        (qid, i, p["instruction"], p.get("starter", ""), p.get("tests", ""), p["model"],
                         json.dumps(p["rubric"]) if p.get("rubric") else ""))
+    # 2026-09-30: in-place fix for the already-seeded BST theory rubric. Title-merge
+    # seeding only inserts new questions, so patch the stored row: the 'larger goes
+    # left' misconception pattern gains a "right" blocker so a correct bullet covering
+    # both subtrees ("left smaller, right larger") is not marked red.
+    row = db.execute("SELECT id FROM t3_questions WHERE title='Theory: binary search tree'").fetchone()
+    if row:
+        part = db.execute("SELECT rubric FROM t3_parts WHERE question_id=? AND ord=1", (row["id"],)).fetchone()
+        if part and part["rubric"] and '"not_after"' not in part["rubric"]:
+            for q in bank:
+                if q["title"] == "Theory: binary search tree":
+                    db.execute("UPDATE t3_parts SET rubric=? WHERE question_id=? AND ord=1",
+                               (json.dumps(q["parts"][0]["rubric"]), row["id"]))
     db.commit()
 
 # ---------------- tier 3 test harness ----------------
@@ -290,15 +302,20 @@ def _norm_text(s):
     s = re.sub(r"[^a-z0-9\s]", " ", s)
     return " " + re.sub(r"\s+", " ", s).strip() + " "
 
-def _term_hit(text, term):
-    # unnegated match only: no "not/never/no" within 3 words before the term
+def _term_hit(text, term, not_after=None, window=3):
+    # unnegated match only: no "not/never/no" within `window` words before the term,
+    # and none of the `not_after` blocker words within `window` words before it
+    guards = ("not", "never", "no") + tuple(not_after or ())
     for m in re.finditer(r"\b" + re.escape(term), text):
-        before = text[:m.start()].split()[-3:]
-        if not any(w in ("not", "never", "no") for w in before):
+        before = text[:m.start()].split()[-window:]
+        if not any(w in guards for w in before):
             return True
     return False
 
 def _group_hit(text, group):
+    # group is either ["term", ...] or {"any": ["term", ...], "not_after": ["blocker", ...]}
+    if isinstance(group, dict):
+        return any(_term_hit(text, t, not_after=group.get("not_after")) for t in group["any"])
     return any(_term_hit(text, t) for t in group)
 
 def grade_theory(text, rubric):
@@ -316,26 +333,21 @@ def grade_theory(text, rubric):
     results = []
     for b in bullets:
         n = _norm_text(b)
-        green_i = None
-        if True:
-            for i, p in enumerate(points):
-                if claimed.get(i) == "green":
-                    continue
-                if all(_group_hit(n, g) for g in p["req"]):
-                    green_i = i
-                    break
-        if green_i is not None:
-            claimed[green_i] = "green"
-            results.append({"text": b, "verdict": "green", "feedback": ""})
-            continue
         wrong_fb = ""
-        if True:
-            for m in pats:
-                if all(_group_hit(n, g) for g in m["pat"]):
-                    wrong_fb = m["feedback"]
-                    break
+        for m in pats:
+            if all(_group_hit(n, g) for g in m["pat"]):
+                wrong_fb = m["feedback"]
+                break
         if wrong_fb:
             results.append({"text": b, "verdict": "red", "feedback": wrong_fb})
+            continue
+        hit_i = [i for i, p in enumerate(points)
+                 if all(_group_hit(n, g) for g in p["req"])]
+        if hit_i:
+            for i in hit_i:
+                if claimed.get(i) != "green":
+                    claimed[i] = "green"
+            results.append({"text": b, "verdict": "green", "feedback": ""})
             continue
         best_i, best_hits = None, 0
         for i, p in enumerate(points):
