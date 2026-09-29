@@ -150,7 +150,23 @@ CREATE INDEX IF NOT EXISTS idx_t3att_user ON t3_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_t3att_part ON t3_attempts(part_id);
 """
 
+# One-time stem fixes: rename live rows in place (keeps question id and attempts)
+# so the stem-merge below does not re-add the edited stem as a duplicate.
+STEM_RENAMES = {
+    "The time complexity of linear search on n items is O(n).":
+        "The time complexity of linear search on n items is:",
+    "Denary 10 in binary is 1010.":
+        "Denary 10 in binary is:",
+    "Standard ASCII uses 7 bits per character.":
+        "How many bits per character does Standard ASCII use?",
+}
+
 def seed_questions(db):
+    for old_stem, new_stem in STEM_RENAMES.items():
+        db.execute(
+            "UPDATE questions SET stem=? WHERE stem=? AND NOT EXISTS (SELECT 1 FROM questions WHERE stem=?)",
+            (new_stem, old_stem, new_stem))
+    db.commit()
     have = {r["stem"] for r in db.execute("SELECT stem FROM questions").fetchall()}
     seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_questions.json")
     with open(seed_path, encoding="utf-8") as f:
