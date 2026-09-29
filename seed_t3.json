@@ -23,5 +23,219 @@
     "model": "    def pop(self):\n        if self.is_empty():\n            return None\n        return self._items.pop()"
    }
   ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Implement a linked list",
+  "intro": "A linear linked list chains nodes, each holding data and a pointer to the next node. Build it part by part: nodes and the constructor, insertion and traversal, then search and delete. (Syllabus 1.3.5 / 2.3.3: create, insert, delete and search for a linear linked list.)",
+  "parts": [
+   {
+    "instruction": "Write a Node class whose constructor stores data in self.data and sets self.next to None. Then write the LinkedList constructor with self.head set to None, and is_empty() which returns True when the list holds nothing.",
+    "starter": "class Node:\n    def __init__(self, data):\n        # store data in self.data and set self.next to None\n        pass\n\n\nclass LinkedList:\n    def __init__(self):\n        # the list starts with no head node\n        pass\n\n    def is_empty(self):\n        # return True when the list has no nodes\n        pass",
+    "tests": "ll = LinkedList()\nassert ll.is_empty() == True, 'a new list should be empty'\nn = Node(5)\nassert n.data == 5 and n.next is None, 'a node stores data and starts with next = None'",
+    "model": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\n\nclass LinkedList:\n    def __init__(self):\n        self.head = None\n\n    def is_empty(self):\n        return self.head is None"
+   },
+   {
+    "instruction": "Add insert_at_front(data), which puts a new node at the head of the list, and to_list(), which walks the chain and returns the data as a Python list, head first.",
+    "starter": "    def insert_at_front(self, data):\n        # link a new node in front of the current head\n        pass\n\n    def to_list(self):\n        # walk from node to node collecting data into a list\n        pass",
+    "tests": "ll = LinkedList()\nll.insert_at_front(3)\nll.insert_at_front(1)\nll.insert_at_front(4)\nassert ll.is_empty() == False, 'the list should not be empty after inserts'\nassert ll.to_list() == [4, 1, 3], 'the newest node should be at the head'",
+    "model": "    def insert_at_front(self, data):\n        node = Node(data)\n        node.next = self.head\n        self.head = node\n\n    def to_list(self):\n        out = []\n        cur = self.head\n        while cur is not None:\n            out.append(cur.data)\n            cur = cur.next\n        return out"
+   },
+   {
+    "instruction": "Add find(target), which returns True if any node holds target, and delete(target), which removes the FIRST node holding target and returns True, or returns False if target is not in the list. delete must work for the head node, the last node and an empty list.",
+    "starter": "    def find(self, target):\n        # walk the chain; return True if a node holds target, else False\n        pass\n\n    def delete(self, target):\n        # unlink the first node holding target; return True, or False if absent\n        pass",
+    "tests": "ll = LinkedList()\nassert ll.find(1) == False and ll.delete(1) == False, 'an empty list holds nothing'\nfor x in [3, 1, 4, 1]:\n    ll.insert_at_front(x)\nassert ll.to_list() == [1, 4, 1, 3]\nassert ll.find(4) == True and ll.find(9) == False, 'find walks the chain'\nassert ll.delete(1) == True and ll.to_list() == [4, 1, 3], 'delete removes the first matching node (the head here)'\nassert ll.delete(3) == True and ll.to_list() == [4, 1], 'delete unlinks the last node too'\nassert ll.delete(9) == False and ll.to_list() == [4, 1], 'deleting a missing value changes nothing'",
+    "model": "    def find(self, target):\n        cur = self.head\n        while cur is not None:\n            if cur.data == target:\n                return True\n            cur = cur.next\n        return False\n\n    def delete(self, target):\n        prev = None\n        cur = self.head\n        while cur is not None:\n            if cur.data == target:\n                if prev is None:\n                    self.head = cur.next\n                else:\n                    prev.next = cur.next\n                return True\n            prev = cur\n            cur = cur.next\n        return False"
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Implement a circular queue",
+  "intro": "A circular queue stores items in a fixed-size list and wraps the front and rear indexes around when they reach the end, so freed slots get reused. Build it part by part: constructor and state checks, enqueue, then dequeue. (Syllabus 1.3.3 / 2.3.3: create, insert and delete for linear and circular queues.)",
+  "parts": [
+   {
+    "instruction": "Write the constructor __init__(capacity) that sets up a fixed-size list self._items of capacity None values, plus self._capacity, self._front, self._rear and a count self._count. Then write is_empty() and is_full() using the count.",
+    "starter": "class CircularQueue:\n    def __init__(self, capacity):\n        # fixed-size list of None, plus _capacity, _front, _rear and _count\n        pass\n\n    def is_empty(self):\n        pass\n\n    def is_full(self):\n        pass",
+    "tests": "q = CircularQueue(3)\nassert q.is_empty() == True and q.is_full() == False, 'a new queue is empty, not full'\nassert len(q._items) == 3, 'the underlying list has exactly capacity slots'",
+    "model": "class CircularQueue:\n    def __init__(self, capacity):\n        self._items = [None] * capacity\n        self._capacity = capacity\n        self._front = 0\n        self._rear = -1\n        self._count = 0\n\n    def is_empty(self):\n        return self._count == 0\n\n    def is_full(self):\n        return self._count == self._capacity"
+   },
+   {
+    "instruction": "Add enqueue(item). It returns False when the queue is full. Otherwise it moves _rear forward by one slot, wrapping back to index 0 at the end of the list, stores the item there, and returns True. (Wrap with modulo: (self._rear + 1) % self._capacity.)",
+    "starter": "    def enqueue(self, item):\n        # return False if full; otherwise advance _rear (wrapping) and store item\n        pass",
+    "tests": "q = CircularQueue(3)\nassert q.enqueue('a') == True and q.enqueue('b') == True and q.enqueue('c') == True\nassert q.is_full() == True, 'three items fill a capacity-3 queue'\nassert q.enqueue('d') == False, 'enqueue on a full queue returns False'\nassert q._rear == 2, 'rear sits on the last stored item'",
+    "model": "    def enqueue(self, item):\n        if self.is_full():\n            return False\n        self._rear = (self._rear + 1) % self._capacity\n        self._items[self._rear] = item\n        self._count += 1\n        return True"
+   },
+   {
+    "instruction": "Add dequeue(). It returns None when the queue is empty. Otherwise it returns the item at _front and moves _front forward, wrapping around. After some dequeues, enqueue must reuse the freed slots - that is what makes the queue circular.",
+    "starter": "    def dequeue(self):\n        # return None if empty; otherwise return the front item and advance _front (wrapping)\n        pass",
+    "tests": "q = CircularQueue(3)\nassert q.dequeue() is None, 'dequeue on an empty queue returns None'\nq.enqueue('a'); q.enqueue('b'); q.enqueue('c')\nassert q.dequeue() == 'a' and q.dequeue() == 'b', 'items leave in FIFO order'\nassert q.enqueue('d') == True and q.enqueue('e') == True, 'freed slots get reused'\nassert q.dequeue() == 'c' and q.dequeue() == 'd' and q.dequeue() == 'e', 'order stays FIFO after wrapping'\nassert q.is_empty() == True, 'the queue is empty again at the end'",
+    "model": "    def dequeue(self):\n        if self.is_empty():\n            return None\n        item = self._items[self._front]\n        self._front = (self._front + 1) % self._capacity\n        self._count -= 1\n        return item"
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Implement a binary search tree (no delete)",
+  "intro": "A binary search tree keeps smaller values in the left subtree and larger values in the right subtree, so search only walks one path down. Build it part by part: insert, search, then an in-order traversal that returns the values sorted. The 2026 syllabus excludes deleting BST nodes, so this practical stops at insert, search and traverse. (Syllabus 1.3.6-1.3.7 / 2.3.3.)",
+  "parts": [
+   {
+    "instruction": "Write a Node class holding self.data, self.left and self.right. Then write the BST constructor with self.root = None, and insert(data), which walks left or right from the root until it finds the empty spot where data belongs and attaches a new node there. If data is already in the tree, do nothing.",
+    "starter": "class Node:\n    def __init__(self, data):\n        # store data; left and right children start as None\n        pass\n\n\nclass BST:\n    def __init__(self):\n        pass\n\n    def insert(self, data):\n        # walk down to the empty spot where data belongs, then attach a new node\n        pass",
+    "tests": "t = BST()\nt.insert(5)\nassert t.root.data == 5, 'the first insert becomes the root'\nt.insert(3)\nt.insert(8)\nassert t.root.left.data == 3 and t.root.right.data == 8, 'smaller goes left, larger goes right'\nt.insert(8)\nassert t.root.right.left is None and t.root.right.right is None, 'inserting a duplicate changes nothing'",
+    "model": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.left = None\n        self.right = None\n\n\nclass BST:\n    def __init__(self):\n        self.root = None\n\n    def insert(self, data):\n        if self.root is None:\n            self.root = Node(data)\n            return\n        cur = self.root\n        while True:\n            if data == cur.data:\n                return\n            elif data < cur.data:\n                if cur.left is None:\n                    cur.left = Node(data)\n                    return\n                cur = cur.left\n            else:\n                if cur.right is None:\n                    cur.right = Node(data)\n                    return\n                cur = cur.right"
+   },
+   {
+    "instruction": "Add search(data), which returns True if data is in the tree and False otherwise. Follow the same left/right rule as insert instead of visiting every node.",
+    "starter": "    def search(self, data):\n        # walk left or right until you find data or run out of tree\n        pass",
+    "tests": "t = BST()\nfor x in [5, 3, 8, 1, 4]:\n    t.insert(x)\nassert t.search(4) == True and t.search(1) == True, 'search finds stored values'\nassert t.search(7) == False and t.search(0) == False, 'search returns False for missing values'\nassert BST().search(1) == False, 'an empty tree holds nothing'",
+    "model": "    def search(self, data):\n        cur = self.root\n        while cur is not None:\n            if data == cur.data:\n                return True\n            cur = cur.left if data < cur.data else cur.right\n        return False"
+   },
+   {
+    "instruction": "Add inorder(), which returns the values as a Python list using in-order traversal (left subtree, node, right subtree). For a BST this visits the values in sorted order - the classic application of in-order traversal. Use an inner recursive helper.",
+    "starter": "    def inorder(self):\n        # return the values in sorted order via in-order traversal\n        pass",
+    "tests": "t = BST()\nfor x in [5, 3, 8, 1, 4, 7, 9]:\n    t.insert(x)\nassert t.inorder() == [1, 3, 4, 5, 7, 8, 9], 'in-order traversal of a BST gives sorted order'\nassert BST().inorder() == [], 'an empty tree gives an empty list'",
+    "model": "    def inorder(self):\n        out = []\n        def walk(node):\n            if node is None:\n                return\n            walk(node.left)\n            out.append(node.data)\n            walk(node.right)\n        walk(self.root)\n        return out"
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Implement a hash table with probing",
+  "intro": "A hash table stores each key in a slot computed by a hash function. When that home slot is taken (a collision), probing tries further slots in a fixed sequence. Build it part by part: hashing and insert with linear probing, search, then a quadratic-probing subclass. (Syllabus 1.2 / 2.3: hash table search.)",
+  "parts": [
+   {
+    "instruction": "Write the constructor __init__(capacity) with a list self._slots of capacity None values. Add _hash(key) = sum(ord(c) for c in key) % capacity, and _probe(key, i), which returns the slot to try on attempt i using LINEAR probing: (self._hash(key) + i) % self._capacity. Then add insert(key): probe i = 0, 1, 2, ... until you find an empty slot or the key itself (re-inserting a key does nothing), store the key and return True; return False if the table is full.",
+    "starter": "class HashTable:\n    def __init__(self, capacity):\n        # list of None slots, plus _capacity and _count\n        pass\n\n    def _hash(self, key):\n        # sum of ord(c) for c in key, modulo capacity\n        pass\n\n    def _probe(self, key, i):\n        # linear probing: the slot to try on attempt i\n        pass\n\n    def insert(self, key):\n        # probe until an empty slot (or the same key) is found\n        pass",
+    "tests": "h = HashTable(5)\nassert h._hash('ab') == (97 + 98) % 5, 'hash sums character codes modulo capacity'\nassert h.insert('a') == True and h.insert('f') == True, 'both inserts succeed'\nassert h._slots[2] == 'a' and h._slots[3] == 'f', 'a collides (97 and 102 both hash to 2), so f probes one slot on'\nassert h.insert('a') == True and h._slots.count('a') == 1, 're-inserting the same key stores it once'\nh2 = HashTable(2)\nh2.insert('a'); h2.insert('c')\nassert h2.insert('e') == False, 'insert returns False when the table is full'",
+    "model": "class HashTable:\n    def __init__(self, capacity):\n        self._slots = [None] * capacity\n        self._capacity = capacity\n        self._count = 0\n\n    def _hash(self, key):\n        return sum(ord(c) for c in key) % self._capacity\n\n    def _probe(self, key, i):\n        return (self._hash(key) + i) % self._capacity\n\n    def insert(self, key):\n        if self._count == self._capacity:\n            return False\n        i = 0\n        while True:\n            slot = self._probe(key, i)\n            if self._slots[slot] == key:\n                return True\n            if self._slots[slot] is None:\n                self._slots[slot] = key\n                self._count += 1\n                return True\n            i += 1"
+   },
+   {
+    "instruction": "Add search(key), which returns True if key is stored and False otherwise. Follow the SAME probe sequence as insert - start at the home slot and keep probing while slots are occupied, stopping at the first empty slot.",
+    "starter": "    def search(self, key):\n        # follow the same probe sequence as insert\n        pass",
+    "tests": "h = HashTable(5)\nh.insert('a'); h.insert('f'); h.insert('k')\nassert h.search('a') == True and h.search('k') == True, 'search finds keys, including ones that collided (97, 102 and 107 all hash to 2)'\nassert h.search('b') == False, 'a missing key returns False'\nassert HashTable(5).search('a') == False, 'an empty table holds nothing'",
+    "model": "    def search(self, key):\n        i = 0\n        while i < self._capacity:\n            slot = self._probe(key, i)\n            if self._slots[slot] is None:\n                return False\n            if self._slots[slot] == key:\n                return True\n            i += 1\n        return False"
+   },
+   {
+    "instruction": "Now write a subclass QuadraticHashTable(HashTable) that overrides ONLY _probe(key, i) to use quadratic probing: (self._hash(key) + i * i) % self._capacity. insert and search from the parent then probe quadratically with no other changes, because they call self._probe.",
+    "starter": "class QuadraticHashTable(HashTable):\n    def _probe(self, key, i):\n        # quadratic probing: offset grows as i squared\n        pass",
+    "tests": "h = QuadraticHashTable(11)\nh.insert('a'); h.insert('l'); h.insert('w')\nassert h._slots[9] == 'a', 'a sits at its home slot (97 mod 11 = 9)'\nassert h._slots[10] == 'l', 'l collides and moves 1 slot on'\nassert h._slots[2] == 'w', 'w collides twice and lands at (9 + 2*2) mod 11 = 2, not the linear slot 0'\nassert h.search('a') == True and h.search('l') == True and h.search('w') == True, 'search follows the same quadratic sequence'\nassert h.search('z') == False, 'a missing key returns False'",
+    "model": "class QuadraticHashTable(HashTable):\n    def _probe(self, key, i):\n        return (self._hash(key) + i * i) % self._capacity"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement linear search",
+  "intro": "Linear search checks every item in order until it finds the target or runs out of items - O(n) time. Part 1 is the basic search; part 2 counts the comparisons, which is how algorithm cost is measured. (Syllabus 1.2 / 2.3: linear search.)",
+  "parts": [
+   {
+    "instruction": "Write linear_search(items, target), which returns the index of the FIRST occurrence of target in items, or -1 if target is not in the list. Do not use list.index() - write the loop.",
+    "starter": "def linear_search(items, target):\n    # check each position in order; return the index or -1\n    pass",
+    "tests": "assert linear_search([5, 3, 8, 1], 8) == 2, 'return the index of the target'\nassert linear_search([5, 3, 8, 1], 5) == 0 and linear_search([5, 3, 8, 1], 1) == 3, 'first and last positions work'\nassert linear_search([5, 3, 8, 1], 9) == -1, 'missing target gives -1'\nassert linear_search([], 9) == -1, 'an empty list gives -1'\nassert linear_search([2, 2, 2], 2) == 0, 'return the FIRST occurrence'",
+    "model": "def linear_search(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1"
+   },
+   {
+    "instruction": "Write linear_search_count(items, target), which works like linear_search but returns a tuple (index, comparisons), where comparisons is how many item-to-target comparisons were made. A missing target in a 4-item list takes 4 comparisons.",
+    "starter": "def linear_search_count(items, target):\n    # return (index, comparisons); index is -1 when not found\n    pass",
+    "tests": "assert linear_search_count([5, 3, 8, 1], 8) == (2, 3), 'finding the 3rd item takes 3 comparisons'\nassert linear_search_count([5, 3, 8, 1], 5) == (0, 1), 'first item takes 1 comparison'\nassert linear_search_count([5, 3, 8, 1], 9) == (-1, 4), 'a missing target checks all 4 items'\nassert linear_search_count([], 9) == (-1, 0), 'an empty list takes 0 comparisons'",
+    "model": "def linear_search_count(items, target):\n    comparisons = 0\n    for i in range(len(items)):\n        comparisons += 1\n        if items[i] == target:\n            return (i, comparisons)\n    return (-1, comparisons)"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement binary search",
+  "intro": "Binary search halves a SORTED list each step: check the middle, then keep only the half that can hold the target - O(log n) time. Part 1 is the iterative search; part 2 counts comparisons to show the halving. (Syllabus 1.2 / 2.3: binary search.)",
+  "parts": [
+   {
+    "instruction": "Write binary_search(items, target), which returns the index of target in the SORTED list items, or -1 if it is not there. Keep low and high indexes, look at the middle, and discard half the list each step. Do not use a plain loop over every item.",
+    "starter": "def binary_search(items, target):\n    # items is sorted; keep low and high, check the middle, halve the range\n    pass",
+    "tests": "assert binary_search([1, 3, 4, 5, 7, 8, 9], 5) == 3, 'return the index of the target'\nassert binary_search([1, 3, 4, 5, 7, 8, 9], 1) == 0 and binary_search([1, 3, 4, 5, 7, 8, 9], 9) == 6, 'both ends work'\nassert binary_search([1, 3, 4, 5, 7, 8, 9], 6) == -1, 'missing target gives -1'\nassert binary_search([], 1) == -1 and binary_search([4], 4) == 0, 'empty and single-item lists work'",
+    "model": "def binary_search(items, target):\n    low = 0\n    high = len(items) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if items[mid] == target:\n            return mid\n        elif items[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1"
+   },
+   {
+    "instruction": "Write binary_search_count(items, target), which works like binary_search but returns (index, comparisons). Halving means 1000 sorted items need at most 11 comparisons - that is O(log n) in practice.",
+    "starter": "def binary_search_count(items, target):\n    # return (index, comparisons); index is -1 when not found\n    pass",
+    "tests": "big = sorted(range(0, 2000, 2))\nidx, comps = binary_search_count(big, 1998)\nassert big[idx] == 1998 and comps <= 11, '1000 items take at most 11 comparisons'\nidx, comps = binary_search_count(big, 999)\nassert idx == -1 and comps <= 11, 'a missing target is ruled out just as fast'\nassert binary_search_count([1, 3, 5], 3) == (1, 1), 'a lucky first guess takes 1 comparison'",
+    "model": "def binary_search_count(items, target):\n    comparisons = 0\n    low = 0\n    high = len(items) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        comparisons += 1\n        if items[mid] == target:\n            return (mid, comparisons)\n        elif items[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return (-1, comparisons)"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement bubble sort",
+  "intro": "Bubble sort passes through the list swapping neighbours that are out of order, so the largest unsorted item bubbles to the end each pass - O(n^2) time. Part 1 is the basic sort; part 2 adds the early-exit optimisation. (Syllabus 1.2 / 2.3: bubble sort.)",
+  "parts": [
+   {
+    "instruction": "Write bubble_sort(items), which returns a NEW sorted list and leaves the original unchanged. Compare neighbours and swap when they are out of order; after each pass the largest unsorted item is in place, so each pass can stop one item earlier.",
+    "starter": "def bubble_sort(items):\n    # work on a copy; swap out-of-order neighbours until sorted\n    pass",
+    "tests": "assert bubble_sort([5, 1, 4, 2]) == [1, 2, 4, 5], 'sorts the list'\norig = [5, 1, 4, 2]\nbubble_sort(orig)\nassert orig == [5, 1, 4, 2], 'the original list is unchanged'\nassert bubble_sort([1, 2, 3]) == [1, 2, 3] and bubble_sort([3, 2, 1]) == [1, 2, 3], 'sorted and reversed lists work'\nassert bubble_sort([]) == [] and bubble_sort([2, 2, 1]) == [1, 2, 2], 'empty and duplicate lists work'",
+    "model": "def bubble_sort(items):\n    a = list(items)\n    n = len(a)\n    for end in range(n - 1, 0, -1):\n        for i in range(end):\n            if a[i] > a[i + 1]:\n                a[i], a[i + 1] = a[i + 1], a[i]\n    return a"
+   },
+   {
+    "instruction": "Write bubble_sort_passes(items), which returns (sorted_list, passes). If a pass makes NO swaps the list is already sorted, so stop early. passes counts every pass, including the final no-swap pass - so a reversed 4-item list takes 3 working passes and a nearly sorted one takes 2.",
+    "starter": "def bubble_sort_passes(items):\n    # bubble sort with early exit; return (sorted_list, number_of_passes)\n    pass",
+    "tests": "assert bubble_sort_passes([4, 3, 2, 1]) == ([1, 2, 3, 4], 3), 'a reversed list needs n-1 working passes (every pass swaps, so no early exit)'\nassert bubble_sort_passes([1, 2, 3, 5, 4]) == ([1, 2, 3, 4, 5], 2), 'one fix pass plus one no-swap pass'\nassert bubble_sort_passes([1, 2, 3]) == ([1, 2, 3], 1), 'already sorted: a single no-swap pass'\nassert bubble_sort_passes([]) == ([], 0), 'an empty list needs no passes'",
+    "model": "def bubble_sort_passes(items):\n    a = list(items)\n    passes = 0\n    for end in range(len(a) - 1, 0, -1):\n        swapped = False\n        passes += 1\n        for i in range(end):\n            if a[i] > a[i + 1]:\n                a[i], a[i + 1] = a[i + 1], a[i]\n                swapped = True\n        if not swapped:\n            break\n    return (a, passes)"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement insertion sort",
+  "intro": "Insertion sort grows a sorted left-hand side: take the next item and shift it left into its correct place, like sorting a hand of cards - O(n^2) time, but fast on nearly sorted data. (Syllabus 1.2 / 2.3: insertion sort.)",
+  "parts": [
+   {
+    "instruction": "Write insertion_sort(items), which returns a NEW sorted list and leaves the original unchanged. For each item from the second onward, shift it left past every larger item until it sits in the right place.",
+    "starter": "def insertion_sort(items):\n    # work on a copy; shift each item left into its place\n    pass",
+    "tests": "assert insertion_sort([5, 1, 4, 2]) == [1, 2, 4, 5], 'sorts the list'\norig = [5, 1, 4, 2]\ninsertion_sort(orig)\nassert orig == [5, 1, 4, 2], 'the original list is unchanged'\nassert insertion_sort([1, 2, 3]) == [1, 2, 3] and insertion_sort([3, 2, 1]) == [1, 2, 3], 'sorted and reversed lists work'\nassert insertion_sort([]) == [] and insertion_sort([2, 2, 1]) == [1, 2, 2], 'empty and duplicate lists work'",
+    "model": "def insertion_sort(items):\n    a = list(items)\n    for i in range(1, len(a)):\n        key = a[i]\n        j = i - 1\n        while j >= 0 and a[j] > key:\n            a[j + 1] = a[j]\n            j -= 1\n        a[j + 1] = key\n    return a"
+   },
+   {
+    "instruction": "Write insertion_sort_shifts(items), which returns (sorted_list, shifts), where shifts counts how many times an item moves one position left. A reversed 3-item list takes 3 shifts (2 + 1 = n(n-1)/2); a sorted list takes 0 - that is why insertion sort suits nearly sorted data.",
+    "starter": "def insertion_sort_shifts(items):\n    # insertion sort; return (sorted_list, number_of_single_position_shifts)\n    pass",
+    "tests": "assert insertion_sort_shifts([3, 2, 1]) == ([1, 2, 3], 3), 'reversed: 2 + 1 = 3 shifts'\nassert insertion_sort_shifts([1, 2, 3]) == ([1, 2, 3], 0), 'already sorted: no shifts'\nassert insertion_sort_shifts([2, 1, 3]) == ([1, 2, 3], 1), 'one item one place left'\nassert insertion_sort_shifts([]) == ([], 0), 'empty list'",
+    "model": "def insertion_sort_shifts(items):\n    a = list(items)\n    shifts = 0\n    for i in range(1, len(a)):\n        key = a[i]\n        j = i - 1\n        while j >= 0 and a[j] > key:\n            a[j + 1] = a[j]\n            shifts += 1\n            j -= 1\n        a[j + 1] = key\n    return (a, shifts)"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement merge sort",
+  "intro": "Merge sort splits the list in half, sorts each half, then merges the two sorted halves - O(n log n) time. Part 1 is merge, the heart of the algorithm; part 2 is the recursive sort. (Syllabus 1.2 / 2.3: merge sort.)",
+  "parts": [
+   {
+    "instruction": "Write merge(left, right), which takes two SORTED lists and returns one sorted list containing all their items. Walk both lists with two indexes, always taking the smaller front item. Do not just concatenate and sort.",
+    "starter": "def merge(left, right):\n    # walk both sorted lists with two indexes, taking the smaller front item\n    pass",
+    "tests": "assert merge([1, 4, 5], [2, 3]) == [1, 2, 3, 4, 5], 'merges two sorted lists'\nassert merge([], [1, 2]) == [1, 2] and merge([1, 2], []) == [1, 2], 'one side can be empty'\nassert merge([1, 3], [1, 3]) == [1, 1, 3, 3], 'duplicates from both sides survive'\nassert merge([2], [1]) == [1, 2], 'single items work'",
+    "model": "def merge(left, right):\n    out = []\n    i = j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            out.append(left[i])\n            i += 1\n        else:\n            out.append(right[j])\n            j += 1\n    out.extend(left[i:])\n    out.extend(right[j:])\n    return out"
+   },
+   {
+    "instruction": "Write merge_sort(items), which returns a NEW sorted list: if the list has fewer than 2 items return a copy; otherwise split it in half, merge_sort each half, and merge the results.",
+    "starter": "def merge_sort(items):\n    # split in half, sort each half, merge\n    pass",
+    "tests": "assert merge_sort([5, 1, 4, 2, 8, 0]) == [0, 1, 2, 4, 5, 8], 'sorts the list'\norig = [3, 1, 2]\nmerge_sort(orig)\nassert orig == [3, 1, 2], 'the original list is unchanged'\nassert merge_sort([]) == [] and merge_sort([7]) == [7], 'empty and single-item lists work'\nassert merge_sort([2, 2, 1]) == [1, 2, 2], 'duplicates work'",
+    "model": "def merge_sort(items):\n    if len(items) < 2:\n        return list(items)\n    mid = len(items) // 2\n    return merge(merge_sort(items[:mid]), merge_sort(items[mid:]))"
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Implement quicksort",
+  "intro": "Quicksort picks a pivot, partitions the list so smaller items sit left of the pivot and larger items right, then sorts each side recursively - O(n log n) on average. Part 1 is the in-place partition; part 2 is the recursive sort. (Syllabus 1.2 / 2.3: quicksort.)",
+  "parts": [
+   {
+    "instruction": "Write partition(items, low, high), which takes the LAST item in the range as the pivot, rearranges items IN PLACE so everything before the pivot's final position is <= pivot and everything after is > pivot, and returns the pivot's final index. Walk the range swapping items <= pivot toward the front, then swap the pivot into place.",
+    "starter": "def partition(items, low, high):\n    # pivot = items[high]; move items <= pivot to the front of the range\n    # then swap the pivot into its final spot and return that index\n    pass",
+    "tests": "a = [3, 1, 5, 2, 4]\np = partition(a, 0, 4)\nassert p == 3 and a == [3, 1, 2, 4, 5], 'pivot 4 lands at index 3 with smaller items to its left'\nassert all(x <= a[p] for x in a[:p]) and all(x > a[p] for x in a[p+1:]), 'the partition property holds'\nb = [2, 1]\np = partition(b, 0, 1)\nassert p == 0 and b == [1, 2], 'a two-item range works: pivot 1 lands at index 0'",
+    "model": "def partition(items, low, high):\n    pivot = items[high]\n    i = low\n    for j in range(low, high):\n        if items[j] <= pivot:\n            items[i], items[j] = items[j], items[i]\n            i += 1\n    items[i], items[high] = items[high], items[i]\n    return i"
+   },
+   {
+    "instruction": "Write quick_sort(items), which sorts the list IN PLACE using partition: recursively sort the ranges left and right of the pivot's final position, then return items. (A helper _quick_sort(items, low, high) keeps the public call simple.)",
+    "starter": "def _quick_sort(items, low, high):\n    # if the range has more than one item: partition, then sort each side\n    pass\n\ndef quick_sort(items):\n    # sort the whole list in place and return it\n    pass",
+    "tests": "a = [5, 1, 4, 2, 8, 0]\nassert quick_sort(a) == [0, 1, 2, 4, 5, 8] and a == [0, 1, 2, 4, 5, 8], 'sorts in place and returns the list'\nassert quick_sort([]) == [] and quick_sort([7]) == [7], 'empty and single-item lists work'\nassert quick_sort([2, 2, 1]) == [1, 2, 2], 'duplicates work'",
+    "model": "def _quick_sort(items, low, high):\n    if low < high:\n        p = partition(items, low, high)\n        _quick_sort(items, low, p - 1)\n        _quick_sort(items, p + 1, high)\n\ndef quick_sort(items):\n    _quick_sort(items, 0, len(items) - 1)\n    return items"
+   }
+  ]
  }
 ]

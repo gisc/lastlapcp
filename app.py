@@ -166,14 +166,15 @@ def seed_questions(db):
     db.commit()
 
 def seed_t3(db):
-    if db.execute("SELECT COUNT(*) c FROM t3_questions").fetchone()["c"]:
-        return
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_t3.json")
     if not os.path.exists(path):
         return
     with open(path, encoding="utf-8") as f:
         bank = json.load(f)
+    have = {r["title"] for r in db.execute("SELECT title FROM t3_questions").fetchall()}
     for q in bank:
+        if q["title"] in have:
+            continue
         cur = db.execute("INSERT INTO t3_questions(topic,title,intro,created_at) VALUES(?,?,?,?)",
                          (q["topic"], q["title"], q["intro"], datetime.now(timezone.utc).isoformat()))
         qid = cur.lastrowid
