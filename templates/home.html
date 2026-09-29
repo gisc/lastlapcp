@@ -28,10 +28,20 @@
 <div class="card">
   <h2>Tier 3 - Write full code</h2>
   <p class="muted">Paper 2 practical: build classes and functions part by part. Real tests run against your code, right in the browser.</p>
+  <!-- theory list inserted below -->
   {% for q in t3 %}
   <a class="btn big" href="{{ url_for('t3_question', qid=q.id) }}">{{ q.title }}&nbsp; <span class="muted">{{ q.done }}/{{ q.n }} parts</span></a>
   {% else %}
   <p class="muted">No tier 3 questions yet.</p>
+  {% endfor %}
+</div>
+<div class="card">
+  <h2>Tier 3 - Paper 1 theory</h2>
+  <p class="muted">Write everything you know about a structure or algorithm, in bullet points. Each bullet is marked right, wrong or partial, with the key points you missed.</p>
+  {% for q in t3t %}
+  <a class="btn big" href="{{ url_for('t3_question', qid=q.id) }}">{{ q.title }}&nbsp; <span class="muted">{{ q.done }}/{{ q.n }} parts</span></a>
+  {% else %}
+  <p class="muted">No theory questions yet.</p>
   {% endfor %}
 </div>
 <div class="card">

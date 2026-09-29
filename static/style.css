@@ -76,3 +76,11 @@ h1 { margin: 6px 0 10px; font-size: 1.5rem; } h2 { margin: 4px 0 10px; font-size
 h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .card .btn.big + .btn.big { margin-top: 10px; }
 .tag.tier { background: #1a3a6b; color: #fff; }
+
+.blist { list-style: none; padding: 0; margin: 8px 0 14px; }
+.bitem { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; border-left: 5px solid #888; background: #16294d; color: #e8f0ff; }
+.bitem.bgreen { border-left-color: var(--good); }
+.bitem.bred { border-left-color: var(--bad); }
+.bitem.borange { border-left-color: #f5a623; }
+.bitem.bgrey { border-left-color: #5a6b8c; color: #b9c6e2; }
+.bfeedback { font-size: 0.88rem; margin-top: 4px; opacity: 0.92; }

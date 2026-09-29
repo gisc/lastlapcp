@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ q['title'] }} part {{ ord }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span>
+    <span class="tag paper">P1</span><span class="tag">Part {{ ord }} of {{ nparts }}</span></div>
+  <div class="stem">{{ part['instruction'] }}</div>
+  <textarea id="notes" class="field code-input" rows="12" autocomplete="off" autocapitalize="off" spellcheck="false"
+    placeholder="- one key point per line&#10;- write in your own words">{{ code }}</textarea>
+  <button class="btn big" id="check" type="button">Check my work</button>
+  <div id="status" class="verdict" style="display:none"></div>
+  <div id="results" style="display:none">
+    <ul id="blist" class="blist"></ul>
+    <div id="missedwrap" style="display:none">
+      <p class="sub">Key points you missed:</p>
+      <ul id="mlist" class="blist"></ul>
+    </div>
+    <div id="partialwrap" style="display:none">
+      <p class="sub">Partly covered - worth another sentence:</p>
+      <ul id="plist" class="blist"></ul>
+    </div>
+  </div>
+  <div id="after" style="display:{{ 'block' if passed else 'none' }}">
+    {% if ord < nparts %}
+    <a class="btn big" href="{{ url_for('t3_part', qid=q['id'], ord=ord+1) }}">Next part</a>
+    {% else %}
+    <a class="btn big" href="{{ url_for('t3_question', qid=q['id']) }}">Back to question</a>
+    {% endif %}
+  </div>
+  {% if passed %}<div class="verdict good">You have already passed this part.</div>{% endif %}
+  <div id="modelwrap" {% if not attempted %}style="display:none"{% endif %}>
+    <button class="btn ghost" id="showmodel" type="button">Show model answer</button>
+    <pre id="model" class="codeblock" style="display:none">{{ part['model'] }}</pre>
+  </div>
+  <a class="btn ghost" href="{{ url_for('t3_question', qid=q['id']) }}">All parts</a>
+</div>
+<script>
+const CHECK_URL = {{ url_for('t3_check', qid=q['id'], ord=ord)|tojson }};
+function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+function li(text, cls) {
+  const li = document.createElement('li');
+  li.className = 'bitem ' + cls;
+  li.textContent = text;
+  return li;
+}
+document.getElementById('check').addEventListener('click', async () => {
+  const st = document.getElementById('status');
+  st.className = 'verdict'; show('status', true); show('results', false);
+  st.textContent = 'Marking...';
+  let j;
+  try {
+    const r = await fetch(CHECK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: document.getElementById('notes').value }) });
+    j = await r.json();
+  } catch (e) {
+    st.className = 'verdict bad';
+    st.textContent = 'Could not mark this - check your connection.';
+    return;
+  }
+  const bl = document.getElementById('blist');
+  bl.innerHTML = '';
+  const marks = { green: ['bgreen', 'Right: '], red: ['bred', 'Wrong: '], orange: ['borange', 'Partial: '], grey: ['bgrey', ''] };
+  for (const r of j.results) {
+    const m = marks[r.verdict] || marks.grey;
+    const item = li(m[1] + r.text, m[0]);
+    if (r.feedback) {
+      const f = document.createElement('div');
+      f.className = 'bfeedback';
+      f.textContent = r.feedback;
+      item.appendChild(f);
+    }
+    bl.appendChild(item);
+  }
+  const ml = document.getElementById('mlist');
+  ml.innerHTML = '';
+  for (const t of j.missed) ml.appendChild(li(t, 'bgrey'));
+  show('missedwrap', j.missed.length > 0);
+  const pl = document.getElementById('plist');
+  pl.innerHTML = '';
+  for (const t of j.partial) pl.appendChild(li(t, 'borange'));
+  show('partialwrap', j.partial.length > 0);
+  show('results', true);
+  st.className = 'verdict ' + (j.passed ? 'good' : 'bad');
+  st.textContent = j.passed
+    ? (j.xp ? 'Passed! ' + j.greens + ' of ' + j.total + ' key points. +' + j.xp + ' XP' : 'Passed! ' + j.greens + ' of ' + j.total + ' key points.')
+    : j.greens + ' of ' + j.total + ' key points - need at least 70% green with nothing wrong.';
+  show('modelwrap', true);
+  if (j.passed) show('after', true);
+});
+document.getElementById('showmodel').addEventListener('click', () => {
+  const m = document.getElementById('model');
+  const on = m.style.display === 'none';
+  show('model', on);
+  document.getElementById('showmodel').textContent = on ? 'Hide model answer' : 'Show model answer';
+});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}LastLapCP - {{ q['title'] }}{% endblock %}
 {% block content %}
 <div class="card">
-  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">P2</span></div>
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ "P1" if q["kind"] == "theory" else "P2" }}</span></div>
   <h1>{{ q['title'] }}</h1>
   <p>{{ q['intro'] }}</p>
 </div>

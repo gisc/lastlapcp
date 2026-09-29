@@ -237,5 +237,1632 @@
     "model": "def _quick_sort(items, low, high):\n    if low < high:\n        p = partition(items, low, high)\n        _quick_sort(items, low, p - 1)\n        _quick_sort(items, p + 1, high)\n\ndef quick_sort(items):\n    _quick_sort(items, 0, len(items) - 1)\n    return items"
    }
   ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Theory: stack",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about a stack, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- A stack is LIFO - last in, first out.\n- Push adds an item to the top of the stack.\n- Pop removes and returns the item at the top.\n- Peek reads the top item without removing it.\n- A top pointer (index) tracks the top of the stack.\n- Used for function calls, undo features and backtracking.",
+    "rubric": {
+     "points": [
+      {
+       "point": "A stack is LIFO: the last item pushed is the first one removed.",
+       "req": [
+        [
+         "lifo",
+         "last in first out"
+        ]
+       ],
+       "aspects": [
+        "LIFO order"
+       ]
+      },
+      {
+       "point": "Push adds an item to the top of the stack.",
+       "req": [
+        [
+         "push"
+        ],
+        [
+         "top",
+         "end"
+        ]
+       ],
+       "aspects": [
+        "push",
+        "that it goes to the top"
+       ]
+      },
+      {
+       "point": "Pop removes and returns the item at the top.",
+       "req": [
+        [
+         "pop"
+        ],
+        [
+         "top",
+         "end"
+        ]
+       ],
+       "aspects": [
+        "pop",
+        "from the top"
+       ]
+      },
+      {
+       "point": "Peek (top) reads the top item without removing it.",
+       "req": [
+        [
+         "peek",
+         "read",
+         "inspect",
+         "look at",
+         "see"
+        ],
+        [
+         "without removing",
+         "without deleting",
+         "leaves",
+         "stays",
+         "remains",
+         "keep"
+        ]
+       ],
+       "aspects": [
+        "a peek/read operation",
+        "that it does not remove the item"
+       ]
+      },
+      {
+       "point": "A top pointer or index tracks the top of the stack.",
+       "req": [
+        [
+         "pointer",
+         "index",
+         "variable",
+         "reference"
+        ],
+        [
+         "top"
+        ]
+       ],
+       "aspects": [
+        "a pointer/index",
+        "tracking the top"
+       ]
+      },
+      {
+       "point": "Used for function calls, undo features, backtracking or expression evaluation.",
+       "req": [
+        [
+         "function call",
+         "call stack",
+         "undo",
+         "backtrack",
+         "expression",
+         "recursion",
+         "browser history"
+        ]
+       ],
+       "aspects": [
+        "a real use"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "fifo",
+         "first in first out"
+        ]
+       ],
+       "feedback": "A stack is LIFO, not FIFO: the LAST item pushed is removed first. FIFO describes a queue."
+      },
+      {
+       "pat": [
+        [
+         "bottom"
+        ],
+        [
+         "remove",
+         "pop",
+         "take",
+         "delete",
+         "from"
+        ]
+       ],
+       "feedback": "Items leave from the TOP of the stack, not the bottom. Removing from the bottom would be queue behaviour."
+      },
+      {
+       "pat": [
+        [
+         "random access",
+         "any position",
+         "any index",
+         "any item",
+         "the middle",
+         "by index"
+        ]
+       ],
+       "feedback": "A stack only touches the top. Reaching the middle means popping everything above it - there is no random access."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Theory: circular queue",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about a circular queue, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- A queue is FIFO - first in, first out.\n- Enqueue adds an item at the rear.\n- Dequeue removes an item from the front.\n- Front and rear pointers track the two ends.\n- When the rear passes the last slot it wraps around to index 0 (modulo).\n- The circular design reuses freed slots instead of shifting items.\n- is_empty and is_full checks guard against underflow and overflow.",
+    "rubric": {
+     "points": [
+      {
+       "point": "A queue is FIFO: the first item added is the first removed.",
+       "req": [
+        [
+         "fifo",
+         "first in first out"
+        ]
+       ],
+       "aspects": [
+        "FIFO order"
+       ]
+      },
+      {
+       "point": "Enqueue adds an item at the rear.",
+       "req": [
+        [
+         "enqueue",
+         "add",
+         "insert",
+         "join"
+        ],
+        [
+         "rear",
+         "back",
+         "tail",
+         "end"
+        ]
+       ],
+       "aspects": [
+        "enqueue",
+        "at the rear"
+       ]
+      },
+      {
+       "point": "Dequeue removes an item from the front.",
+       "req": [
+        [
+         "dequeue",
+         "remove",
+         "serve",
+         "leave"
+        ],
+        [
+         "front",
+         "head"
+        ]
+       ],
+       "aspects": [
+        "dequeue",
+        "from the front"
+       ]
+      },
+      {
+       "point": "Front and rear pointers track the two ends.",
+       "req": [
+        [
+         "front"
+        ],
+        [
+         "rear",
+         "back",
+         "tail"
+        ],
+        [
+         "pointer",
+         "index",
+         "variable",
+         "track"
+        ]
+       ],
+       "aspects": [
+        "front",
+        "rear",
+        "pointers tracking them"
+       ]
+      },
+      {
+       "point": "When the rear passes the last slot it wraps around to index 0 (modulo arithmetic).",
+       "req": [
+        [
+         "wrap",
+         "modulo",
+         "mod ",
+         "circular",
+         "around",
+         "cycle",
+         "loops back",
+         "index 0",
+         "start of the array",
+         "first slot"
+        ]
+       ],
+       "aspects": [
+        "the wrap-around"
+       ]
+      },
+      {
+       "point": "The circular design reuses freed slots instead of shifting items or wasting space.",
+       "req": [
+        [
+         "reuse",
+         "reuses",
+         "waste",
+         "shift",
+         "recycle",
+         "freed",
+         "free up",
+         "overwrit",
+         "no gap",
+         "avoid shifting"
+        ]
+       ],
+       "aspects": [
+        "why circular (reuse of slots)"
+       ]
+      },
+      {
+       "point": "is_empty and is_full checks guard against underflow and overflow.",
+       "req": [
+        [
+         "empty",
+         "underflow"
+        ],
+        [
+         "full",
+         "overflow"
+        ]
+       ],
+       "aspects": [
+        "empty check",
+        "full check"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "lifo",
+         "last in first out"
+        ]
+       ],
+       "feedback": "A queue is FIFO: the first item to join leaves first. LIFO is a stack."
+      },
+      {
+       "pat": [
+        [
+         "rear",
+         "back",
+         "tail"
+        ],
+        [
+         "remove",
+         "dequeue",
+         "delete",
+         "pop",
+         "leave"
+        ]
+       ],
+       "feedback": "Dequeue removes from the FRONT of the queue. The rear is where new items join."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Theory: linked list",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about a linked list, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Each node stores data and a pointer to the next node.\n- A head pointer points to the first node; the last node points to NULL.\n- Dynamic size: nodes are added and removed as needed, no fixed capacity.\n- Insert and delete just relink pointers - no shifting of other items.\n- Access is sequential: reaching item n means following pointers from the head, so O(n).",
+    "rubric": {
+     "points": [
+      {
+       "point": "Each node stores data and a pointer to the next node.",
+       "req": [
+        [
+         "node"
+        ],
+        [
+         "data",
+         "value"
+        ],
+        [
+         "pointer",
+         "link",
+         "reference",
+         "next"
+        ]
+       ],
+       "aspects": [
+        "nodes",
+        "data",
+        "next pointer"
+       ]
+      },
+      {
+       "point": "A head pointer points to the first node; the last node points to NULL.",
+       "req": [
+        [
+         "head",
+         "first node",
+         "start of the list"
+        ],
+        [
+         "point",
+         "reference",
+         "link"
+        ]
+       ],
+       "aspects": [
+        "the head pointer"
+       ]
+      },
+      {
+       "point": "Dynamic size: nodes are added and removed as needed, with no fixed capacity.",
+       "req": [
+        [
+         "dynamic",
+         "no fixed",
+         "grow",
+         "shrink",
+         "as needed",
+         "not fixed",
+         "any size"
+        ]
+       ],
+       "aspects": [
+        "dynamic size"
+       ]
+      },
+      {
+       "point": "Insert and delete relink pointers - no shifting of other items.",
+       "req": [
+        [
+         "insert",
+         "delete",
+         "remove",
+         "add"
+        ],
+        [
+         "pointer",
+         "link",
+         "relink",
+         "reference",
+         "shift",
+         "moving"
+        ]
+       ],
+       "aspects": [
+        "insert/delete",
+        "pointer relinking (no shifting)"
+       ]
+      },
+      {
+       "point": "Access is sequential: reaching item n means following pointers from the head, so O(n).",
+       "req": [
+        [
+         "sequential",
+         "traverse",
+         "walk",
+         "one by one",
+         "follow"
+        ],
+        [
+         "head",
+         "start",
+         "first",
+         "pointer"
+        ]
+       ],
+       "aspects": [
+        "sequential access",
+        "traversing from the head"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "contiguous",
+         "consecutive",
+         "array-based",
+         "an array"
+        ],
+        [
+         "memory",
+         "stored",
+         "store",
+         "location",
+         "layout"
+        ]
+       ],
+       "feedback": "Linked list nodes are NOT stored contiguously - each node sits anywhere in memory, chained by pointers."
+      },
+      {
+       "pat": [
+        [
+         "random access",
+         "direct access",
+         "by index",
+         "o 1",
+         "constant time"
+        ],
+        [
+         "access",
+         "reach",
+         "get",
+         "find",
+         "element",
+         "item"
+        ]
+       ],
+       "feedback": "There is no O(1) random access in a linked list: reaching item n means following n pointers from the head."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Theory: binary search tree",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about a binary search tree (BST), in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Each node has at most two children: left and right.\n- Everything in the left subtree is smaller than the node.\n- Everything in the right subtree is larger than the node.\n- Search and insert compare with each node and go left or right until found or a leaf.\n- An inorder traversal visits the values in sorted ascending order.\n- O(log n) when the tree is balanced, but O(n) if it is skewed.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Each node has at most two children: left and right.",
+       "req": [
+        [
+         "two",
+         "2",
+         "at most"
+        ],
+        [
+         "child",
+         "left",
+         "right"
+        ]
+       ],
+       "aspects": [
+        "at most two children"
+       ]
+      },
+      {
+       "point": "Everything in the left subtree is smaller than the node.",
+       "req": [
+        [
+         "left"
+        ],
+        [
+         "small",
+         "less",
+         "lower"
+        ]
+       ],
+       "aspects": [
+        "the left subtree",
+        "smaller values"
+       ]
+      },
+      {
+       "point": "Everything in the right subtree is larger than the node.",
+       "req": [
+        [
+         "right"
+        ],
+        [
+         "great",
+         "larg",
+         "big",
+         "high"
+        ]
+       ],
+       "aspects": [
+        "the right subtree",
+        "larger values"
+       ]
+      },
+      {
+       "point": "Search and insert compare with each node and go left or right until found or a leaf.",
+       "req": [
+        [
+         "search",
+         "insert",
+         "find",
+         "look"
+        ],
+        [
+         "compare",
+         "left",
+         "right",
+         "descend",
+         "leaf",
+         "down"
+        ]
+       ],
+       "aspects": [
+        "the operation",
+        "compare and descend"
+       ]
+      },
+      {
+       "point": "An inorder traversal visits the values in sorted (ascending) order.",
+       "req": [
+        [
+         "inorder",
+         "in order",
+         "in-order"
+        ],
+        [
+         "sort",
+         "ascend",
+         "order"
+        ]
+       ],
+       "aspects": [
+        "inorder traversal",
+        "sorted output"
+       ]
+      },
+      {
+       "point": "O(log n) when balanced, but O(n) if the tree is skewed.",
+       "req": [
+        [
+         "log"
+        ],
+        [
+         "balance",
+         "skew",
+         "degenerat"
+        ]
+       ],
+       "aspects": [
+        "O(log n)",
+        "the balanced condition"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "always"
+        ],
+        [
+         "balance",
+         "log"
+        ]
+       ],
+       "feedback": "A BST is NOT automatically balanced. Fed sorted data it degenerates into a linked list with O(n) operations - balancing needs AVL or red-black rules."
+      },
+      {
+       "pat": [
+        [
+         "left"
+        ],
+        [
+         "great",
+         "larg",
+         "big",
+         "high"
+        ]
+       ],
+       "feedback": "Larger values go to the RIGHT subtree, smaller to the left. Flip that and every search walks the wrong way."
+      },
+      {
+       "pat": [
+        [
+         "level order",
+         "breadth first",
+         "bfs",
+         "level by level"
+        ],
+        [
+         "sort",
+         "ascend",
+         "order"
+        ]
+       ],
+       "feedback": "Level-by-level order is NOT sorted order. Sorted output comes from an INORDER traversal (left, node, right)."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "title": "Theory: hash table",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about a hash table, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- A hash function maps each key to an index (slot) in the array.\n- Lookup is O(1) on average: go straight to the hashed slot.\n- A collision is when two keys hash to the same slot.\n- Linear probing handles collisions by trying the next slots until a free one.\n- Search follows the same probe sequence as insertion.\n- Performance drops as the table fills up (load factor and clustering).",
+    "rubric": {
+     "points": [
+      {
+       "point": "A hash function maps each key to an index (slot) in the array.",
+       "req": [
+        [
+         "hash"
+        ],
+        [
+         "index",
+         "slot",
+         "position",
+         "address",
+         "location"
+        ]
+       ],
+       "aspects": [
+        "a hash function",
+        "mapping to an index"
+       ]
+      },
+      {
+       "point": "Lookup is O(1) on average - go straight to the hashed slot.",
+       "req": [
+        [
+         "o 1",
+         "constant",
+         "straight",
+         "direct",
+         "immediate",
+         "average"
+        ]
+       ],
+       "aspects": [
+        "average O(1) lookup"
+       ]
+      },
+      {
+       "point": "A collision is when two keys hash to the same slot.",
+       "req": [
+        [
+         "collision",
+         "clash",
+         "same slot",
+         "same index",
+         "both hash"
+        ]
+       ],
+       "aspects": [
+        "collisions"
+       ]
+      },
+      {
+       "point": "Linear probing handles collisions by trying the next slots until a free one.",
+       "req": [
+        [
+         "prob",
+         "next slot",
+         "next free",
+         "linear",
+         "scan forward",
+         "move along",
+         "step forward",
+         "next available"
+        ]
+       ],
+       "aspects": [
+        "linear probing"
+       ]
+      },
+      {
+       "point": "Search follows the same probe sequence as insertion.",
+       "req": [
+        [
+         "search",
+         "find",
+         "look"
+        ],
+        [
+         "same",
+         "probe",
+         "sequence",
+         "path",
+         "follow"
+        ]
+       ],
+       "aspects": [
+        "search",
+        "the same probe sequence"
+       ]
+      },
+      {
+       "point": "Performance drops as the table fills up (load factor, clustering).",
+       "req": [
+        [
+         "load",
+         "full",
+         "cluster",
+         "fills",
+         "crowd",
+         "nearly full"
+        ]
+       ],
+       "aspects": [
+        "load factor / clustering"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "overwrite",
+         "replace",
+         "lost",
+         "lost",
+         "gone"
+        ],
+        [
+         "collision",
+         "same slot",
+         "existing",
+         "previous",
+         "old key"
+        ]
+       ],
+       "feedback": "Colliding keys are NOT overwritten: probing stores the new key in the next free slot, and both stay findable."
+      },
+      {
+       "pat": [
+        [
+         "encrypt",
+         "decrypt",
+         "secure",
+         "protect",
+         "cipher",
+         "reverse",
+         "recover"
+        ]
+       ],
+       "feedback": "Hashing here is indexing, not encryption: it just computes a slot. It is one-way and does not protect the data."
+      },
+      {
+       "pat": [
+        [
+         "sorted",
+         "alphabetical",
+         "in order",
+         "ordered"
+        ]
+       ],
+       "feedback": "A hash table does NOT keep keys in order - the hash function scatters them across the array."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: linear search",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about linear search, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Checks the items one by one, in order, from the start.\n- Works on unsorted data - no sorting needed.\n- Stops and returns the index as soon as the target is found.\n- If the target is missing, it checks every item and returns -1.\n- O(n) time: n items can need n comparisons.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Checks the items one by one, in order, from the start.",
+       "req": [
+        [
+         "one by one",
+         "each",
+         "every",
+         "in order",
+         "start",
+         "beginning",
+         "first item"
+        ],
+        [
+         "check",
+         "compare",
+         "look",
+         "inspect",
+         "examine"
+        ]
+       ],
+       "aspects": [
+        "checking in order",
+        "from the start"
+       ]
+      },
+      {
+       "point": "Works on unsorted data - no sorting needed.",
+       "req": [
+        [
+         "unsorted",
+         "any order",
+         "unordered",
+         "no sorting",
+         "without sorting",
+         "not sorted"
+        ]
+       ],
+       "aspects": [
+        "works on unsorted data"
+       ]
+      },
+      {
+       "point": "Stops and returns the index as soon as the target is found.",
+       "req": [
+        [
+         "stop",
+         "found",
+         "return",
+         "index",
+         "position",
+         "early"
+        ]
+       ],
+       "aspects": [
+        "stops on found / returns the index"
+       ]
+      },
+      {
+       "point": "If the target is missing, it checks every item and returns -1.",
+       "req": [
+        [
+         "missing",
+         "not found",
+         "absent",
+         "no match"
+        ],
+        [
+         "every",
+         "all",
+         "whole",
+         "end"
+        ]
+       ],
+       "aspects": [
+        "missing target",
+        "checks everything"
+       ]
+      },
+      {
+       "point": "O(n) time: n items can need n comparisons.",
+       "req": [
+        [
+         "o n",
+         "linear",
+         "n comparison",
+         "proportional"
+        ]
+       ],
+       "aspects": [
+        "O(n) time"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "sorted",
+         "ordered"
+        ],
+        [
+         "need",
+         "require",
+         "must",
+         "only",
+         "have to",
+         "works on"
+        ]
+       ],
+       "feedback": "Linear search does NOT need sorted data - that is binary search. Sorting first would cost more than the search itself."
+      },
+      {
+       "pat": [
+        [
+         "log"
+        ]
+       ],
+       "feedback": "Linear search is O(n), not O(log n). Halving the data each step is binary search."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: binary search",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about binary search, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- The data must be sorted first.\n- Compares the middle item with the target.\n- Discards half of the remaining range each step, moving the low and high pointers.\n- O(log n): about 10 comparisons for 1000 items.\n- Returns the index, or -1 when the range is empty (target missing).",
+    "rubric": {
+     "points": [
+      {
+       "point": "The data must be sorted first.",
+       "req": [
+        [
+         "sort",
+         "ordered",
+         "ascending"
+        ]
+       ],
+       "aspects": [
+        "sorted data required"
+       ]
+      },
+      {
+       "point": "Compares the middle item with the target.",
+       "req": [
+        [
+         "mid",
+         "middle",
+         "centre",
+         "center"
+        ],
+        [
+         "target",
+         "value",
+         "compare"
+        ]
+       ],
+       "aspects": [
+        "the middle item",
+        "comparing with the target"
+       ]
+      },
+      {
+       "point": "Discards half of the remaining range each step (moving low/high pointers).",
+       "req": [
+        [
+         "half",
+         "halve",
+         "discard",
+         "eliminate",
+         "narrow",
+         "low",
+         "high",
+         "upper",
+         "lower",
+         "range"
+        ]
+       ],
+       "aspects": [
+        "halving the range each step"
+       ]
+      },
+      {
+       "point": "O(log n): about 10 comparisons for 1000 items.",
+       "req": [
+        [
+         "log"
+        ]
+       ],
+       "aspects": [
+        "O(log n)"
+       ]
+      },
+      {
+       "point": "Returns the index, or -1 when the range is empty (target missing).",
+       "req": [
+        [
+         "index",
+         "position",
+         "missing",
+         "empty",
+         "not found",
+         "found"
+        ]
+       ],
+       "aspects": [
+        "the result"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "unsorted",
+         "unordered",
+         "any order"
+        ]
+       ],
+       "feedback": "Binary search REQUIRES sorted data. On unsorted data it can silently skip the target - use linear search instead."
+      },
+      {
+       "pat": [
+        [
+         "every item",
+         "each item",
+         "all items",
+         "o n",
+         "linear time"
+        ]
+       ],
+       "feedback": "Binary search never checks every item: it halves the range each step - O(log n), about 10 comparisons for 1000 items."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: bubble sort",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about bubble sort, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Compares adjacent pairs and swaps them if they are out of order.\n- After each pass, the largest unsorted item bubbles to the end.\n- Repeats for n-1 passes, or stops early if a pass makes no swaps.\n- O(n^2) time.\n- In-place: no extra array needed.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Compares adjacent pairs and swaps them if they are out of order.",
+       "req": [
+        [
+         "adjacent",
+         "neighbour",
+         "next to",
+         "consecutive"
+        ],
+        [
+         "swap",
+         "switch",
+         "exchange",
+         "compare"
+        ]
+       ],
+       "aspects": [
+        "adjacent pairs",
+        "swapping"
+       ]
+      },
+      {
+       "point": "After each pass, the largest unsorted item bubbles to the end.",
+       "req": [
+        [
+         "largest",
+         "biggest",
+         "maximum",
+         "max"
+        ],
+        [
+         "end",
+         "last",
+         "final position",
+         "right side"
+        ]
+       ],
+       "aspects": [
+        "the largest item",
+        "bubbling to the end"
+       ]
+      },
+      {
+       "point": "Repeats for n-1 passes, or stops early if a pass makes no swaps.",
+       "req": [
+        [
+         "pass",
+         "repeat",
+         "until",
+         "no swap",
+         "n 1"
+        ]
+       ],
+       "aspects": [
+        "the passes / early stop"
+       ]
+      },
+      {
+       "point": "O(n^2) time.",
+       "req": [
+        [
+         "n 2",
+         "n2",
+         "quadratic",
+         "n squared"
+        ]
+       ],
+       "aspects": [
+        "O(n^2)"
+       ]
+      },
+      {
+       "point": "In-place: no extra array needed.",
+       "req": [
+        [
+         "in place",
+         "in-place",
+         "no extra",
+         "same array"
+        ]
+       ],
+       "aspects": [
+        "in-place"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "log"
+        ]
+       ],
+       "feedback": "Bubble sort is O(n^2), not O(n log n). For speed you want merge sort or quicksort."
+      },
+      {
+       "pat": [
+        [
+         "divide",
+         "merge",
+         "pivot"
+        ]
+       ],
+       "feedback": "There is no dividing, merging or pivot - bubble sort just swaps neighbours. Divide and conquer belongs to merge sort and quicksort."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: insertion sort",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about insertion sort, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Keeps a sorted section on the left and takes the next item one at a time.\n- Shifts larger items one place to the right and inserts the item into the gap.\n- O(n^2) in the worst case, but close to O(n) when the data is nearly sorted.\n- In-place and stable: equal items keep their order.\n- Like sorting a hand of playing cards.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Keeps a sorted section on the left and takes the next item one at a time.",
+       "req": [
+        [
+         "sorted",
+         "in order"
+        ],
+        [
+         "next",
+         "take",
+         "pick",
+         "each"
+        ]
+       ],
+       "aspects": [
+        "the sorted section",
+        "taking the next item"
+       ]
+      },
+      {
+       "point": "Shifts larger items one place to the right and inserts the item into the gap.",
+       "req": [
+        [
+         "shift",
+         "move",
+         "slide",
+         "bump"
+        ],
+        [
+         "insert",
+         "gap",
+         "slot",
+         "place",
+         "position"
+        ]
+       ],
+       "aspects": [
+        "shifting larger items",
+        "inserting into the gap"
+       ]
+      },
+      {
+       "point": "O(n^2) in the worst case, but close to O(n) when the data is nearly sorted.",
+       "req": [
+        [
+         "nearly sorted",
+         "almost sorted",
+         "best case",
+         "n 2",
+         "quadratic",
+         "o n"
+        ]
+       ],
+       "aspects": [
+        "best vs worst case"
+       ]
+      },
+      {
+       "point": "In-place and stable (equal items keep their order).",
+       "req": [
+        [
+         "in place",
+         "in-place",
+         "stable",
+         "no extra"
+        ]
+       ],
+       "aspects": [
+        "in-place / stable"
+       ]
+      },
+      {
+       "point": "Like sorting a hand of playing cards.",
+       "req": [
+        [
+         "card"
+        ]
+       ],
+       "aspects": [
+        "the playing-cards analogy"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "log"
+        ]
+       ],
+       "feedback": "Insertion sort is O(n^2) in general. Its strength is nearly-sorted data (close to O(n)), not log-n speed."
+      },
+      {
+       "pat": [
+        [
+         "pivot",
+         "merge",
+         "divide"
+        ]
+       ],
+       "feedback": "No pivot, no merging: insertion sort grows a sorted section one item at a time. Pivots belong to quicksort."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: merge sort",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about merge sort, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Divide and conquer: split the list into halves recursively.\n- Recursion stops at lists of size 1, which are already sorted.\n- Merge: compare the heads of the two sorted lists and take the smaller each time.\n- O(n log n) in all cases.\n- Needs extra memory for the merged output - not in-place.\n- Stable: equal items keep their relative order.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Divide and conquer: split the list into halves recursively.",
+       "req": [
+        [
+         "divide",
+         "split",
+         "half",
+         "halves",
+         "recursive",
+         "recursion"
+        ]
+       ],
+       "aspects": [
+        "dividing into halves"
+       ]
+      },
+      {
+       "point": "Recursion stops at lists of size 1, which are already sorted.",
+       "req": [
+        [
+         "size 1",
+         "one item",
+         "single element",
+         "base case",
+         "length 1",
+         "one element"
+        ]
+       ],
+       "aspects": [
+        "the size-1 base case"
+       ]
+      },
+      {
+       "point": "Merge: compare the heads of the two sorted lists and take the smaller each time.",
+       "req": [
+        [
+         "merge",
+         "combine"
+        ],
+        [
+         "compare",
+         "smaller",
+         "head",
+         "front",
+         "first"
+        ]
+       ],
+       "aspects": [
+        "the merge step",
+        "comparing heads"
+       ]
+      },
+      {
+       "point": "O(n log n) in all cases.",
+       "req": [
+        [
+         "n log n",
+         "log"
+        ]
+       ],
+       "aspects": [
+        "O(n log n)"
+       ]
+      },
+      {
+       "point": "Needs extra memory for the merged output - not in-place.",
+       "req": [
+        [
+         "extra",
+         "additional",
+         "memory",
+         "space",
+         "temporary",
+         "new list",
+         "auxiliary"
+        ]
+       ],
+       "aspects": [
+        "the extra memory"
+       ]
+      },
+      {
+       "point": "Stable: equal items keep their relative order.",
+       "req": [
+        [
+         "stable"
+        ]
+       ],
+       "aspects": [
+        "stability"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "in place",
+         "in-place",
+         "no extra"
+        ]
+       ],
+       "feedback": "Merge sort is NOT in-place: merging needs extra output arrays. That memory cost is its main downside."
+      },
+      {
+       "pat": [
+        [
+         "pivot"
+        ]
+       ],
+       "feedback": "There is no pivot in merge sort - that is quicksort. Merge sort splits by position, not by value."
+      },
+      {
+       "pat": [
+        [
+         "n 2",
+         "quadratic",
+         "n squared"
+        ]
+       ],
+       "feedback": "Merge sort is always O(n log n): log n levels of splitting with O(n) merging per level."
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "title": "Theory: quicksort",
+  "kind": "theory",
+  "intro": "Paper 1 theory - no code, just your understanding.",
+  "parts": [
+   {
+    "instruction": "Write everything you know about quicksort, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
+    "starter": "",
+    "tests": "",
+    "model": "- Pick a pivot value.\n- Partition: items smaller than the pivot go left, larger items go right.\n- Recurse on each side until the whole list is sorted.\n- O(n log n) on average.\n- O(n^2) worst case, e.g. sorted data with a first-element pivot.\n- In-place (no big extra arrays) but not stable.",
+    "rubric": {
+     "points": [
+      {
+       "point": "Pick a pivot value.",
+       "req": [
+        [
+         "pivot"
+        ]
+       ],
+       "aspects": [
+        "a pivot"
+       ]
+      },
+      {
+       "point": "Partition: items smaller than the pivot go left, larger items go right.",
+       "req": [
+        [
+         "partition",
+         "rearrange",
+         "smaller",
+         "larger",
+         "less",
+         "greater"
+        ],
+        [
+         "pivot",
+         "left",
+         "right"
+        ]
+       ],
+       "aspects": [
+        "partitioning",
+        "around the pivot"
+       ]
+      },
+      {
+       "point": "Recurse on each side until the whole list is sorted.",
+       "req": [
+        [
+         "recurs",
+         "repeat",
+         "each side",
+         "both sides",
+         "sub-list",
+         "sublist"
+        ]
+       ],
+       "aspects": [
+        "recursion on each side"
+       ]
+      },
+      {
+       "point": "O(n log n) on average.",
+       "req": [
+        [
+         "n log n",
+         "log",
+         "average"
+        ]
+       ],
+       "aspects": [
+        "average O(n log n)"
+       ]
+      },
+      {
+       "point": "O(n^2) worst case, e.g. sorted data with a first-element pivot.",
+       "req": [
+        [
+         "n 2",
+         "quadratic",
+         "worst",
+         "sorted data",
+         "bad pivot"
+        ]
+       ],
+       "aspects": [
+        "the worst case"
+       ]
+      },
+      {
+       "point": "In-place (no big extra arrays) but not stable.",
+       "req": [
+        [
+         "in place",
+         "in-place",
+         "not stable",
+         "unstable",
+         "no extra"
+        ]
+       ],
+       "aspects": [
+        "in-place / not stable"
+       ]
+      }
+     ],
+     "misconceptions": [
+      {
+       "pat": [
+        [
+         "always"
+        ],
+        [
+         "n log n",
+         "log"
+        ]
+       ],
+       "feedback": "Quicksort is O(n log n) only ON AVERAGE. Sorted input with a first-element pivot degrades to O(n^2) - pick the pivot well (median-of-three or random)."
+      },
+      {
+       "pat": [
+        [
+         "stable"
+        ]
+       ],
+       "feedback": "Quicksort is NOT stable: partitioning can move equal items past each other."
+      },
+      {
+       "pat": [
+        [
+         "merge",
+         "temporary array",
+         "extra array"
+        ]
+       ],
+       "feedback": "Quicksort partitions in place - no big merge arrays. Merging belongs to merge sort."
+      }
+     ]
+    }
+   }
+  ]
  }
 ]

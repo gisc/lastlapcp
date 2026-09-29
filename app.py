@@ -195,12 +195,13 @@ def seed_t3(db):
     for q in bank:
         if q["title"] in have:
             continue
-        cur = db.execute("INSERT INTO t3_questions(topic,title,intro,created_at) VALUES(?,?,?,?)",
-                         (q["topic"], q["title"], q["intro"], datetime.now(timezone.utc).isoformat()))
+        cur = db.execute("INSERT INTO t3_questions(topic,title,intro,kind,created_at) VALUES(?,?,?,?,?)",
+                         (q["topic"], q["title"], q["intro"], q.get("kind", "code"), datetime.now(timezone.utc).isoformat()))
         qid = cur.lastrowid
         for i, p in enumerate(q["parts"], 1):
-            db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
-                       (qid, i, p["instruction"], p.get("starter", ""), p["tests"], p["model"]))
+            db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model,rubric) VALUES(?,?,?,?,?,?,?)",
+                       (qid, i, p["instruction"], p.get("starter", ""), p.get("tests", ""), p["model"],
+                        json.dumps(p["rubric"]) if p.get("rubric") else ""))
     db.commit()
 
 # ---------------- tier 3 test harness ----------------
@@ -266,10 +267,99 @@ def init_db():
         db.execute("ALTER TABLE questions ADD COLUMN code TEXT DEFAULT ''")
     if "case_sensitive" not in cols:
         db.execute("ALTER TABLE questions ADD COLUMN case_sensitive INTEGER NOT NULL DEFAULT 0")
+    t3qcols = [r["name"] for r in db.execute("PRAGMA table_info(t3_questions)")]
+    if "kind" not in t3qcols:
+        db.execute("ALTER TABLE t3_questions ADD COLUMN kind TEXT NOT NULL DEFAULT 'code'")
+    t3pcols = [r["name"] for r in db.execute("PRAGMA table_info(t3_parts)")]
+    if "rubric" not in t3pcols:
+        db.execute("ALTER TABLE t3_parts ADD COLUMN rubric TEXT NOT NULL DEFAULT ''")
     db.commit()
     seed_questions(db)
     seed_t3(db)
     db.close()
+
+# ---------------- tier 3 theory grader ----------------
+# Free-text "write everything you know" answers are graded server-side against a
+# rubric of key points, so the accepted terms never ship to the browser. Each key
+# point has groups of synonyms; every group must hit for a green. Some groups
+# hitting = orange (partial, told which aspect is missing). Known misconception
+# patterns = red with an explanation. Student text never leaves this server.
+
+def _norm_text(s):
+    s = s.lower().replace("n't", " not")
+    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    return " " + re.sub(r"\s+", " ", s).strip() + " "
+
+def _term_hit(text, term):
+    # unnegated match only: no "not/never/no" within 3 words before the term
+    for m in re.finditer(r"\b" + re.escape(term), text):
+        before = text[:m.start()].split()[-3:]
+        if not any(w in ("not", "never", "no") for w in before):
+            return True
+    return False
+
+def _group_hit(text, group):
+    return any(_term_hit(text, t) for t in group)
+
+def grade_theory(text, rubric):
+    bullets = []
+    for line in text.splitlines():
+        b = re.sub(r"^\s*(?:[-*•]|\d+[.)])\s*", "", line).strip()
+        if b:
+            bullets.append(b)
+    points = rubric.get("points", [])
+    pats = [{"pat": m["pat"], "feedback": m["feedback"]} for m in rubric.get("misconceptions", [])]
+    for p in points:
+        for w in p.get("wrong", []):
+            pats.append({"pat": w["pat"], "feedback": w["feedback"]})
+    claimed = {}
+    results = []
+    for b in bullets:
+        n = _norm_text(b)
+        green_i = None
+        if True:
+            for i, p in enumerate(points):
+                if claimed.get(i) == "green":
+                    continue
+                if all(_group_hit(n, g) for g in p["req"]):
+                    green_i = i
+                    break
+        if green_i is not None:
+            claimed[green_i] = "green"
+            results.append({"text": b, "verdict": "green", "feedback": ""})
+            continue
+        wrong_fb = ""
+        if True:
+            for m in pats:
+                if all(_group_hit(n, g) for g in m["pat"]):
+                    wrong_fb = m["feedback"]
+                    break
+        if wrong_fb:
+            results.append({"text": b, "verdict": "red", "feedback": wrong_fb})
+            continue
+        best_i, best_hits = None, 0
+        for i, p in enumerate(points):
+            if claimed.get(i) == "green":
+                continue
+            hits = sum(1 for g in p["req"] if _group_hit(n, g))
+            if 0 < hits < len(p["req"]) and hits > best_hits:
+                best_i, best_hits = i, hits
+        if best_i is not None:
+            p = points[best_i]
+            missing = [p["aspects"][j] for j, g in enumerate(p["req"]) if not _group_hit(n, g)]
+            claimed.setdefault(best_i, "orange")
+            results.append({"text": b, "verdict": "orange",
+                            "feedback": "On the right track - missing: " + "; ".join(missing) + "."})
+            continue
+        results.append({"text": b, "verdict": "grey", "feedback": "This is not one of the key points for this topic."})
+    greens = sum(1 for v in claimed.values() if v == "green")
+    total = len(points)
+    reds = sum(1 for r in results if r["verdict"] == "red")
+    missed = [p["point"] for i, p in enumerate(points) if i not in claimed]
+    partial = [p["point"] for i, p in enumerate(points) if claimed.get(i) == "orange"]
+    passed = total > 0 and reds == 0 and greens * 10 >= total * 7
+    return {"results": results, "greens": greens, "total": total, "reds": reds,
+            "missed": missed, "partial": partial, "passed": passed}
 
 # ---------------- auth helpers ----------------
 
@@ -366,14 +456,15 @@ def home():
     stats = user_stats(db, u["id"])
     topics = [r["topic"] for r in db.execute(
         "SELECT DISTINCT topic FROM questions WHERE qtype IN ('mcq','checkbox') ORDER BY topic")]
-    t3 = []
+    t3, t3t = [], []
     for r in db.execute("SELECT * FROM t3_questions ORDER BY id").fetchall():
         n = db.execute("SELECT COUNT(*) c FROM t3_parts WHERE question_id=?", (r["id"],)).fetchone()["c"]
         done = db.execute(
             """SELECT COUNT(DISTINCT p.ord) c FROM t3_parts p JOIN t3_attempts a ON a.part_id=p.id
                 WHERE p.question_id=? AND a.user_id=? AND a.passed=1""", (r["id"], u["id"])).fetchone()["c"]
-        t3.append({"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
-    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3)
+        (t3t if r["kind"] == "theory" else t3).append(
+            {"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
+    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t)
 
 @app.route("/login")
 def login():
@@ -774,6 +865,21 @@ def t3_part(qid, ord):
     if ord < 1 or ord > len(parts):
         abort(404)
     part = dict(parts[ord - 1])
+    if q["kind"] == "theory":
+        last = db.execute(
+            """SELECT a.code FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+               WHERE a.user_id=? AND p.question_id=? AND p.ord=? ORDER BY a.id DESC LIMIT 1""",
+            (u["id"], qid, ord)).fetchone()
+        passed = db.execute(
+            """SELECT 1 FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+               WHERE a.user_id=? AND p.question_id=? AND p.ord=? AND a.passed=1 LIMIT 1""",
+            (u["id"], qid, ord)).fetchone() is not None
+        attempted = db.execute(
+            """SELECT 1 FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+               WHERE a.user_id=? AND p.question_id=? AND p.ord=? LIMIT 1""",
+            (u["id"], qid, ord)).fetchone() is not None
+        return render_template("t3theory.html", q=q, part=part, ord=ord, nparts=len(parts),
+                               code=last["code"] if last else "", passed=passed, attempted=attempted)
     part["tests"] = T3_TEST_PREAMBLE + "\n" + rewrite_t3_tests(part["tests"])
     prev = None
     if ord > 1:
@@ -820,6 +926,33 @@ def t3_record(qid, ord):
                (u["id"], part["id"], passed, xp, code, output, datetime.now(timezone.utc).isoformat()))
     db.commit()
     return {"ok": True, "passed": bool(passed), "xp": xp, "total_xp": user_stats(db, u["id"])["xp"]}
+
+@app.route("/t3/<int:qid>/part/<int:ord>/check", methods=["POST"])
+@login_required
+def t3_check(qid, ord):
+    db = get_db()
+    u = current_user()
+    q = db.execute("SELECT * FROM t3_questions WHERE id=?", (qid,)).fetchone()
+    part = db.execute("SELECT * FROM t3_parts WHERE question_id=? AND ord=?", (qid, ord)).fetchone()
+    if not q or not part or q["kind"] != "theory":
+        abort(404)
+    data = request.get_json(force=True, silent=True) or {}
+    text = str(data.get("text", ""))[:20000]
+    res = grade_theory(text, json.loads(part["rubric"]))
+    passed = 1 if res["passed"] else 0
+    if passed:
+        best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM t3_attempts WHERE user_id=? AND part_id=?",
+                          (u["id"], part["id"])).fetchone()["b"]
+        xp = 2 if best > 0 else 15
+    else:
+        xp = 0
+    db.execute("INSERT INTO t3_attempts(user_id,part_id,passed,xp,code,output,created_at) VALUES(?,?,?,?,?,?,?)",
+               (u["id"], part["id"], passed, xp, text,
+                json.dumps({"greens": res["greens"], "total": res["total"]}),
+                datetime.now(timezone.utc).isoformat()))
+    db.commit()
+    res.update({"ok": True, "xp": xp, "total_xp": user_stats(db, u["id"])["xp"]})
+    return res
 
 # ---------------- teacher tier 3 authoring ----------------
 
