@@ -61,7 +61,7 @@ document.getElementById('run').addEventListener('click', async () => {
       const keep = raw.split('\n').filter(l => {
         const t = l.trim();
         if (!t) return false;
-        if (l.includes('python312.zip') || l.includes('_pyodide')) return false;
+        if (l.includes('python312.zip') || l.includes('_pyodide') || l.includes('_ll_check')) return false;
         if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
         return true;
       });

@@ -1,6 +1,7 @@
 """LastLapCP - gamified A-level H2 Computing (9569) revision app.
 Flask + SQLite + Jinja. Mobile-first. Google sign-in with an email allowlist.
 All secrets/identity data come from env vars, never from the repo."""
+import ast
 import json
 import os
 import re
@@ -201,6 +202,57 @@ def seed_t3(db):
             db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
                        (qid, i, p["instruction"], p.get("starter", ""), p["tests"], p["model"]))
     db.commit()
+
+# ---------------- tier 3 test harness ----------------
+# Rewrites plain `assert X == Y, "label"` tests (and `and`-chains of them) into
+# _ll_check calls so a failure says:  label: expected X, got Y
+# Runs at render time, so stored tests and the teacher admin form stay plain asserts.
+T3_TEST_PREAMBLE = """def _ll_check(got, op, expected, label):
+    if op == '==': ok = got == expected
+    elif op == '!=': ok = got != expected
+    elif op == 'is': ok = got is expected
+    elif op == 'is not': ok = got is not expected
+    elif op == 'in': ok = got in expected
+    elif op == 'not in': ok = got not in expected
+    elif op == '<': ok = got < expected
+    elif op == '<=': ok = got <= expected
+    elif op == '>': ok = got > expected
+    else: ok = got >= expected
+    if not ok:
+        want = repr(expected) if op in ('==', 'is') else op + ' ' + repr(expected)
+        raise AssertionError(f'{label}: expected {want}, got {got!r}')
+"""
+
+_LL_OPS = {ast.Eq: '==', ast.NotEq: '!=', ast.Is: 'is', ast.IsNot: 'is not',
+           ast.In: 'in', ast.NotIn: 'not in',
+           ast.Lt: '<', ast.LtE: '<=', ast.Gt: '>', ast.GtE: '>='}
+
+class _T3AssertRewriter(ast.NodeTransformer):
+    def visit_Assert(self, node):
+        values = node.test.values if isinstance(node.test, ast.BoolOp) and isinstance(node.test.op, ast.And) else [node.test]
+        for v in values:
+            if not (isinstance(v, ast.Compare) and len(v.ops) == 1 and type(v.ops[0]) in _LL_OPS):
+                return node  # anything exotic stays a plain assert
+        out = []
+        for v in values:
+            if isinstance(node.msg, ast.Constant) and isinstance(node.msg.value, str):
+                label = node.msg
+            else:
+                label = ast.Constant(ast.unparse(v))
+            out.append(ast.Expr(value=ast.Call(
+                func=ast.Name(id='_ll_check', ctx=ast.Load()),
+                args=[v.left, ast.Constant(_LL_OPS[type(v.ops[0])]), v.comparators[0], label],
+                keywords=[])))
+        return out
+
+def rewrite_t3_tests(src):
+    try:
+        tree = ast.parse(src)
+        tree = _T3AssertRewriter().visit(tree)
+        ast.fix_missing_locations(tree)
+        return ast.unparse(tree)
+    except Exception:
+        return src  # unparseable tests run as-is, failures keep the old style
 
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
@@ -721,7 +773,8 @@ def t3_part(qid, ord):
     parts = db.execute("SELECT * FROM t3_parts WHERE question_id=? ORDER BY ord", (qid,)).fetchall()
     if ord < 1 or ord > len(parts):
         abort(404)
-    part = parts[ord - 1]
+    part = dict(parts[ord - 1])
+    part["tests"] = T3_TEST_PREAMBLE + "\n" + rewrite_t3_tests(part["tests"])
     prev = None
     if ord > 1:
         row = db.execute(
