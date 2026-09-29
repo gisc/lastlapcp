@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ 'Edit tier 3' if qid else 'New tier 3' }}{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ 'Edit tier 3 question #' ~ qid if qid else 'New tier 3 question' }}</h1>
+  {% for e in errs %}<div class="verdict bad">{{ e }}</div>{% endfor %}
+  <form method="post">
+    <label class="flabel">Topic</label>
+    <input class="field" name="topic" value="{{ form.topic }}" required>
+    <label class="flabel">Title</label>
+    <input class="field" name="title" value="{{ form.title }}" placeholder="Implement a Stack class" required>
+    <label class="flabel">Introduction (shown on the question page)</label>
+    <textarea class="field" name="intro" rows="3">{{ form.intro }}</textarea>
+    {% for i in range(nblocks) %}
+    {% set p = form.parts[i] if i < form.parts|length else none %}
+    <h3 class="sub">Part {{ i + 1 }}</h3>
+    <label class="flabel">Instruction</label>
+    <textarea class="field" name="part_instruction" rows="2" placeholder="Add push(item) which puts the item on top.">{{ p['instruction'] if p else '' }}</textarea>
+    <label class="flabel">Starter code added for this part (students see earlier parts' code above it)</label>
+    <textarea class="field code-input" name="part_starter" rows="4" placeholder="    def push(self, item):&#10;        pass">{{ p['starter'] if p else '' }}</textarea>
+    <label class="flabel">Tests - Python asserts run after the student's code</label>
+    <textarea class="field code-input" name="part_tests" rows="4" placeholder="s = Stack()&#10;s.push(5)&#10;assert s.is_empty() == False">{{ p['tests'] if p else '' }}</textarea>
+    <label class="flabel">Model answer for this part</label>
+    <textarea class="field code-input" name="part_model" rows="4" placeholder="    def push(self, item):&#10;        self._items.append(item)">{{ p['model'] if p else '' }}</textarea>
+    {% endfor %}
+    <button class="btn big" type="submit">Save question</button>
+  </form>
+  {% if natt %}<p class="muted small">{{ natt }} student attempt{{ 's' if natt != 1 }} already recorded on this question. Parts can be edited or added, not removed.</p>{% endif %}
+  <a class="btn ghost" href="{{ url_for('t3_admin') }}">Back to tier 3 admin</a>
+</div>
+{% endblock %}

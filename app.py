@@ -132,6 +132,20 @@ CREATE INDEX IF NOT EXISTS idx_attempts_q ON attempts(question_id);
 CREATE TABLE IF NOT EXISTS roster(
   email TEXT PRIMARY KEY, name TEXT, class TEXT
 );
+CREATE TABLE IF NOT EXISTS t3_questions(
+  id INTEGER PRIMARY KEY, topic TEXT NOT NULL, title TEXT NOT NULL,
+  intro TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS t3_parts(
+  id INTEGER PRIMARY KEY, question_id INTEGER NOT NULL REFERENCES t3_questions(id),
+  ord INTEGER NOT NULL, instruction TEXT NOT NULL,
+  starter TEXT DEFAULT '', tests TEXT NOT NULL, model TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS t3_attempts(
+  id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
+  part_id INTEGER NOT NULL REFERENCES t3_parts(id),
+  passed INTEGER NOT NULL, xp INTEGER NOT NULL,
+  code TEXT NOT NULL, output TEXT DEFAULT '', created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_t3att_user ON t3_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_t3att_part ON t3_attempts(part_id);
 """
 
 def seed_questions(db):
@@ -151,6 +165,23 @@ def seed_questions(db):
                        (qid, i, opt["text"], 1 if opt["correct"] else 0))
     db.commit()
 
+def seed_t3(db):
+    if db.execute("SELECT COUNT(*) c FROM t3_questions").fetchone()["c"]:
+        return
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_t3.json")
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as f:
+        bank = json.load(f)
+    for q in bank:
+        cur = db.execute("INSERT INTO t3_questions(topic,title,intro,created_at) VALUES(?,?,?,?)",
+                         (q["topic"], q["title"], q["intro"], datetime.now(timezone.utc).isoformat()))
+        qid = cur.lastrowid
+        for i, p in enumerate(q["parts"], 1):
+            db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
+                       (qid, i, p["instruction"], p.get("starter", ""), p["tests"], p["model"]))
+    db.commit()
+
 def init_db():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = sqlite3.connect(DB_PATH)
@@ -163,6 +194,7 @@ def init_db():
         db.execute("ALTER TABLE questions ADD COLUMN case_sensitive INTEGER NOT NULL DEFAULT 0")
     db.commit()
     seed_questions(db)
+    seed_t3(db)
     db.close()
 
 # ---------------- auth helpers ----------------
@@ -198,8 +230,11 @@ def user_stats(db, uid):
     row = db.execute(
         "SELECT COALESCE(SUM(xp),0) xp, COUNT(*) n, COALESCE(SUM(correct),0) c FROM attempts WHERE user_id=?",
         (uid,)).fetchone()
+    t3xp = db.execute("SELECT COALESCE(SUM(xp),0) xp FROM t3_attempts WHERE user_id=?", (uid,)).fetchone()["xp"]
     dates = {r["d"] for r in db.execute(
         "SELECT DISTINCT date(created_at, '+8 hours') d FROM attempts WHERE user_id=?", (uid,))}
+    dates |= {r["d"] for r in db.execute(
+        "SELECT DISTINCT date(created_at, '+8 hours') d FROM t3_attempts WHERE user_id=?", (uid,))}
     streak = 0
     day = datetime.now(SGT).date()
     if day.isoformat() not in dates:
@@ -213,10 +248,10 @@ def user_stats(db, uid):
            WHERE a.user_id=? GROUP BY q.topic ORDER BY q.topic""", (uid,)).fetchall()
     mastery = [{"topic": t["topic"], "n": t["n"],
                 "pct": round(100 * t["c"] / t["n"]) if t["n"] else 0} for t in topics]
-    return {"xp": row["xp"], "attempts": row["n"], "correct": row["c"],
+    return {"xp": row["xp"] + t3xp, "attempts": row["n"], "correct": row["c"],
             "streak": streak, "mastery": mastery}
 
-TIER_QTYPES = {1: ("mcq", "checkbox"), 2: ("fib",)}
+TIER_QTYPES = {0: ("binary",), 1: ("mcq", "checkbox"), 2: ("fib",)}
 
 def pick_question(db, uid, topic=None, tier=None, paper=None):
     params, where = [], ""
@@ -255,8 +290,16 @@ def home():
         return redirect(url_for("login"))
     db = get_db()
     stats = user_stats(db, u["id"])
-    topics = [r["topic"] for r in db.execute("SELECT DISTINCT topic FROM questions ORDER BY topic")]
-    return render_template("home.html", u=u, stats=stats, topics=topics)
+    topics = [r["topic"] for r in db.execute(
+        "SELECT DISTINCT topic FROM questions WHERE qtype IN ('mcq','checkbox') ORDER BY topic")]
+    t3 = []
+    for r in db.execute("SELECT * FROM t3_questions ORDER BY id").fetchall():
+        n = db.execute("SELECT COUNT(*) c FROM t3_parts WHERE question_id=?", (r["id"],)).fetchone()["c"]
+        done = db.execute(
+            """SELECT COUNT(DISTINCT p.ord) c FROM t3_parts p JOIN t3_attempts a ON a.part_id=p.id
+                WHERE p.question_id=? AND a.user_id=? AND a.passed=1""", (r["id"], u["id"])).fetchone()["c"]
+        t3.append({"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
+    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3)
 
 @app.route("/login")
 def login():
@@ -354,6 +397,25 @@ def answer(qid):
                                feedback={"correct": correct, "xp": xp, "typed": typed.strip(),
                                          "accepted": sorted({o["text"] for o in opts})}, stats=stats)
     correct_ids = {o["id"] for o in opts if o["is_correct"]}
+    if q["qtype"] == "binary":
+        v = request.form.get("opt")
+        chosen = {int(v)} if v else set()
+        correct = 1 if (chosen and chosen == correct_ids) else 0
+        if correct:
+            best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM attempts WHERE user_id=? AND question_id=?",
+                              (u["id"], qid)).fetchone()["b"]
+            xp = 2 if best > 0 else 5
+        else:
+            xp = 0
+        db.execute("INSERT INTO attempts(user_id,question_id,correct,xp,chosen,created_at) VALUES(?,?,?,?,?,?)",
+                   (u["id"], qid, correct, xp, ",".join(map(str, sorted(chosen))),
+                    datetime.now(timezone.utc).isoformat()))
+        db.commit()
+        stats = user_stats(db, u["id"])
+        return render_template("quiz.html", q=q, opts=opts, topic=topic, tier=tier, paper=paper,
+                               empty=False,
+                               feedback={"correct": correct, "xp": xp, "chosen": chosen,
+                                         "correct_ids": correct_ids}, stats=stats)
     if q["qtype"] == "checkbox":
         chosen = {int(x) for x in request.form.getlist("opt")}
     else:
@@ -495,19 +557,21 @@ def _read_qform(count=None):
     errs = []
     if not form["topic"]:
         errs.append("Topic is required.")
-    if form["qtype"] not in ("mcq", "checkbox", "fib"):
-        errs.append("Type must be mcq, checkbox or fib.")
+    if form["qtype"] not in ("mcq", "checkbox", "fib", "binary"):
+        errs.append("Type must be mcq, checkbox, fib or binary.")
     if not form["stem"]:
         errs.append("The question stem is required.")
     if not form["explanation"]:
         errs.append("The Why explanation is required.")
-    if len(opts) < (1 if form["qtype"] == "fib" else 2):
+    if form["qtype"] == "binary" and len(opts) != 2:
+        errs.append("A binary question needs exactly two options.")
+    elif len(opts) < (1 if form["qtype"] == "fib" else 2):
         errs.append("At least one accepted answer is required." if form["qtype"] == "fib" else "At least two options are required.")
     elif any(not o["text"] for o in opts):
         errs.append("Every option needs text.")
     nc = sum(1 for o in opts if o["correct"])
-    if form["qtype"] == "mcq" and nc != 1:
-        errs.append("An MCQ needs exactly one correct option ticked.")
+    if form["qtype"] in ("mcq", "binary") and nc != 1:
+        errs.append("This type needs exactly one correct option ticked.")
     if form["qtype"] == "checkbox" and nc < 2:
         errs.append("A checkbox question needs at least two correct options ticked.")
     if form["qtype"] == "fib":
@@ -591,3 +655,192 @@ def bank_reset():
     seed_questions(db)
     n = db.execute("SELECT COUNT(*) c FROM questions").fetchone()["c"]
     return redirect(url_for("bank", reset=n))
+
+
+# ---------------- tier 3 (write full code, tested in the browser) ----------------
+
+MAX_T3_PARTS = 6
+
+@app.route("/t3/<int:qid>")
+@login_required
+def t3_question(qid):
+    db = get_db()
+    u = current_user()
+    q = db.execute("SELECT * FROM t3_questions WHERE id=?", (qid,)).fetchone()
+    if not q:
+        abort(404)
+    parts = db.execute("SELECT * FROM t3_parts WHERE question_id=? ORDER BY ord", (qid,)).fetchall()
+    prog = {r["ord"]: bool(r["passed"]) for r in db.execute(
+        """SELECT p.ord, MAX(a.passed) passed FROM t3_parts p
+           LEFT JOIN t3_attempts a ON a.part_id=p.id AND a.user_id=?
+           WHERE p.question_id=? GROUP BY p.ord""", (u["id"], qid)).fetchall()}
+    return render_template("t3q.html", q=q, parts=parts, prog=prog)
+
+@app.route("/t3/<int:qid>/part/<int:ord>")
+@login_required
+def t3_part(qid, ord):
+    db = get_db()
+    u = current_user()
+    q = db.execute("SELECT * FROM t3_questions WHERE id=?", (qid,)).fetchone()
+    if not q:
+        abort(404)
+    parts = db.execute("SELECT * FROM t3_parts WHERE question_id=? ORDER BY ord", (qid,)).fetchall()
+    if ord < 1 or ord > len(parts):
+        abort(404)
+    part = parts[ord - 1]
+    prev = None
+    if ord > 1:
+        row = db.execute(
+            """SELECT a.code FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+               WHERE a.user_id=? AND p.question_id=? AND p.ord=? AND a.passed=1
+               ORDER BY a.id DESC LIMIT 1""",
+            (u["id"], qid, ord - 1)).fetchone()
+        prev = row["code"] if row else None
+    if prev is None:
+        code = "\n\n".join(p["starter"] for p in parts[:ord] if p["starter"].strip())
+    else:
+        code = prev + ("\n\n" + part["starter"] if part["starter"].strip() else "")
+    passed = db.execute(
+        """SELECT 1 FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+           WHERE a.user_id=? AND p.question_id=? AND p.ord=? AND a.passed=1 LIMIT 1""",
+        (u["id"], qid, ord)).fetchone() is not None
+    attempted = db.execute(
+        """SELECT 1 FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+           WHERE a.user_id=? AND p.question_id=? AND p.ord=? LIMIT 1""",
+        (u["id"], qid, ord)).fetchone() is not None
+    return render_template("t3.html", q=q, part=part, ord=ord, nparts=len(parts),
+                           code=code, passed=passed, attempted=attempted)
+
+@app.route("/t3/<int:qid>/part/<int:ord>/attempt", methods=["POST"])
+@login_required
+def t3_record(qid, ord):
+    db = get_db()
+    u = current_user()
+    part = db.execute("SELECT * FROM t3_parts WHERE question_id=? AND ord=?", (qid, ord)).fetchone()
+    if not part:
+        abort(404)
+    data = request.get_json(force=True, silent=True) or {}
+    code = str(data.get("code", ""))[:20000]
+    passed = 1 if data.get("passed") else 0
+    output = str(data.get("output", ""))[:4000]
+    if passed:
+        best = db.execute("SELECT COALESCE(MAX(xp),0) b FROM t3_attempts WHERE user_id=? AND part_id=?",
+                          (u["id"], part["id"])).fetchone()["b"]
+        xp = 2 if best > 0 else 15
+    else:
+        xp = 0
+    db.execute("INSERT INTO t3_attempts(user_id,part_id,passed,xp,code,output,created_at) VALUES(?,?,?,?,?,?,?)",
+               (u["id"], part["id"], passed, xp, code, output, datetime.now(timezone.utc).isoformat()))
+    db.commit()
+    return {"ok": True, "passed": bool(passed), "xp": xp, "total_xp": user_stats(db, u["id"])["xp"]}
+
+# ---------------- teacher tier 3 authoring ----------------
+
+def _t3_form():
+    form = {"topic": request.form.get("topic", "").strip(),
+            "title": request.form.get("title", "").strip(),
+            "intro": request.form.get("intro", "").strip(), "parts": []}
+    ins = request.form.getlist("part_instruction")
+    st = request.form.getlist("part_starter")
+    te = request.form.getlist("part_tests")
+    mo = request.form.getlist("part_model")
+    for i in range(len(ins)):
+        if ins[i].strip() or st[i].strip() or te[i].strip() or mo[i].strip():
+            form["parts"].append({"instruction": ins[i].strip(), "starter": st[i],
+                                  "tests": te[i], "model": mo[i]})
+    errs = []
+    if not form["topic"]:
+        errs.append("Topic is required.")
+    if not form["title"]:
+        errs.append("A title is required.")
+    if not form["parts"]:
+        errs.append("Add at least one part.")
+    if len(form["parts"]) > MAX_T3_PARTS:
+        errs.append(f"At most {MAX_T3_PARTS} parts.")
+    for i, p in enumerate(form["parts"], 1):
+        if not p["instruction"]:
+            errs.append(f"Part {i}: instruction is required.")
+        if not p["tests"].strip():
+            errs.append(f"Part {i}: tests are required (Python asserts run after the student's code).")
+        if not p["model"].strip():
+            errs.append(f"Part {i}: model answer is required.")
+    return form, errs
+
+def _t3_part_stats(db, qid):
+    return db.execute(
+        """SELECT p.ord, p.instruction,
+                  COUNT(DISTINCT CASE WHEN a.passed=1 THEN a.user_id END) passed_users,
+                  COUNT(DISTINCT a.user_id) tried_users, COUNT(a.id) attempts
+           FROM t3_parts p LEFT JOIN t3_attempts a ON a.part_id=p.id
+           WHERE p.question_id=? GROUP BY p.ord ORDER BY p.ord""", (qid,)).fetchall()
+
+@app.route("/teacher/t3")
+@teacher_required
+def t3_admin():
+    db = get_db()
+    qs = [{"q": q, "stats": _t3_part_stats(db, q["id"])} for q in
+          db.execute("SELECT * FROM t3_questions ORDER BY id").fetchall()]
+    return render_template("t3admin.html", qs=qs)
+
+@app.route("/teacher/t3/new", methods=["GET", "POST"])
+@teacher_required
+def t3_new():
+    db = get_db()
+    if request.method == "POST":
+        form, errs = _t3_form()
+        if not errs:
+            cur = db.execute("INSERT INTO t3_questions(topic,title,intro,created_at) VALUES(?,?,?,?)",
+                             (form["topic"], form["title"], form["intro"],
+                              datetime.now(timezone.utc).isoformat()))
+            qid = cur.lastrowid
+            for i, p in enumerate(form["parts"], 1):
+                db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
+                           (qid, i, p["instruction"], p["starter"], p["tests"], p["model"]))
+            db.commit()
+            return redirect(url_for("t3_admin", saved=form["title"]))
+        return render_template("t3form.html", form=form, errs=errs, qid=None,
+                               nblocks=max(3, len(form["parts"]) + 1)), 400
+    form = {"topic": "", "title": "", "intro": "",
+            "parts": [{"instruction": "", "starter": "", "tests": "", "model": ""} for _ in range(3)]}
+    return render_template("t3form.html", form=form, errs=[], qid=None, nblocks=3)
+
+@app.route("/teacher/t3/<int:qid>/edit", methods=["GET", "POST"])
+@teacher_required
+def t3_edit(qid):
+    db = get_db()
+    q = db.execute("SELECT * FROM t3_questions WHERE id=?", (qid,)).fetchone()
+    if not q:
+        abort(404)
+    parts = db.execute("SELECT * FROM t3_parts WHERE question_id=? ORDER BY ord", (qid,)).fetchall()
+    natt = db.execute(
+        """SELECT COUNT(*) c FROM t3_attempts a JOIN t3_parts p ON p.id=a.part_id
+           WHERE p.question_id=?""", (qid,)).fetchone()["c"]
+    if request.method == "POST":
+        form, errs = _t3_form()
+        if natt and len(form["parts"]) < len(parts):
+            errs.append("Students already have attempts here - you can edit or add parts, but not remove any.")
+        if not errs:
+            db.execute("UPDATE t3_questions SET topic=?,title=?,intro=? WHERE id=?",
+                       (form["topic"], form["title"], form["intro"], qid))
+            if natt:
+                for i, p in enumerate(form["parts"], 1):
+                    if i <= len(parts):
+                        db.execute("UPDATE t3_parts SET instruction=?,starter=?,tests=?,model=? WHERE id=?",
+                                   (p["instruction"], p["starter"], p["tests"], p["model"], parts[i - 1]["id"]))
+                    else:
+                        db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
+                                   (qid, i, p["instruction"], p["starter"], p["tests"], p["model"]))
+            else:
+                db.execute("DELETE FROM t3_parts WHERE question_id=?", (qid,))
+                for i, p in enumerate(form["parts"], 1):
+                    db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model) VALUES(?,?,?,?,?,?)",
+                               (qid, i, p["instruction"], p["starter"], p["tests"], p["model"]))
+            db.commit()
+            return redirect(url_for("t3_admin", saved=form["title"]))
+        return render_template("t3form.html", form=form, errs=errs, qid=qid,
+                               nblocks=max(len(form["parts"]) + 1, 3), natt=natt), 400
+    form = {"topic": q["topic"], "title": q["title"], "intro": q["intro"],
+            "parts": [{"instruction": p["instruction"], "starter": p["starter"] or "",
+                       "tests": p["tests"], "model": p["model"]} for p in parts]}
+    return render_template("t3form.html", form=form, errs=[], qid=qid,
+                           nblocks=max(len(parts) + 1, 3), natt=natt)

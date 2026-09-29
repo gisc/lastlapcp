@@ -12,6 +12,7 @@
 </div>
 <div class="card center">
   <a class="btn" href="{{ url_for('bank_new') }}">Add a question</a>
+  <a class="btn" href="{{ url_for('t3_admin') }}">Tier 3 questions</a>
   <a class="btn ghost" href="{{ url_for('teacher') }}">Teacher dashboard</a>
   <form method="post" action="{{ url_for('bank_reset') }}" onsubmit="return confirm('Replace the whole bank with the bundled questions? Only possible before any student attempts exist.');">
     <button class="btn ghost" type="submit">Reset bank to bundled questions</button>

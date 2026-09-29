@@ -2520,5 +2520,575 @@
     "correct": true
    }
   ]
+ },
+ {
+  "topic": "Algorithms",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In a flowchart, a decision is shown with which symbol?",
+  "explanation": "The diamond is the standard decision symbol; rectangles are processes. The 2026 syllabus limits you to flow line, input/output, process, decision and terminator symbols. (1.1.2.)",
+  "misconception": "Drawing a rectangle with a question in it - that is a process, not a decision.",
+  "code": "",
+  "options": [
+   {
+    "text": "Diamond",
+    "correct": true
+   },
+   {
+    "text": "Rectangle",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A decision table is used to explore the actions for combinations of different input conditions.",
+  "explanation": "Decision tables map every combination of conditions to its actions, so no case is missed. (1.1.4.)",
+  "misconception": "Confusing decision tables with trace tables: a trace table tracks variable values through one run, not condition combinations.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Binary search requires the data to be sorted first.",
+  "explanation": "Binary search halves the range each step by comparing with the middle item, which only works on ordered data. (1.2.3/1.2.4.)",
+  "misconception": "Thinking searching 'any' list works - on unsorted data you must use linear search.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Algorithms",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "The time complexity of linear search on n items is O(n).",
+  "explanation": "Each item may need one check, so work grows in proportion to n. Binary search is O(log n). (1.2.5.)",
+  "misconception": "Mixing up linear search with binary search: halving gives O(log n), not O(n).",
+  "code": "",
+  "options": [
+   {
+    "text": "O(n)",
+    "correct": true
+   },
+   {
+    "text": "O(log n)",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A stack removes items in LIFO order.",
+  "explanation": "Last in, first out: push and pop happen at the same end. A queue is FIFO. (1.3.3.)",
+  "misconception": "Swapping stack and queue behaviour - the queue removes the OLDEST item.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In a circular queue, when the rear pointer passes the last array slot it wraps back to index 0.",
+  "explanation": "Wrap-around reuses freed slots at the front, which is the whole point of making the queue circular. (1.3.3.)",
+  "misconception": "Thinking the queue grows or shifts all items when full - circular arrays do neither.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Software engineering",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In Python, indentation is optional style - it never affects what the program does.",
+  "explanation": "Indentation defines code blocks in Python; wrong indentation changes or breaks the program. (2.1.1.)",
+  "misconception": "Coming from pseudocode where layout is cosmetic: in Python it is syntax.",
+  "code": "",
+  "options": [
+   {
+    "text": "False",
+    "correct": true
+   },
+   {
+    "text": "True",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Software engineering",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "The main reason for meaningful identifier names is to make code easier to read and maintain.",
+  "explanation": "Naming conventions are for humans: they cut the cost of understanding and fixing code later. (2.1.2.)",
+  "misconception": "Believing long names slow the program down - identifier length has no runtime cost.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Programming basics",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In Python, the string \"True\" and the Boolean True are the same value.",
+  "explanation": "True is a Boolean literal; \"True\" is a string of four characters. Comparisons and conditions treat them differently. (2.2.1.)",
+  "misconception": "Losing marks by printing or comparing the wrong type.",
+  "code": "",
+  "options": [
+   {
+    "text": "False",
+    "correct": true
+   },
+   {
+    "text": "True",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Recursion",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Recursion means a function calls itself.",
+  "explanation": "A recursive function solves a problem in terms of a smaller version of itself, with a base case to stop. (2.2.5.)",
+  "misconception": "Thinking any loop is recursion - iteration repeats; recursion self-calls.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Programming basics",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Opening a text file with mode \"a\" appends new data to the end of the file.",
+  "explanation": "\"a\" is append mode; \"w\" overwrites, \"r\" reads. Serial and sequential file handling is a syllabus skill. (2.3.4.)",
+  "misconception": "Confusing \"a\" with \"w\": write mode destroys the existing contents.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Data structures",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Each node of a linear linked list stores data and a pointer to the next node.",
+  "explanation": "The pointer chain is what links the nodes; there is no array index. (1.3.5 / 2.3.3.)",
+  "misconception": "Thinking nodes are found by index like array items - you must follow the pointers from the head.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Testing",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Checking that an age input is between 0 and 120 is validation, not verification.",
+  "explanation": "Validation checks data is reasonable and allowable; verification checks it was transcribed correctly (e.g. double entry). (2.4.1.)",
+  "misconception": "Using the two words interchangeably - the exam marks the distinction.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Testing",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Extreme test data means data at the boundaries of the valid range.",
+  "explanation": "Normal, abnormal and extreme data test the middle, the invalid, and the edges, where off-by-one bugs hide. (2.4.4.)",
+  "misconception": "Thinking extreme means invalid - extreme data is VALID data at the edge; abnormal is the invalid kind.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "OOP",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "An object is an instance of a class.",
+  "explanation": "The class is the blueprint; objects are the individual things built from it. (2.5.1.)",
+  "misconception": "Reversing the pair - a class is not 'an example of an object'.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "OOP",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Inheritance promotes software reuse by letting a subclass reuse and extend a superclass.",
+  "explanation": "The subclass gets the superclass's attributes and methods, then adds or overrides. (2.5.3.)",
+  "misconception": "Thinking inheritance copies code at runtime faster - the point is reuse and structure, not speed.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Number representation",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "One hexadecimal digit represents exactly 4 bits.",
+  "explanation": "Hex digits run 0-F (16 values), and 16 = 2^4, so each digit is one nibble. (3.1.1.)",
+  "misconception": "Confusing hex with bytes: 8 bits = 2 hex digits.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Number representation",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Denary 10 in binary is 1010.",
+  "explanation": "1010 = 8 + 2 = 10. (3.1.2.)",
+  "misconception": "Miscounting place values - write out 8 4 2 1 and tick.",
+  "code": "",
+  "options": [
+   {
+    "text": "1010",
+    "correct": true
+   },
+   {
+    "text": "1100",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Number representation",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Standard ASCII uses 7 bits per character.",
+  "explanation": "7 bits give 128 characters - English letters, digits and control codes. Unicode extends far beyond. (3.2.2.)",
+  "misconception": "Saying 8 bits - that is extended ASCII; the standard code is 7-bit.",
+  "code": "",
+  "options": [
+   {
+    "text": "7",
+    "correct": true
+   },
+   {
+    "text": "16",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Number representation",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Unicode was created mainly to represent the characters of many different languages.",
+  "explanation": "ASCII covers only English; Unicode gives every writing system a code point. (3.2.1.)",
+  "misconception": "Thinking Unicode is a compression scheme - it is an encoding, not compression.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Databases",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A primary key uniquely identifies each record in a table.",
+  "explanation": "That is its defining job; a foreign key instead links one table to another's primary key. (3.3.2.)",
+  "misconception": "Confusing primary and foreign keys: primary identifies, foreign refers.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Databases",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Normalising a database to third normal form (3NF) aims to reduce data redundancy.",
+  "explanation": "Each normal form removes a class of duplication, ending with non-key attributes depending only on the key. (3.3.3/3.3.4.)",
+  "misconception": "Thinking normalisation is about speed - it is about integrity; it can even slow queries.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Ethics",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In Singapore, the PDPA governs how organisations collect, use and disclose personal data.",
+  "explanation": "The Personal Data Protection Act sets those duties for private-sector organisations. (3.3.13.)",
+  "misconception": "Thinking PDPA is about software piracy - that is copyright law.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Ethics",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A Computing professional's code of ethics deals with professional conduct, such as honesty and respecting privacy.",
+  "explanation": "Codes of conduct (e.g. from professional bodies) bind practitioners to act responsibly. (3.4.1.)",
+  "misconception": "Narrowing ethics to exam rules - it is about real professional behaviour.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Networks and web",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A LAN typically covers a small area such as one home or building.",
+  "explanation": "LANs are local; WANs span cities, countries or more. (4.1.1.)",
+  "misconception": "Mixing LAN and WAN up in diagram questions - check the geographic scale.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Networks and web",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "DNS translates domain names into IP addresses.",
+  "explanation": "The domain name server is the internet's phone book: names in, IP addresses out. (4.1.2.)",
+  "misconception": "Saying DNS maps IPs to MAC addresses - that is ARP's job, not DNS.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Web applications",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A web application runs inside a browser; a native application is installed for a specific platform.",
+  "explanation": "That contrast is the core of 4.2.1 - web apps need no installation, native apps use platform tools directly.",
+  "misconception": "Calling any phone app a 'web app' because it uses the internet - the platform is what matters.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Networks and web",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "In client-server architecture, the server responds to requests from clients.",
+  "explanation": "Clients initiate; servers wait and respond. An iterative server handles one request at a time. (4.1.5/4.1.6.)",
+  "misconception": "Reversing the roles - a server does not push work to clients unprompted.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Networks and web",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "A firewall filters network traffic according to a set of rules.",
+  "explanation": "Filtering is the firewall's core function, sitting between a LAN and the internet. (4.3.2.)",
+  "misconception": "Crediting the firewall with encryption - it filters; it does not encrypt your files.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
+ },
+ {
+  "topic": "Networks and web",
+  "paper": "P1",
+  "qtype": "binary",
+  "stem": "Encryption protects the confidentiality of data while it travels across a network.",
+  "explanation": "Encrypted traffic is unreadable to eavesdroppers even if intercepted. (4.3.3.)",
+  "misconception": "Thinking encryption speeds transmission up - it adds work; its purpose is security.",
+  "code": "",
+  "options": [
+   {
+    "text": "True",
+    "correct": true
+   },
+   {
+    "text": "False",
+    "correct": false
+   }
+  ]
  }
 ]

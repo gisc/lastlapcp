@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ q['title'] }} part {{ ord }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">P2</span>
+    <span class="tag">Part {{ ord }} of {{ nparts }}</span></div>
+  <div class="stem">{{ part['instruction'] }}</div>
+  <textarea id="code" class="field code-input" rows="16" autocomplete="off" autocapitalize="off" spellcheck="false">{{ code }}</textarea>
+  <button class="btn big" id="run" type="button">Run tests</button>
+  <div id="status" class="verdict" style="display:none"></div>
+  <pre id="output" class="codeblock" style="display:none"></pre>
+  <div id="after" style="display:{{ 'block' if passed else 'none' }}">
+    {% if ord < nparts %}
+    <a class="btn big" href="{{ url_for('t3_part', qid=q['id'], ord=ord+1) }}">Next part</a>
+    {% else %}
+    <a class="btn big" href="{{ url_for('t3_question', qid=q['id']) }}">Back to question</a>
+    {% endif %}
+  </div>
+  {% if passed %}<div class="verdict good">You have already passed this part.</div>{% endif %}
+  <div id="modelwrap" {% if not attempted %}style="display:none"{% endif %}>
+    <button class="btn ghost" id="showmodel" type="button">Show model answer</button>
+    <pre id="model" class="codeblock" style="display:none">{{ part['model'] }}</pre>
+  </div>
+  <a class="btn ghost" href="{{ url_for('t3_question', qid=q['id']) }}">All parts</a>
+</div>
+<script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
+<script>
+const TESTS = {{ part['tests']|tojson }};
+const ATTEMPT_URL = {{ url_for('t3_record', qid=q['id'], ord=ord)|tojson }};
+let pyP = null;
+const code = document.getElementById('code');
+code.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = code.selectionStart;
+    code.value = code.value.slice(0, s) + '    ' + code.value.slice(code.selectionEnd);
+    code.selectionStart = code.selectionEnd = s + 4;
+  }
+});
+function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+async function getPy() {
+  if (!pyP) pyP = loadPyodide({ indexURL: "{{ url_for('static', filename='pyodide') }}/" });
+  return pyP;
+}
+document.getElementById('run').addEventListener('click', async () => {
+  const st = document.getElementById('status'), out = document.getElementById('output');
+  st.className = 'verdict'; show('status', true); show('output', false);
+  st.textContent = 'Loading Python runtime (first load downloads about 13 MB)...';
+  let passed = false, text = '';
+  try {
+    const py = await getPy();
+    st.textContent = 'Running tests...';
+    const lines = [];
+    py.setStdout({ batched: s => lines.push(s) });
+    py.setStderr({ batched: s => lines.push(s) });
+    try {
+      await py.runPythonAsync(code.value + '\n\n' + TESTS);
+      passed = true;
+    } catch (err) {
+      const raw = (err && err.message) || String(err);
+      const keep = raw.split('\n').filter(l => {
+        const t = l.trim();
+        if (!t) return false;
+        if (l.includes('python312.zip') || l.includes('_pyodide')) return false;
+        if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
+        return true;
+      });
+      text = keep.slice(-6).join('\n');
+    }
+    if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
+  } catch (err) {
+    text = 'Could not start the Python runtime: ' + ((err && err.message) || err);
+  }
+  out.textContent = passed ? 'All tests passed.' : text;
+  show('output', true);
+  st.className = 'verdict ' + (passed ? 'good' : 'bad');
+  st.textContent = passed ? 'All tests passed!' : 'Not passing yet - read the error below.';
+  show('modelwrap', true);
+  let xp = 0, saved = true;
+  try {
+    const r = await fetch(ATTEMPT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code.value, passed, output: out.textContent }) });
+    const j = await r.json();
+    xp = j.xp || 0;
+  } catch (e) { saved = false; }
+  if (passed) {
+    st.textContent = xp ? 'All tests passed! +' + xp + ' XP' : 'All tests passed!';
+    show('after', true);
+  }
+  if (!saved) st.textContent += ' (Result not saved - check your connection.)';
+});
+document.getElementById('showmodel').addEventListener('click', () => {
+  const m = document.getElementById('model');
+  const on = m.style.display === 'none';
+  show('model', on);
+  document.getElementById('showmodel').textContent = on ? 'Hide model answer' : 'Show model answer';
+});
+</script>
+{% endblock %}

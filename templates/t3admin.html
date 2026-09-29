@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - Tier 3 admin{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Tier 3 questions</h1>
+  <p class="muted">Full-code practical questions, answered part by part in the browser.</p>
+  {% if request.args.get('saved') %}<div class="verdict good">Saved "{{ request.args.get('saved') }}".</div>{% endif %}
+</div>
+<div class="card center"><a class="btn" href="{{ url_for('t3_new') }}">New tier 3 question</a>
+  <a class="btn ghost" href="{{ url_for('bank') }}">Question bank</a></div>
+{% for it in qs %}
+<div class="card">
+  <div class="qmeta"><span class="tag">{{ it.q['topic'] }}</span><span class="tag">#{{ it.q['id'] }}</span>
+    <span class="tag">{{ it.stats|length }} parts</span></div>
+  <h3 class="sub">{{ it.q['title'] }}</h3>
+  {% for s in it.stats %}
+  <div class="mrow">
+    <div class="mlabel">Part {{ s['ord'] }} <span class="muted">{{ s['passed_users'] }} passed / {{ s['tried_users'] }} tried ({{ s['attempts'] }} attempts)</span></div>
+  </div>
+  {% endfor %}
+  <a class="btn ghost" href="{{ url_for('t3_edit', qid=it.q['id']) }}">Edit</a>
+</div>
+{% else %}
+<div class="card"><p class="muted">No tier 3 questions yet.</p></div>
+{% endfor %}
+{% endblock %}

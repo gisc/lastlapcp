@@ -1,0 +1,27 @@
+[
+ {
+  "topic": "Data structures",
+  "title": "Implement a Stack class",
+  "intro": "A stack stores items in a list with LIFO (last in, first out) behaviour. Build the class part by part: constructor, push, then pop. Run the tests after each part to check your code. (2025 P2 data structures.)",
+  "parts": [
+   {
+    "instruction": "Write the constructor __init__ that stores the items in a list attribute self._items, and is_empty() which returns True when the stack holds nothing.",
+    "starter": "class Stack:\n    def __init__(self):\n        # store the items in a list called self._items\n        pass\n\n    def is_empty(self):\n        # return True when the stack has no items\n        pass",
+    "tests": "s = Stack()\nassert s.is_empty() == True, 'a new stack should be empty'\ns._items.append(1)\nassert s.is_empty() == False, 'a stack with an item is not empty'",
+    "model": "class Stack:\n    def __init__(self):\n        self._items = []\n\n    def is_empty(self):\n        return len(self._items) == 0"
+   },
+   {
+    "instruction": "Add push(item), which puts item on top of the stack.",
+    "starter": "    def push(self, item):\n        # add item to the top of the stack\n        pass",
+    "tests": "s = Stack()\ns.push(7)\ns.push(9)\nassert s.is_empty() == False, 'push should add an item'\nassert s._items == [7, 9], 'push should put the item on top (end of the list)'",
+    "model": "    def push(self, item):\n        self._items.append(item)"
+   },
+   {
+    "instruction": "Add pop(), which removes and returns the top item. If the stack is empty, return None instead of crashing.",
+    "starter": "    def pop(self):\n        # remove and return the top item; return None if the stack is empty\n        pass",
+    "tests": "s = Stack()\nassert s.pop() is None, 'pop on an empty stack should return None'\ns.push(4)\ns.push(6)\nassert s.pop() == 6, 'pop should return the top item'\nassert s.pop() == 4, 'pop returns items in LIFO order'\nassert s.is_empty() == True, 'the stack should be empty after popping everything'",
+    "model": "    def pop(self):\n        if self.is_empty():\n            return None\n        return self._items.pop()"
+   }
+  ]
+ }
+]

@@ -14,6 +14,7 @@
     <label class="flabel">Type</label>
     <label class="opt"><input type="radio" name="qtype" value="mcq" {{ 'checked' if form.qtype == 'mcq' }}><span>MCQ - pick ONE</span></label>
     <label class="opt"><input type="radio" name="qtype" value="checkbox" {{ 'checked' if form.qtype == 'checkbox' }}><span>Checkbox - pick ALL that apply</span></label>
+    <label class="opt"><input type="radio" name="qtype" value="binary" {{ 'checked' if form.qtype == 'binary' }}><span>Binary - tier 0, exactly TWO options, pick ONE</span></label>
     <label class="opt"><input type="radio" name="qtype" value="fib" {{ 'checked' if form.qtype == 'fib' }}><span>Fill in the blank - student types the answer</span></label>
     <label class="flabel">Question stem</label>
     <textarea class="field" name="stem" rows="3" required>{{ form.stem }}</textarea>

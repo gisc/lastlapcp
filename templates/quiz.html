@@ -8,7 +8,7 @@
 </div>
 {% else %}
 <div class="card">
-  <div class="qmeta"><span class="tag tier">{{ 'Tier 2' if q['qtype']=='fib' else 'Tier 1' }}</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
+  <div class="qmeta"><span class="tag tier">{{ 'Tier 2' if q['qtype']=='fib' else ('Tier 0' if q['qtype']=='binary' else 'Tier 1') }}</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ q['paper'] }}</span>
     <span class="tag">{{ 'Pick ALL that apply' if q['qtype']=='checkbox' else ('Type your answer' if q['qtype']=='fib' else 'Pick ONE') }}</span></div>
   <div class="stem">{{ q['stem'] }}</div>
   {% if q['code'] %}<pre class="codeblock">{{ q['code'] }}</pre>{% endif %}

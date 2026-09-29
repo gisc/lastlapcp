@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ q['title'] }}{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">P2</span></div>
+  <h1>{{ q['title'] }}</h1>
+  <p>{{ q['intro'] }}</p>
+</div>
+{% for p in parts %}
+<div class="card">
+  <h3 class="sub">Part {{ p['ord'] }} of {{ parts|length }}{% if prog.get(p['ord']) %} <span class="tag tier">Passed</span>{% endif %}</h3>
+  <p>{{ p['instruction'] }}</p>
+  <a class="btn big" href="{{ url_for('t3_part', qid=q['id'], ord=p['ord']) }}">
+    {% if prog.get(p['ord']) %}Revise part {{ p['ord'] }}{% elif prog.get(p['ord'] - 1) or p['ord'] == 1 %}Start part {{ p['ord'] }}{% else %}Jump to part {{ p['ord'] }}{% endif %}
+  </a>
+</div>
+{% endfor %}
+<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
+{% endblock %}
