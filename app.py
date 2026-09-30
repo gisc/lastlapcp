@@ -13,6 +13,7 @@ from functools import wraps
 from flask import (Flask, abort, g, redirect, render_template, request, send_from_directory,
                    session, url_for)
 from authlib.integrations.flask_client import OAuth
+import papers_data
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 SGT = timezone(timedelta(hours=8))
@@ -676,6 +677,10 @@ def teacher():
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
+    tmap = []
+    for year, _slug, p1, p2 in reversed(papers_data.YEARS):
+        tmap.append({"year": year, "paper": "P2", "cells": {q: ts for q, ts in p2}})
+        tmap.append({"year": year, "paper": "P1", "cells": {q: ts for q, ts in p1}})
     fb = [{"id": r["id"], "useful": bool(r["useful"]),
            "name": r["uname"] or r["uemail"], "qlabel": r["qlabel"], "qurl": r["qurl"],
            "message": r["message"],
@@ -693,13 +698,13 @@ def teacher():
             rows = [row_for(r["name"], r.get("email") or r["norm"], r["norm"]) for r in members]
             rows.sort(key=lambda r: (not r["signed_in"], -(r["stats"]["xp"] if r["signed_in"] else 0)))
             groups.append({"label": label, "rows": rows})
-        return render_template("teacher.html", groups=groups, topics=topics, roster=True, fb=fb)
+        return render_template("teacher.html", groups=groups, topics=topics, roster=True, fb=fb, tmap=tmap)
 
     rows = [row_for(u["name"] or u["email"], u["email"], _norm_email(u["email"])) for u in users.values()]
     rows = [r for r in rows if r["signed_in"]]
     rows.sort(key=lambda r: -r["stats"]["xp"])
     return render_template("teacher.html", groups=[{"label": "Signed-in students", "rows": rows}],
-                           topics=topics, roster=False, fb=fb)
+                           topics=topics, roster=False, fb=fb, tmap=tmap)
 
 @app.route("/teacher/admin/roster", methods=["GET", "POST"])
 @teacher_required

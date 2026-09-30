@@ -84,3 +84,12 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .bitem.borange { border-left-color: #f5a623; }
 .bitem.bgrey { border-left-color: #5a6b8c; color: #b9c6e2; }
 .bfeedback { font-size: 0.88rem; margin-top: 4px; opacity: 0.92; }
+.tmapwrap { overflow-x: auto; }
+.tmap { border-collapse: collapse; width: 100%; font-size: .82rem; }
+.tmap th, .tmap td { border: 1px solid #dde4ef; padding: 5px 7px; vertical-align: top; text-align: left; }
+.tmap th { background: #f2f5fb; white-space: nowrap; }
+.tmap .ylab { font-weight: 700; white-space: nowrap; }
+.tmap tr.p1 td { background: #eef4ff; }
+.tmap tr.p2 td { background: #fff7e0; }
+.tmap .chip { display: inline-block; background: #ffffff; border: 1px solid #c8d4e8; border-radius: 8px;
+  padding: 1px 6px; margin: 1px 2px 1px 0; font-size: .75rem; }

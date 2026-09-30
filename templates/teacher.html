@@ -76,4 +76,21 @@
 </div>
 {% endfor %}
 {% endfor %}
+<div class="card">
+  <h2>Past-paper topic map</h2>
+  <p class="muted small">9569 papers 2020-2025 + specimen. P1 rows in blue (theory), P2 rows in gold (practical). Hover a chip for the subtopics.</p>
+  <div class="tmapwrap">
+  <table class="tmap">
+    <tr><th></th>{% for i in range(1, 9) %}<th>Q{{ i }}</th>{% endfor %}</tr>
+    {% for r in tmap %}
+    <tr class="{{ 'p1' if r.paper == 'P1' else 'p2' }}">
+      <td class="ylab">{{ r.year }} {{ r.paper }}</td>
+      {% for i in range(1, 9) %}
+      <td>{% for t in r.cells.get(i|string, []) %}<span class="chip" title="{{ t[1] }}">{{ t[0] }}</span>{% endfor %}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
 {% endblock %}
