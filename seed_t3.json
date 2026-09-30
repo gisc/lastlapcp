@@ -248,7 +248,7 @@
     "instruction": "Write everything you know about a stack, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- A stack is LIFO - last in, first out.\n- Push adds an item to the top of the stack.\n- Pop removes and returns the item at the top.\n- Peek reads the top item without removing it.\n- A top pointer (index) tracks the top of the stack.\n- Used for function calls, undo features and backtracking.",
+    "model": "- A stack is LIFO - last in, first out.\n- Push adds an item to the top of the stack.\n- Pop removes and returns the item at the top.\n- Peek reads the top item without removing it.\n- A top pointer (index) tracks the top of the stack.\n- Used for function calls, undo features and backtracking.\n- Popping an empty stack is underflow (and pushing to a full stack is overflow) - both must be checked.",
     "rubric": {
      "points": [
       {
@@ -347,11 +347,38 @@
          "backtrack",
          "expression",
          "recursion",
-         "browser history"
+         "browser history",
+         "page navigation",
+         "menu"
         ]
        ],
        "aspects": [
         "a real use"
+       ]
+      },
+      {
+       "point": "Underflow and overflow: popping an empty stack (or pushing to a full one) must be guarded.",
+       "req": [
+        [
+         "underflow",
+         "overflow",
+         "empty",
+         "full"
+        ],
+        [
+         "pop",
+         "push",
+         "check",
+         "guard",
+         "error",
+         "handle",
+         "test",
+         "detect"
+        ]
+       ],
+       "aspects": [
+        "underflow/overflow",
+        "guarding against it"
        ]
       }
      ],
@@ -408,7 +435,7 @@
     "instruction": "Write everything you know about a circular queue, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- A queue is FIFO - first in, first out.\n- Enqueue adds an item at the rear.\n- Dequeue removes an item from the front.\n- Front and rear pointers track the two ends.\n- When the rear passes the last slot it wraps around to index 0 (modulo).\n- The circular design reuses freed slots instead of shifting items.\n- is_empty and is_full checks guard against underflow and overflow.",
+    "model": "- A queue is FIFO - first in, first out.\n- Enqueue adds an item at the rear.\n- Dequeue removes an item from the front.\n- Front and rear pointers track the two ends.\n- When the rear passes the last slot it wraps around to index 0 (modulo).\n- The circular design reuses freed slots instead of shifting items.\n- is_empty and is_full checks guard against underflow and overflow.\n- The next index is computed with modulo arithmetic: (index + 1) mod size.",
     "rubric": {
      "points": [
       {
@@ -500,7 +527,11 @@
          "loops back",
          "index 0",
          "start of the array",
-         "first slot"
+         "first slot",
+         "rolls over",
+         "back to the start",
+         "start again",
+         "resets"
         ]
        ],
        "aspects": [
@@ -542,6 +573,28 @@
        "aspects": [
         "empty check",
         "full check"
+       ]
+      },
+      {
+       "point": "The next index is computed with modulo arithmetic: (index + 1) mod size.",
+       "req": [
+        [
+         "mod",
+         "modulo",
+         "modulus",
+         "remainder"
+        ],
+        [
+         "index",
+         "slot",
+         "position",
+         "next",
+         "wrap"
+        ]
+       ],
+       "aspects": [
+        "modulo arithmetic",
+        "for the next index"
        ]
       }
      ],
@@ -587,7 +640,7 @@
     "instruction": "Write everything you know about a linked list, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- Each node stores data and a pointer to the next node.\n- A head pointer points to the first node; the last node points to NULL.\n- Dynamic size: nodes are added and removed as needed, no fixed capacity.\n- Insert and delete just relink pointers - no shifting of other items.\n- Access is sequential: reaching item n means following pointers from the head, so O(n).",
+    "model": "- Each node stores data and a pointer (an address) to the next node.\n- A head pointer points to the first node.\n- The last node's pointer is NULL, marking the end of the list.\n- Dynamic size: nodes are added and removed as needed, with no fixed capacity.\n- Nodes are not stored contiguously in memory - each node can sit anywhere.\n- Inserting or deleting a node just relinks pointers - no shifting of other items.\n- Insertion (and deletion) at the head is O(1) - constant time.\n- Access and search are sequential: reaching item n means following pointers from the head, so O(n).\n- There is no random access by index, unlike an array.",
     "rubric": {
      "points": [
       {
@@ -602,33 +655,61 @@
         ],
         [
          "pointer",
+         "point",
          "link",
          "reference",
-         "next"
+         "next",
+         "address"
         ]
        ],
        "aspects": [
-        "nodes",
+        "a node",
         "data",
-        "next pointer"
+        "a pointer to the next node"
        ]
       },
       {
-       "point": "A head pointer points to the first node; the last node points to NULL.",
+       "point": "A head pointer points to the first node.",
        "req": [
         [
          "head",
-         "first node",
-         "start of the list"
+         "start of the list",
+         "front of the list"
         ],
         [
          "point",
          "reference",
-         "link"
+         "link",
+         "first node",
+         "first item",
+         "first element"
         ]
        ],
        "aspects": [
-        "the head pointer"
+        "the head pointer",
+        "pointing at the first node"
+       ]
+      },
+      {
+       "point": "The last node's pointer is NULL, marking the end of the list.",
+       "req": [
+        [
+         "last",
+         "end",
+         "tail"
+        ],
+        [
+         "null",
+         "none",
+         "nothing",
+         "no next",
+         "terminates",
+         "end of the list"
+        ]
+       ],
+       "aspects": [
+        "the last node",
+        "the NULL pointer"
        ]
       },
       {
@@ -637,60 +718,163 @@
         [
          "dynamic",
          "no fixed",
+         "not fixed",
          "grow",
+         "grows",
          "shrink",
          "as needed",
-         "not fixed",
-         "any size"
+         "any size",
+         "allocation",
+         "allocated",
+         "on demand",
+         "flexible"
         ]
        ],
        "aspects": [
-        "dynamic size"
+        "dynamic sizing"
        ]
       },
       {
-       "point": "Insert and delete relink pointers - no shifting of other items.",
+       "point": "Nodes are not stored contiguously in memory - each node can sit anywhere.",
+       "req": [
+        {
+         "any": [
+          "non contiguous",
+          "noncontiguous",
+          "anywhere in memory",
+          "scattered",
+          "different locations",
+          "separate locations"
+         ],
+         "negated_any": [
+          "contiguous",
+          "consecutive",
+          "adjacent",
+          "next to each other"
+         ]
+        },
+        [
+         "memory",
+         "ram",
+         "store",
+         "storage",
+         "location",
+         "heap",
+         "addresses"
+        ]
+       ],
+       "aspects": [
+        "non-contiguous storage",
+        "memory"
+       ]
+      },
+      {
+       "point": "Inserting or deleting a node just relinks pointers - no shifting of other items.",
        "req": [
         [
          "insert",
+         "insertion",
          "delete",
+         "deleting",
+         "deletion",
          "remove",
-         "add"
+         "removing",
+         "add",
+         "adding"
         ],
         [
          "pointer",
          "link",
          "relink",
          "reference",
+         "adjust",
          "shift",
-         "moving"
+         "moving",
+         "move",
+         "rewire",
+         "redirect"
         ]
        ],
        "aspects": [
         "insert/delete",
-        "pointer relinking (no shifting)"
+        "relinking pointers (no shifting)"
        ]
       },
       {
-       "point": "Access is sequential: reaching item n means following pointers from the head, so O(n).",
+       "point": "Insertion (and deletion) at the head is O(1) - constant time.",
+       "req": [
+        [
+         "o 1",
+         "constant time",
+         "constant"
+        ],
+        [
+         "head",
+         "front",
+         "start",
+         "insert",
+         "add",
+         "delete",
+         "remove",
+         "known position"
+        ]
+       ],
+       "aspects": [
+        "O(1)",
+        "at the head or a known position"
+       ]
+      },
+      {
+       "point": "Access and search are sequential: reaching item n means following pointers from the head, so O(n).",
        "req": [
         [
          "sequential",
          "traverse",
+         "traversal",
          "walk",
          "one by one",
-         "follow"
+         "follow",
+         "search",
+         "access",
+         "reach",
+         "find"
         ],
         [
          "head",
          "start",
          "first",
-         "pointer"
+         "pointer",
+         "o n",
+         "linear",
+         "from the beginning",
+         "in turn"
         ]
        ],
        "aspects": [
-        "sequential access",
-        "traversing from the head"
+        "sequential access/search",
+        "following pointers from the head (O(n))"
+       ]
+      },
+      {
+       "point": "There is no random access by index, unlike an array.",
+       "req": [
+        {
+         "any": [
+          "unlike an array",
+          "unlike arrays"
+         ],
+         "negated_any": [
+          "random access",
+          "direct access",
+          "randomly",
+          "by index",
+          "indexed",
+          "an index"
+         ]
+        }
+       ],
+       "aspects": [
+        "no random access"
        ]
       }
      ],
@@ -700,18 +884,18 @@
         [
          "contiguous",
          "consecutive",
-         "array-based",
+         "array based",
          "an array"
         ],
         [
          "memory",
-         "stored",
          "store",
+         "storage",
          "location",
          "layout"
         ]
        ],
-       "feedback": "Linked list nodes are NOT stored contiguously - each node sits anywhere in memory, chained by pointers."
+       "feedback": "Linked list nodes are NOT stored contiguously - each node sits anywhere in memory with a pointer to the next. Contiguous storage describes an array."
       },
       {
        "pat": [
@@ -719,19 +903,39 @@
          "random access",
          "direct access",
          "by index",
-         "o 1",
-         "constant time"
+         "indexed",
+         "an index"
         ],
         [
          "access",
          "reach",
          "get",
-         "find",
+         "retrieve",
          "element",
-         "item"
+         "item",
+         "node"
         ]
        ],
-       "feedback": "There is no O(1) random access in a linked list: reaching item n means following n pointers from the head."
+       "feedback": "There is no O(1) random access in a linked list: reaching item n means following n pointers from the head, so O(n)."
+      },
+      {
+       "pat": [
+        [
+         "shift",
+         "shifting",
+         "shuffle",
+         "bump"
+        ],
+        [
+         "insert",
+         "delete",
+         "add",
+         "remove",
+         "node",
+         "element"
+        ]
+       ],
+       "feedback": "Inserting or deleting in a linked list does NOT shift other nodes - only pointers are relinked. Shifting is what an array needs."
       }
      ]
     }
@@ -748,7 +952,7 @@
     "instruction": "Write everything you know about a binary search tree (BST), in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- Each node has at most two children: left and right.\n- Everything in the left subtree is smaller than the node.\n- Everything in the right subtree is larger than the node.\n- Search and insert compare with each node and go left or right until found or a leaf.\n- An inorder traversal visits the values in sorted ascending order.\n- O(log n) when the tree is balanced, but O(n) if it is skewed.",
+    "model": "- Each node has at most two children: left and right.\n- Everything in the left subtree is smaller than the node.\n- Everything in the right subtree is larger than the node.\n- Search and insert compare with each node and go left or right until found or a leaf.\n- An inorder traversal visits the values in sorted ascending order.\n- O(log n) when the tree is balanced, but O(n) if it is skewed.\n- Duplicate values are usually rejected (or consistently sent to one side).\n- Deleting a node with two children replaces it with its inorder successor.",
     "rubric": {
      "points": [
       {
@@ -862,6 +1066,52 @@
         "O(log n)",
         "the balanced condition"
        ]
+      },
+      {
+       "point": "Duplicate values are usually rejected, or consistently sent to one side.",
+       "req": [
+        [
+         "duplicate",
+         "duplicates",
+         "equal",
+         "same value"
+        ],
+        [
+         "reject",
+         "ignore",
+         "right",
+         "left",
+         "count",
+         "not allowed",
+         "handled",
+         "discard",
+         "one side"
+        ]
+       ],
+       "aspects": [
+        "duplicates",
+        "how they are handled"
+       ]
+      },
+      {
+       "point": "Deleting a node: a leaf is removed, a node with one child is replaced by it, and a node with two children is replaced by its inorder successor.",
+       "req": [
+        [
+         "delet",
+         "remov"
+        ],
+        [
+         "leaf",
+         "child",
+         "children",
+         "successor",
+         "predecessor"
+        ]
+       ],
+       "aspects": [
+        "deletion",
+        "the child / inorder-successor handling"
+       ]
       }
      ],
      "misconceptions": [
@@ -927,7 +1177,7 @@
     "instruction": "Write everything you know about a hash table, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- A hash function maps each key to an index (slot) in the array.\n- Lookup is O(1) on average: go straight to the hashed slot.\n- A collision is when two keys hash to the same slot.\n- Linear probing handles collisions by trying the next slots until a free one.\n- Search follows the same probe sequence as insertion.\n- Performance drops as the table fills up (load factor and clustering).",
+    "model": "- A hash function maps each key to an index (slot) in the array.\n- Lookup is O(1) on average: go straight to the hashed slot.\n- A collision is when two keys hash to the same slot.\n- Linear probing handles collisions by trying the next slots until a free one.\n- Search follows the same probe sequence as insertion.\n- Performance drops as the table fills up (load factor and clustering).\n- An alternative to probing is chaining: each slot holds a list of the colliding keys.",
     "rubric": {
      "points": [
       {
@@ -958,7 +1208,10 @@
          "straight",
          "direct",
          "immediate",
-         "average"
+         "average",
+         "fast",
+         "quick",
+         "immediate access"
         ]
        ],
        "aspects": [
@@ -1033,6 +1286,22 @@
        ],
        "aspects": [
         "load factor / clustering"
+       ]
+      },
+      {
+       "point": "Chaining is an alternative: each slot holds a list of the colliding keys.",
+       "req": [
+        [
+         "chain",
+         "bucket",
+         "list at each slot",
+         "linked list",
+         "overflow list",
+         "separate list"
+        ]
+       ],
+       "aspects": [
+        "chaining"
        ]
       }
      ],
@@ -1109,7 +1378,11 @@
          "in order",
          "start",
          "beginning",
-         "first item"
+         "first item",
+         "sequentially",
+         "sequential",
+         "left to right",
+         "from the first"
         ],
         [
          "check",
@@ -1233,7 +1506,7 @@
     "instruction": "Write everything you know about binary search, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- The data must be sorted first.\n- Compares the middle item with the target.\n- Discards half of the remaining range each step, moving the low and high pointers.\n- O(log n): about 10 comparisons for 1000 items.\n- Returns the index, or -1 when the range is empty (target missing).",
+    "model": "- The data must be sorted first.\n- Compares the middle item with the target.\n- Discards half of the remaining range each step, moving the low and high pointers.\n- O(log n): about 10 comparisons for 1000 items.\n- Returns the index, or -1 when the range is empty (target missing).\n- If the target is smaller than the middle item, search the left half; if larger, the right half.",
     "rubric": {
      "points": [
       {
@@ -1282,7 +1555,11 @@
          "high",
          "upper",
          "lower",
-         "range"
+         "range",
+         "left half",
+         "right half",
+         "upper half",
+         "lower half"
         ]
        ],
        "aspects": [
@@ -1314,6 +1591,31 @@
        ],
        "aspects": [
         "the result"
+       ]
+      },
+      {
+       "point": "If the target is smaller than the middle item, search the left half; if larger, the right half.",
+       "req": [
+        [
+         "small",
+         "less",
+         "larger",
+         "greater",
+         "bigger",
+         "higher"
+        ],
+        [
+         "half",
+         "side",
+         "left",
+         "right",
+         "range",
+         "part"
+        ]
+       ],
+       "aspects": [
+        "which half to keep",
+        "based on the comparison"
        ]
       }
      ],
@@ -1365,7 +1667,11 @@
          "adjacent",
          "neighbour",
          "next to",
-         "consecutive"
+         "consecutive",
+         "neighbor",
+         "neighbouring",
+         "neighboring",
+         "side by side"
         ],
         [
          "swap",
@@ -1408,7 +1714,11 @@
          "repeat",
          "until",
          "no swap",
-         "n 1"
+         "n 1",
+         "early exit",
+         "flag",
+         "already sorted",
+         "no swaps"
         ]
        ],
        "aspects": [
@@ -1492,7 +1802,10 @@
          "next",
          "take",
          "pick",
-         "each"
+         "each",
+         "key",
+         "current",
+         "one at a time"
         ]
        ],
        "aspects": [
@@ -1507,7 +1820,10 @@
          "shift",
          "move",
          "slide",
-         "bump"
+         "bump",
+         "make room",
+         "making space",
+         "shuffling"
         ],
         [
          "insert",
@@ -1675,7 +1991,10 @@
          "space",
          "temporary",
          "new list",
-         "auxiliary"
+         "auxiliary",
+         "not in place",
+         "extra space",
+         "output array"
         ]
        ],
        "aspects": [
@@ -1738,7 +2057,7 @@
     "instruction": "Write everything you know about quicksort, in bullet points - what it is, how it works, what it is used for, and its time complexity where relevant. Aim for at least 5 key points.",
     "starter": "",
     "tests": "",
-    "model": "- Pick a pivot value.\n- Partition: items smaller than the pivot go left, larger items go right.\n- Recurse on each side until the whole list is sorted.\n- O(n log n) on average.\n- O(n^2) worst case, e.g. sorted data with a first-element pivot.\n- In-place (no big extra arrays) but not stable.",
+    "model": "- Pick a pivot value.\n- Partition: items smaller than the pivot go left, larger items go right.\n- Recurse on each side until the whole list is sorted.\n- O(n log n) on average.\n- O(n^2) worst case, e.g. sorted data with a first-element pivot.\n- In-place (no big extra arrays) but not stable.\n- Choosing a good pivot (median-of-three or random) avoids the worst case.",
     "rubric": {
      "points": [
       {
@@ -1831,6 +2150,29 @@
        ],
        "aspects": [
         "in-place / not stable"
+       ]
+      },
+      {
+       "point": "The pivot choice matters: a median-of-three or random pivot avoids the worst case.",
+       "req": [
+        [
+         "pivot"
+        ],
+        [
+         "median",
+         "random",
+         "choice",
+         "choose",
+         "chosen",
+         "middle",
+         "good pivot",
+         "well",
+         "carefully"
+        ]
+       ],
+       "aspects": [
+        "the pivot choice",
+        "avoiding the worst case"
        ]
       }
      ],

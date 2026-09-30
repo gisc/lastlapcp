@@ -202,18 +202,24 @@ def seed_t3(db):
             db.execute("INSERT INTO t3_parts(question_id,ord,instruction,starter,tests,model,rubric) VALUES(?,?,?,?,?,?,?)",
                        (qid, i, p["instruction"], p.get("starter", ""), p.get("tests", ""), p["model"],
                         json.dumps(p["rubric"]) if p.get("rubric") else ""))
-    # 2026-09-30: in-place fix for the already-seeded BST theory rubric. Title-merge
-    # seeding only inserts new questions, so patch the stored row: the 'larger goes
-    # left' misconception pattern gains a "right" blocker so a correct bullet covering
-    # both subtrees ("left smaller, right larger") is not marked red.
-    row = db.execute("SELECT id FROM t3_questions WHERE title='Theory: binary search tree'").fetchone()
-    if row:
-        part = db.execute("SELECT rubric FROM t3_parts WHERE question_id=? AND ord=1", (row["id"],)).fetchone()
-        if part and part["rubric"] and '"not_after"' not in part["rubric"]:
-            for q in bank:
-                if q["title"] == "Theory: binary search tree":
-                    db.execute("UPDATE t3_parts SET rubric=? WHERE question_id=? AND ord=1",
-                               (json.dumps(q["parts"][0]["rubric"]), row["id"]))
+    # 2026-09-30 (v2): seed-is-truth refresh for ALL Tier 3 theory rubrics and model
+    # answers. Title-merge seeding only inserts new questions, so patch stored rows whose
+    # rubric or model differs from seed. Covers the broader key points, atomic splits and
+    # wider synonym groups from the fair-marking fix.
+    for q in bank:
+        if q.get("kind") != "theory" or not q["parts"][0].get("rubric"):
+            continue
+        row = db.execute("SELECT id FROM t3_questions WHERE title=?", (q["title"],)).fetchone()
+        if not row:
+            continue
+        part = db.execute("SELECT rubric, model FROM t3_parts WHERE question_id=? AND ord=1",
+                          (row["id"],)).fetchone()
+        if part:
+            seed_rubric = json.dumps(q["parts"][0]["rubric"])
+            seed_model = q["parts"][0]["model"]
+            if (part["rubric"] or "") != seed_rubric or (part["model"] or "") != seed_model:
+                db.execute("UPDATE t3_parts SET rubric=?, model=? WHERE question_id=? AND ord=1",
+                           (seed_rubric, seed_model, row["id"]))
     db.commit()
 
 # ---------------- tier 3 test harness ----------------
@@ -302,20 +308,34 @@ def _norm_text(s):
     s = re.sub(r"[^a-z0-9\s]", " ", s)
     return " " + re.sub(r"\s+", " ", s).strip() + " "
 
+_NEGATORS = ("not", "never", "no", "cannot", "without", "doesnt", "dont", "isnt", "wont")
+
 def _term_hit(text, term, not_after=None, window=3):
-    # unnegated match only: no "not/never/no" within `window` words before the term,
+    # unnegated match only: no negator within `window` words before the term,
     # and none of the `not_after` blocker words within `window` words before it
-    guards = ("not", "never", "no") + tuple(not_after or ())
+    guards = _NEGATORS + tuple(not_after or ())
     for m in re.finditer(r"\b" + re.escape(term), text):
         before = text[:m.start()].split()[-window:]
         if not any(w in guards for w in before):
             return True
     return False
 
+def _term_hit_negated(text, term, window=3):
+    # negated match only: a negator must appear within `window` words before the term
+    for m in re.finditer(r"\b" + re.escape(term), text):
+        before = text[:m.start()].split()[-window:]
+        if any(w in _NEGATORS for w in before):
+            return True
+    return False
+
 def _group_hit(text, group):
-    # group is either ["term", ...] or {"any": ["term", ...], "not_after": ["blocker", ...]}
+    # group is either ["term", ...] or {"any": [...], "not_after": [...], "negated_any": [...]}
+    # "any" terms need an unnegated hit; "negated_any" terms need a negated hit
+    # (e.g. crediting "nodes are NOT stored contiguously" for the non-contiguous point).
     if isinstance(group, dict):
-        return any(_term_hit(text, t, not_after=group.get("not_after")) for t in group["any"])
+        if any(_term_hit(text, t, not_after=group.get("not_after")) for t in group.get("any", [])):
+            return True
+        return any(_term_hit_negated(text, t) for t in group.get("negated_any", []))
     return any(_term_hit(text, t) for t in group)
 
 def grade_theory(text, rubric):
@@ -363,7 +383,7 @@ def grade_theory(text, rubric):
             results.append({"text": b, "verdict": "orange",
                             "feedback": "On the right track - missing: " + "; ".join(missing) + "."})
             continue
-        results.append({"text": b, "verdict": "grey", "feedback": "This is not one of the key points for this topic."})
+        results.append({"text": b, "verdict": "grey", "feedback": "Not one of the key points tracked for this topic - it may still be correct, it just does not count toward the score."})
     greens = sum(1 for v in claimed.values() if v == "green")
     total = len(points)
     reds = sum(1 for r in results if r["verdict"] == "red")
