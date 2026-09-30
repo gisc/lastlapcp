@@ -152,7 +152,8 @@ CREATE INDEX IF NOT EXISTS idx_t3att_part ON t3_attempts(part_id);
 CREATE TABLE IF NOT EXISTS feedback(
   id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
   qref TEXT NOT NULL, qlabel TEXT NOT NULL, qurl TEXT DEFAULT '',
-  message TEXT NOT NULL, created_at TEXT NOT NULL);
+  message TEXT NOT NULL, created_at TEXT NOT NULL,
+  useful INTEGER NOT NULL DEFAULT 0, useful_at TEXT DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(user_id);
 """
 
@@ -225,6 +226,12 @@ def seed_t3(db):
             if (part["rubric"] or "") != seed_rubric or (part["model"] or "") != seed_model:
                 db.execute("UPDATE t3_parts SET rubric=?, model=? WHERE question_id=? AND ord=1",
                            (seed_rubric, seed_model, row["id"]))
+    # 2026-09-30: feedback XP columns for DBs created before they existed
+    fbcols = [r["name"] for r in db.execute("PRAGMA table_info(feedback)")]
+    if "useful" not in fbcols:
+        db.execute("ALTER TABLE feedback ADD COLUMN useful INTEGER NOT NULL DEFAULT 0")
+    if "useful_at" not in fbcols:
+        db.execute("ALTER TABLE feedback ADD COLUMN useful_at TEXT DEFAULT ''")
     db.commit()
 
 # ---------------- tier 3 test harness ----------------
@@ -432,6 +439,7 @@ def user_stats(db, uid):
         "SELECT COALESCE(SUM(xp),0) xp, COUNT(*) n, COALESCE(SUM(correct),0) c FROM attempts WHERE user_id=?",
         (uid,)).fetchone()
     t3xp = db.execute("SELECT COALESCE(SUM(xp),0) xp FROM t3_attempts WHERE user_id=?", (uid,)).fetchone()["xp"]
+    fbxp = db.execute("SELECT COUNT(*) c FROM feedback WHERE user_id=? AND useful=1", (uid,)).fetchone()["c"] * FB_USEFUL_XP
     dates = {r["d"] for r in db.execute(
         "SELECT DISTINCT date(created_at, '+8 hours') d FROM attempts WHERE user_id=?", (uid,))}
     dates |= {r["d"] for r in db.execute(
@@ -449,7 +457,7 @@ def user_stats(db, uid):
            WHERE a.user_id=? GROUP BY q.topic ORDER BY q.topic""", (uid,)).fetchall()
     mastery = [{"topic": t["topic"], "n": t["n"],
                 "pct": round(100 * t["c"] / t["n"]) if t["n"] else 0} for t in topics]
-    return {"xp": row["xp"] + t3xp, "attempts": row["n"], "correct": row["c"],
+    return {"xp": row["xp"] + t3xp + fbxp, "attempts": row["n"], "correct": row["c"],
             "streak": streak, "mastery": mastery}
 
 TIER_QTYPES = {0: ("binary",), 1: ("mcq", "checkbox"), 2: ("fib",)}
@@ -668,7 +676,8 @@ def teacher():
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
-    fb = [{"name": r["uname"] or r["uemail"], "qlabel": r["qlabel"], "qurl": r["qurl"],
+    fb = [{"id": r["id"], "useful": bool(r["useful"]),
+           "name": r["uname"] or r["uemail"], "qlabel": r["qlabel"], "qurl": r["qurl"],
            "message": r["message"],
            "ts": datetime.fromisoformat(r["created_at"]).astimezone(SGT).strftime("%d %b %H:%M")}
           for r in db.execute("""SELECT f.*, u.name uname, u.email uemail FROM feedback f
@@ -1000,6 +1009,8 @@ def t3_check(qid, ord):
 # Per-question Feedback button -> teacher dashboard. Server-side guards keep out
 # trivial or junk notes; nothing here is public, only teachers see the list.
 
+FB_USEFUL_XP = 5
+
 TRIVIAL_WORDS = {"hi", "hello", "hey", "test", "testing", "ok", "okay", "k", "lol",
                  "idk", "nothing", "yes", "no", "asdf", "qwerty", "abc", "zzz",
                  "haha", "hehe", "blah", "yo", "sup"}
@@ -1043,6 +1054,22 @@ def send_feedback():
                (u["id"], qref, qlabel, qurl, msg, datetime.now(timezone.utc).isoformat()))
     db.commit()
     return {"ok": True}
+
+@app.route("/teacher/feedback/<int:fid>/ack", methods=["POST"])
+@teacher_required
+def feedback_ack(fid):
+    # toggle: mark a note useful (+FB_USEFUL_XP XP to the student) or undo
+    db = get_db()
+    row = db.execute("SELECT useful FROM feedback WHERE id=?", (fid,)).fetchone()
+    if not row:
+        abort(404)
+    if row["useful"]:
+        db.execute("UPDATE feedback SET useful=0, useful_at='' WHERE id=?", (fid,))
+    else:
+        db.execute("UPDATE feedback SET useful=1, useful_at=? WHERE id=?",
+                   (datetime.now(timezone.utc).isoformat(), fid))
+    db.commit()
+    return redirect(url_for("teacher") + "#feedback")
 
 # ---------------- teacher tier 3 authoring ----------------
 
