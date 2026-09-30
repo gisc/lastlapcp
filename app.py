@@ -7,7 +7,7 @@ import os
 import re
 import random
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
 from flask import (Flask, abort, g, redirect, render_template, request, send_from_directory,
@@ -500,6 +500,12 @@ def home():
         return redirect(url_for("login"))
     db = get_db()
     stats = user_stats(db, u["id"])
+    today = datetime.now(SGT).date()
+    exams = []
+    for label, kind, d in [("Paper 2", "Lab-based", date(2026, 10, 7)),
+                           ("Paper 1", "Written", date(2026, 11, 11))]:
+        exams.append({"label": label, "kind": kind,
+                      "when": d.strftime("%a %-d %b"), "days": (d - today).days})
     topics = [r["topic"] for r in db.execute(
         "SELECT DISTINCT topic FROM questions WHERE qtype IN ('mcq','checkbox') ORDER BY topic")]
     t3, t3t = [], []
@@ -510,7 +516,7 @@ def home():
                 WHERE p.question_id=? AND a.user_id=? AND a.passed=1""", (r["id"], u["id"])).fetchone()["c"]
         (t3t if r["kind"] == "theory" else t3).append(
             {"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
-    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t)
+    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t, exams=exams)
 
 @app.route("/login")
 def login():

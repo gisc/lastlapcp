@@ -5,6 +5,15 @@
   <div class="bigxp">{{ stats.xp }} <span>XP</span></div>
   <div class="streak">{% if stats.streak > 0 %}<svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg> {{ stats.streak }}-day streak{% else %}Answer a question today to start a streak{% endif %}</div>
 </div>
+<div class="card exams">
+  {% for e in exams %}
+  <div class="exam">
+    <div class="edays">{% if e.days > 0 %}{{ e.days }}<span>days</span>{% elif e.days == 0 %}<span class="etoday">Today</span>{% else %}<span class="etoday">Done</span>{% endif %}</div>
+    <div class="elabel">{{ e.label }} <span>{{ e.kind }}</span></div>
+    <div class="edate">{{ e.when }}</div>
+  </div>
+  {% endfor %}
+</div>
 <div class="card">
   <h2>Tier 0 - Foundations check</h2>
   <p class="muted">Quick 2-option questions on the fundamentals of the 9569 syllabus - the base every later tier builds on.</p>

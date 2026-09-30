@@ -93,3 +93,13 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .tmap tr.p2 td { background: #fff7e0; }
 .tmap .chip { display: inline-block; background: #ffffff; border: 1px solid #c8d4e8; border-radius: 8px;
   padding: 1px 6px; margin: 1px 2px 1px 0; font-size: .75rem; }
+
+.exams { display: flex; gap: 10px; text-align: center;
+  background: linear-gradient(135deg, var(--navy), var(--navy2)); color: #fff; }
+.exam { flex: 1; }
+.edays { font-size: 2.6rem; font-weight: 800; color: var(--gold); line-height: 1.05; }
+.edays span { font-size: 1rem; color: #ffd45e; margin-left: 5px; font-weight: 700; }
+.edays .etoday { font-size: 2rem; margin-left: 0; }
+.elabel { font-weight: 700; margin-top: 3px; }
+.elabel span { font-weight: 400; color: #cfe0f5; font-size: .8rem; }
+.edate { color: #cfe0f5; font-size: .82rem; margin-top: 1px; }
