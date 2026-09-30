@@ -502,7 +502,7 @@ def home():
     stats = user_stats(db, u["id"])
     today = datetime.now(SGT).date()
     exams = []
-    for label, kind, d in [("Paper 2", "Lab-based", date(2026, 10, 7)),
+    for label, kind, d in [("Paper 2", "Practical", date(2026, 10, 7)),
                            ("Paper 1", "Written", date(2026, 11, 11))]:
         exams.append({"label": label, "kind": kind,
                       "when": d.strftime("%a %-d %b"), "days": (d - today).days})
