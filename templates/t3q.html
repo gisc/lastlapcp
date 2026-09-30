@@ -5,6 +5,8 @@
   <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag">{{ q['topic'] }}</span><span class="tag paper">{{ "P1" if q["kind"] == "theory" else "P2" }}</span></div>
   <h1>{{ q['title'] }}</h1>
   <p>{{ q['intro'] }}</p>
+  {% from '_feedback.html' import fb_widget %}
+  {{ fb_widget('t3:' ~ q['id'], 'Tier 3 · ' ~ q['topic'] ~ ': ' ~ q['title']) }}
 </div>
 {% for p in parts %}
 <div class="card">

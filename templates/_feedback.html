@@ -1,0 +1,38 @@
+{% macro fb_widget(qref, qlabel) %}
+<div style="margin-top:14px">
+  <button class="btn ghost" type="button" id="fbbtn"
+    onclick="var f=document.getElementById('fbform');var open=f.style.display==='block';f.style.display=open?'none':'block';this.textContent=open?'Feedback':'Close feedback';">Feedback</button>
+  <div id="fbform" style="display:none; margin-top:10px">
+    <p class="sub">Spotted an error, something unclear, or an idea to make this question better? Tell your teacher here.
+      We treat your feedback seriously, so please be mature and responsible - and thank you: useful feedback benefits everyone.</p>
+    <textarea id="fbtext" class="field" rows="3" maxlength="1000"
+      placeholder="Describe the error, issue or idea in a sentence or two"></textarea>
+    <button class="btn" type="button" onclick="fbSend()">Send feedback</button>
+    <div id="fbmsg" class="verdict" style="display:none"></div>
+  </div>
+</div>
+<script>
+async function fbSend() {
+  const msg = document.getElementById('fbmsg');
+  msg.style.display = 'block'; msg.className = 'verdict'; msg.textContent = 'Sending...';
+  try {
+    const r = await fetch({{ url_for('send_feedback')|tojson }}, { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qref: {{ qref|tojson }}, qlabel: {{ qlabel|tojson }},
+        qurl: location.pathname, message: document.getElementById('fbtext').value }) });
+    const j = await r.json();
+    if (j.ok) {
+      msg.className = 'verdict good';
+      msg.textContent = 'Thank you - your feedback has been sent to your teacher.';
+      document.getElementById('fbtext').value = '';
+    } else {
+      msg.className = 'verdict bad';
+      msg.textContent = j.error || 'Could not send that - please try again.';
+    }
+  } catch (e) {
+    msg.className = 'verdict bad';
+    msg.textContent = 'Could not send that - check your connection.';
+  }
+}
+</script>
+{% endmacro %}

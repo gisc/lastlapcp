@@ -33,6 +33,8 @@
     <pre id="model" class="codeblock" style="display:none">{{ part['model'] }}</pre>
   </div>
   <a class="btn ghost" href="{{ url_for('t3_question', qid=q['id']) }}">All parts</a>
+  {% from '_feedback.html' import fb_widget %}
+  {{ fb_widget('t3p:' ~ q['id'] ~ ':' ~ ord, 'Tier 3 · ' ~ q['topic'] ~ ': ' ~ q['title'] ~ ' (part ' ~ ord ~ ')') }}
 </div>
 <script>
 const CHECK_URL = {{ url_for('t3_check', qid=q['id'], ord=ord)|tojson }};

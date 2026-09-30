@@ -149,6 +149,11 @@ CREATE TABLE IF NOT EXISTS t3_attempts(
   code TEXT NOT NULL, output TEXT DEFAULT '', created_at TEXT NOT NULL);
 CREATE INDEX IF NOT EXISTS idx_t3att_user ON t3_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_t3att_part ON t3_attempts(part_id);
+CREATE TABLE IF NOT EXISTS feedback(
+  id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
+  qref TEXT NOT NULL, qlabel TEXT NOT NULL, qurl TEXT DEFAULT '',
+  message TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(user_id);
 """
 
 # One-time stem fixes: rename live rows in place (keeps question id and attempts)
@@ -663,6 +668,11 @@ def teacher():
                 "by_topic": {m["topic"]: m for m in st["mastery"]},
                 "last": (datetime.fromisoformat(last).astimezone(SGT).strftime("%d %b %H:%M") if last else "-")}
 
+    fb = [{"name": r["uname"] or r["uemail"], "qlabel": r["qlabel"], "qurl": r["qurl"],
+           "message": r["message"],
+           "ts": datetime.fromisoformat(r["created_at"]).astimezone(SGT).strftime("%d %b %H:%M")}
+          for r in db.execute("""SELECT f.*, u.name uname, u.email uemail FROM feedback f
+                                 JOIN users u ON u.id=f.user_id ORDER BY f.id DESC LIMIT 100""").fetchall()]
     roster = [{"name": r["name"], "email": r["email"], "norm": _norm_email(r["email"]), "class": r["class"]}
               for r in db.execute("SELECT name,email,class FROM roster").fetchall()]
     if not roster:
@@ -674,13 +684,13 @@ def teacher():
             rows = [row_for(r["name"], r.get("email") or r["norm"], r["norm"]) for r in members]
             rows.sort(key=lambda r: (not r["signed_in"], -(r["stats"]["xp"] if r["signed_in"] else 0)))
             groups.append({"label": label, "rows": rows})
-        return render_template("teacher.html", groups=groups, topics=topics, roster=True)
+        return render_template("teacher.html", groups=groups, topics=topics, roster=True, fb=fb)
 
     rows = [row_for(u["name"] or u["email"], u["email"], _norm_email(u["email"])) for u in users.values()]
     rows = [r for r in rows if r["signed_in"]]
     rows.sort(key=lambda r: -r["stats"]["xp"])
     return render_template("teacher.html", groups=[{"label": "Signed-in students", "rows": rows}],
-                           topics=topics, roster=False)
+                           topics=topics, roster=False, fb=fb)
 
 @app.route("/teacher/admin/roster", methods=["GET", "POST"])
 @teacher_required
@@ -985,6 +995,54 @@ def t3_check(qid, ord):
     db.commit()
     res.update({"ok": True, "xp": xp, "total_xp": user_stats(db, u["id"])["xp"]})
     return res
+
+# ---------------- student feedback ----------------
+# Per-question Feedback button -> teacher dashboard. Server-side guards keep out
+# trivial or junk notes; nothing here is public, only teachers see the list.
+
+TRIVIAL_WORDS = {"hi", "hello", "hey", "test", "testing", "ok", "okay", "k", "lol",
+                 "idk", "nothing", "yes", "no", "asdf", "qwerty", "abc", "zzz",
+                 "haha", "hehe", "blah", "yo", "sup"}
+
+FB_SHORT_ERR = ("That looks too short or unclear to act on. "
+                "Please describe the error, issue or idea in a sentence or two.")
+
+@app.route("/feedback", methods=["POST"])
+@login_required
+def send_feedback():
+    db = get_db()
+    u = current_user()
+    data = request.get_json(force=True, silent=True) or {}
+    qref = str(data.get("qref", ""))[:40].strip()
+    qlabel = str(data.get("qlabel", ""))[:200].strip()
+    qurl = str(data.get("qurl", ""))[:200].strip()
+    if not qurl.startswith("/") or qurl.startswith("//"):
+        qurl = ""
+    msg = " ".join(str(data.get("message", "")).split())[:1000]
+    words = [w.strip(".,!?;:") for w in msg.lower().split() if w.strip(".,!?;:")]
+    letters = re.sub(r"[^a-z]", "", msg.lower())
+    err = ""
+    if not qref or not qlabel:
+        err = "Something went wrong identifying this question - please reload and try again."
+    elif len(msg) < 12 or len(words) < 3 or len(set(letters)) < 4 or all(w in TRIVIAL_WORDS for w in words):
+        err = FB_SHORT_ERR
+    if not err:
+        last = db.execute("SELECT message FROM feedback WHERE user_id=? ORDER BY id DESC LIMIT 1",
+                          (u["id"],)).fetchone()
+        if last and last["message"] == msg:
+            err = "You have already sent that exact message."
+    if not err:
+        since = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        cnt = db.execute("SELECT COUNT(*) c FROM feedback WHERE user_id=? AND created_at>=?",
+                         (u["id"], since)).fetchone()["c"]
+        if cnt >= 5:
+            err = "You have sent several notes in the last few minutes - please wait a little before sending more."
+    if err:
+        return {"ok": False, "error": err}
+    db.execute("INSERT INTO feedback(user_id,qref,qlabel,qurl,message,created_at) VALUES(?,?,?,?,?,?)",
+               (u["id"], qref, qlabel, qurl, msg, datetime.now(timezone.utc).isoformat()))
+    db.commit()
+    return {"ok": True}
 
 # ---------------- teacher tier 3 authoring ----------------
 

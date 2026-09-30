@@ -11,6 +11,22 @@
   <a class="btn" href="{{ url_for('bank') }}">Question bank</a>
   <a class="btn ghost" href="{{ url_for('roster_admin') }}">Edit roster</a>
 </div>
+<div class="card">
+  <h2>Student feedback</h2>
+  {% if fb %}
+  <ul class="blist">
+    {% for f in fb %}
+    <li class="bitem bgrey">
+      <div class="muted small">{{ f.ts }} &middot; {{ f.name }} &middot;
+        {% if f.qurl %}<a href="{{ f.qurl }}" style="color:#9fc1ff">{{ f.qlabel }}</a>{% else %}{{ f.qlabel }}{% endif %}</div>
+      <div>{{ f.message }}</div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">No feedback yet.</p>
+  {% endif %}
+</div>
 {% for g in groups %}
 <div class="card">
   <h2>{{ g.label }}</h2>

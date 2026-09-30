@@ -50,6 +50,8 @@
     <a class="btn big" href="{{ url_for('quiz', topic=topic, tier=tier if tier is not none else '', paper=paper) }}">Next question</a>
     <a class="btn ghost" href="{{ url_for('home') }}">Home</a>
   {% endif %}
+  {% from '_feedback.html' import fb_widget %}
+  {{ fb_widget('q:' ~ q['id'], ('Tier 2' if q['qtype']=='fib' else ('Tier 0' if q['qtype']=='binary' else 'Tier 1')) ~ ' · ' ~ q['topic'] ~ ' ' ~ q['paper'] ~ ': ' ~ q['stem'][:80]) }}
 </div>
 {% endif %}
 {% endblock %}
