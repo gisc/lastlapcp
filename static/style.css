@@ -105,7 +105,7 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .edate { color: #cfe0f5; font-size: .82rem; margin-top: 1px; }
 
 /* speed drills */
-.speedbtn { background: var(--gold); color: #1a1a1a; margin-bottom: 10px; }
+.speedbtn { background: var(--gold); color: #1a1a1a; }
 .ghostbtn { background: #fff; color: var(--navy); border: 2px solid var(--navy); }
 .sclock { font-size: 3rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; color: var(--navy); }
 .sclock.over, .sclock.red { color: #d12a2a; }

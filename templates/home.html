@@ -15,6 +15,11 @@
   {% endfor %}
 </div>
 <div class="card">
+  <h2>Algorithm speed drills</h2>
+  <p class="muted">Type linear search, binary search, bubble, insertion, merge sort and quicksort from memory, against a 5-minute clock. Climb the class leaderboard.</p>
+  <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Start a speed drill</a>
+</div>
+<div class="card">
   <h2>Tier 0 - Foundations check</h2>
   <p class="muted">Quick 2-option questions on the fundamentals of the 9569 syllabus - the base every later tier builds on.</p>
   <a class="btn big" href="{{ url_for('quiz', tier=0) }}">Start Tier 0 drill</a>
@@ -38,7 +43,6 @@
   <h2>Tier 3 - Paper 2 practical</h2>
   <p class="muted">Paper 2 practical: build classes and functions part by part. Real tests run against your code, right in the browser.</p>
   <!-- theory list inserted below -->
-  <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Algorithm speed drills</a>
   {% for q in t3 %}
   <a class="btn big" href="{{ url_for('t3_question', qid=q.id) }}">{{ q.title }}&nbsp; <span class="muted">{{ q.done }}/{{ q.n }} parts</span></a>
   {% else %}
