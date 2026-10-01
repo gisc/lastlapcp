@@ -5,8 +5,15 @@
   <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span><span class="tag">Speed drill</span></div>
   <h1>{{ a.title }}</h1>
   <div id="intro">
-    <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. Your {{ 'class' if a.kind == 'class' else 'function' }} must be called <b>{{ a.fn }}</b>.</p>
+    <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. {% if a.kind == 'sql' %}Type it as one SQL script. It runs on an empty database, statement by statement.{% elif a.kind == 'webapp' %}Type both files, one in each box. Flask is not run here: your app.py is tested with a stand-in for Flask, and your index.html is rendered with Jinja.{% elif a.kind == 'script' %}Type it as one Python script. Use the same variable names.{% else %}Your {{ 'class' if a.kind == 'class' else 'function' }} must be called <b>{{ a.fn }}</b>.{% endif %}</p>
+    {% if a.kind == 'webapp' %}
+    <p class="muted small cell-label"><b>app.py</b></p>
     <pre class="codeblock smallcode">{{ a.sample }}</pre>
+    <p class="muted small cell-label"><b>index.html</b></p>
+    <pre class="codeblock smallcode">{{ a.sample2 }}</pre>
+    {% else %}
+    <pre class="codeblock smallcode">{{ a.sample }}</pre>
+    {% endif %}
     <button class="btn big" id="bpractice" type="button">Practise</button>
     <button class="btn big ghostbtn" id="bdrill" type="button">Drill ({{ a.limit_min }} min countdown)</button>
     <p class="muted small"><b>Practise</b>: the timer counts up and turns red after {{ a.limit_min }}:00. <b>Drill</b>: a {{ a.limit_min }}:00 countdown; when it hits zero it stops, and you can still finish and submit.</p>
@@ -14,7 +21,10 @@
   <div id="work" style="display:none">
     <div id="clock" class="sclock">0:00</div>
     <div id="clocklabel" class="muted center"></div>
-    <textarea id="code" class="field code-input" rows="16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type {{ a.fn }} here..."></textarea>
+    {% if a.kind == 'webapp' %}<p class="muted small cell-label"><b>app.py</b></p>{% endif %}
+    <textarea id="code" class="field code-input" rows="16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type {{ 'the SQL script' if a.kind == 'sql' else a.fn }} here..."></textarea>
+    {% if a.kind == 'webapp' %}<p class="muted small cell-label"><b>index.html</b></p>
+    <textarea id="code2" class="field code-input" rows="14" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type index.html here..."></textarea>{% endif %}
     <button class="btn big" id="run" type="button">Run tests and submit</button>
     <div id="status" class="verdict" style="display:none"></div>
     <pre id="output" class="codeblock" style="display:none"></pre>
@@ -83,13 +93,14 @@
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ tests|tojson }};
-const SLUG = {{ a.slug|tojson }};
+const SLUG = {{ a.slug|tojson }}, KIND = {{ a.kind|tojson }}, PKGS = {{ a.pkgs|tojson }};
 const LIMIT = {{ a.limit_ms }}, LIM_MIN = {{ a.limit_min }};
 let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false, running = false;
 const flags = [], history = [];
-let pasteCount = 0, copied = '', justPasted = false;
-const code = document.getElementById('code');
+let pasteCount = 0, copied = '';
+const code = document.getElementById('code'), code2 = document.getElementById('code2');
 const gutter = CodeEdit.attach(code);
+const gutter2 = code2 ? CodeEdit.attach(code2) : null;
 const norm = s => (s || '').replace(/\s+/g, ' ').trim();
 function getPy() {
   if (!pyP) pyP = loadPyodide({ indexURL: "{{ url_for('static', filename='pyodide') }}/" });
@@ -132,7 +143,7 @@ document.getElementById('bdrill').addEventListener('click', () => begin('drill')
 
 // Whole-chunk paste detection. A paste is fine if the text already exists in this cell
 // (copying your own code to adapt it), otherwise it is flagged for the teacher.
-function judge(text, how) {
+function judge(text, how, history) {
   pasteCount++;
   const n = norm(text);
   if (!n) return;
@@ -145,37 +156,42 @@ function judge(text, how) {
   pn.textContent = 'A pasted chunk that was not already in this cell was detected. The page cannot tell where it came from, so this attempt is marked for your teacher to review and will not be ranked until they clear it.';
   show('pastenote', true);
 }
-['copy', 'cut'].forEach(ev => code.addEventListener(ev, () => {
-  const s = code.value.slice(code.selectionStart, code.selectionEnd);
-  if (s) copied = norm(s);
-}));
-code.addEventListener('paste', e => {
-  justPasted = true;
-  judge((e.clipboardData || window.clipboardData).getData('text') || '', 'Paste');
-});
-code.addEventListener('drop', e => {
-  justPasted = true;
-  judge((e.dataTransfer && e.dataTransfer.getData('text')) || '', 'Drop');
-});
-let prevVal = '';
-code.addEventListener('input', e => {
-  if (justPasted) { justPasted = false; }
-  else if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || (e.data && e.data.length >= 25)) {
-    const n = Math.max(0, code.value.length - prevVal.length);
-    judge(e.data || code.value.slice(Math.max(0, code.selectionEnd - n), code.selectionEnd), 'Large insert');
-  }
-  if (history.length === 0 || history[history.length - 1] !== prevVal) { history.push(prevVal); if (history.length > 60) history.shift(); }
-  prevVal = code.value;
-});
-code.addEventListener('keydown', e => {
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const s = code.selectionStart;
-    code.value = code.value.slice(0, s) + '    ' + code.value.slice(code.selectionEnd);
-    code.selectionStart = code.selectionEnd = s + 4;
-    gutter.refresh();
-  }
-});
+function bindCell(el, g) {
+  const history = [];
+  let justPasted = false, prevVal = '';
+  ['copy', 'cut'].forEach(ev => el.addEventListener(ev, () => {
+    const s = el.value.slice(el.selectionStart, el.selectionEnd);
+    if (s) copied = norm(s);
+  }));
+  el.addEventListener('paste', e => {
+    justPasted = true;
+    judge((e.clipboardData || window.clipboardData).getData('text') || '', 'Paste', history);
+  });
+  el.addEventListener('drop', e => {
+    justPasted = true;
+    judge((e.dataTransfer && e.dataTransfer.getData('text')) || '', 'Drop', history);
+  });
+  el.addEventListener('input', e => {
+    if (justPasted) { justPasted = false; }
+    else if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || (e.data && e.data.length >= 25)) {
+      const n = Math.max(0, el.value.length - prevVal.length);
+      judge(e.data || el.value.slice(Math.max(0, el.selectionEnd - n), el.selectionEnd), 'Large insert', history);
+    }
+    if (history.length === 0 || history[history.length - 1] !== prevVal) { history.push(prevVal); if (history.length > 60) history.shift(); }
+    prevVal = el.value;
+  });
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = el.selectionStart;
+      el.value = el.value.slice(0, s) + '    ' + el.value.slice(el.selectionEnd);
+      el.selectionStart = el.selectionEnd = s + 4;
+      g.refresh();
+    }
+  });
+}
+bindCell(code, gutter);
+if (code2) bindCell(code2, gutter2);
 
 document.getElementById('run').addEventListener('click', async () => {
   if (done || running) return;
@@ -189,11 +205,14 @@ document.getElementById('run').addEventListener('click', async () => {
   try {
     const py = await getPy();
     py.globals.set('_SRC', code.value);
+    if (code2) py.globals.set('_HTML', code2.value);
     const lines = [];
     py.setStdout({ batched: s => lines.push(s) });
     py.setStderr({ batched: s => lines.push(s) });
     try {
-      await py.runPythonAsync(code.value + '\n\n' + TESTS);
+      if (PKGS.length) await py.loadPackage(PKGS);
+      if (KIND === 'sql' || KIND === 'webapp') await py.runPythonAsync(TESTS);
+      else await py.runPythonAsync(code.value + '\n\n' + TESTS);
       passed = true;
     } catch (err) {
       const raw = (err && err.message) || String(err);
@@ -213,7 +232,7 @@ document.getElementById('run').addEventListener('click', async () => {
   let j = null;
   try {
     const r = await fetch('/speed/' + SLUG + '/run/' + attemptId, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code.value, passed, flags, paste_count: pasteCount }) });
+      body: JSON.stringify({ code: code2 ? '### app.py\n' + code.value + '\n### index.html\n' + code2.value : code.value, passed, flags, paste_count: pasteCount }) });
     j = await r.json();
   } catch (e) {}
   running = false;

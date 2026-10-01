@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+{% if u['role'] == 'teacher' %}
+<div class="card center"><a class="btn" href="{{ url_for('teacher') }}">Teacher dashboard</a></div>
+{% endif %}
 <div class="card hero">
   <div class="hello">Hi {{ u['name'].split(' ')[0] if u['name'] else u['email'] }}</div>
   <div class="bigxp">{{ stats.xp }} <span>XP</span></div>
@@ -71,7 +74,4 @@
   <p class="muted">No attempts yet. Your mastery per topic shows up here.</p>
   {% endif %}
 </div>
-{% if u['role'] == 'teacher' %}
-<div class="card center"><a class="btn" href="{{ url_for('teacher') }}">Teacher dashboard</a></div>
-{% endif %}
 {% endblock %}

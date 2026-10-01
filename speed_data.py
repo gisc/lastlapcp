@@ -1058,12 +1058,235 @@ assert t2.maximum() == max(vals) and t2.minimum() == min(vals), "maximum/minimum
 assert all(t2.search(v) for v in vals), "search missed an inserted value"
 '''},
 ]
+
+OTHERS = [
+ {"slug": "relational-database", "title": "Relational database (SQL)", "fn": "SQL script", "kind": "sql", "group": "Others",
+  "sample": '''CREATE TABLE Student (
+    StudentID INTEGER PRIMARY KEY,
+    Name TEXT
+);
+
+CREATE TABLE Enrolment (
+    EnrolID INTEGER PRIMARY KEY,
+    StudentID INTEGER,
+    Course TEXT,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID)
+);
+
+INSERT INTO Student VALUES (1, 'Ann');
+INSERT INTO Student VALUES (2, 'Ben');
+INSERT INTO Enrolment VALUES (1, 1, 'Computing');
+INSERT INTO Enrolment VALUES (2, 2, 'Maths');
+
+SELECT Student.Name, Enrolment.Course
+FROM Student, Enrolment
+WHERE Student.StudentID = Enrolment.StudentID;
+
+UPDATE Student SET Name = 'Anna' WHERE StudentID = 1;
+
+DELETE FROM Enrolment WHERE EnrolID = 2;
+''',
+  "tests": '''import sqlite3
+db = sqlite3.connect(":memory:")
+db.execute("PRAGMA foreign_keys = ON")
+stmts, buf = [], ""
+for line in _SRC.splitlines(True):
+    buf += line
+    if sqlite3.complete_statement(buf):
+        stmts.append(buf.strip()); buf = ""
+assert not buf.strip(), "The last statement is not finished. Check it ends with a semicolon: " + buf.strip()[:60]
+assert stmts, "Type the SQL script into the editor first"
+sel = []
+kinds = []
+for n, st in enumerate(stmts, 1):
+    word = st.split(None, 1)[0].upper()
+    kinds.append(word + (" TABLE" if word == "CREATE" else ""))
+    try:
+        cur = db.execute(st)
+    except sqlite3.Error as e:
+        raise AssertionError("SQL error in statement %d (%s ...): %s" % (n, st[:45].replace("\\n", " "), e)) from None
+    if word == "SELECT":
+        sel.append((st, cur.fetchall()))
+db.commit()
+assert kinds.count("CREATE TABLE") == 2, "Create exactly 2 tables, you have %d CREATE TABLE statements" % kinds.count("CREATE TABLE")
+tabs = sorted(r[0] for r in db.execute("select name from sqlite_master where type='table' and name not like 'sqlite_%'"))
+assert tabs == ["Enrolment", "Student"], "The tables should be called Student and Enrolment, but you have %r" % (tabs,)
+cols = lambda t: [(r[1], r[5]) for r in db.execute("PRAGMA table_info(%s)" % t)]
+assert cols("Student") == [("StudentID", 1), ("Name", 0)], "Student needs columns StudentID (the PRIMARY KEY) then Name, but has %r" % (cols("Student"),)
+assert [c[0] for c in cols("Enrolment")] == ["EnrolID", "StudentID", "Course"] and cols("Enrolment")[0][1] == 1, "Enrolment needs columns EnrolID (the PRIMARY KEY), StudentID, Course, but has %r" % (cols("Enrolment"),)
+fk = [(r[2], r[3], r[4]) for r in db.execute("PRAGMA foreign_key_list(Enrolment)")]
+assert fk == [("Student", "StudentID", "StudentID")], "Enrolment.StudentID should be a FOREIGN KEY REFERENCES Student(StudentID), found %r" % (fk,)
+for k in ("INSERT", "SELECT", "UPDATE", "DELETE"):
+    assert k in kinds, "No %s statement found" % k
+assert kinds.index("SELECT") > max(i for i, k in enumerate(kinds) if k == "INSERT"), "Run the SELECT after the INSERT statements"
+assert len(sel) == 1, "Use exactly one SELECT statement"
+q, rows = sel[0]
+ql = q.lower()
+assert "student" in ql and "enrolment" in ql, "The SELECT must use both tables (Student and Enrolment)"
+assert "student.studentid" in ql.replace(" ", "") and "enrolment.studentid" in ql.replace(" ", ""), "Join the tables by matching Student.StudentID (primary key) with Enrolment.StudentID (foreign key)"
+assert sorted(rows) == [("Ann", "Computing"), ("Ben", "Maths")], "The SELECT should give the Name and Course for each enrolment, [('Ann', 'Computing'), ('Ben', 'Maths')] in any order, but gave %r" % (rows,)
+assert kinds.index("UPDATE") > kinds.index("SELECT"), "Put the UPDATE after the SELECT"
+students = db.execute("select StudentID, Name from Student order by StudentID").fetchall()
+assert students == [(1, "Anna"), (2, "Ben")], "After the UPDATE, Student should hold (1, 'Anna') and (2, 'Ben'), but holds %r" % (students,)
+enrol = db.execute("select EnrolID, StudentID, Course from Enrolment order by EnrolID").fetchall()
+assert enrol == [(1, 1, "Computing")], "After the DELETE, Enrolment should only hold (1, 1, 'Computing'), but holds %r" % (enrol,)
+'''},
+
+ {"slug": "relational-database-sqlite3", "title": "Relational database with sqlite3 (Python)", "fn": "Python script", "kind": "script", "group": "Others",
+  "sample": '''import sqlite3
+
+conn = sqlite3.connect(":memory:")
+cur = conn.cursor()
+
+cur.execute("CREATE TABLE Student (StudentID INTEGER PRIMARY KEY, Name TEXT, Grade TEXT)")
+cur.execute("INSERT INTO Student VALUES (?, ?, ?)", (1, "Ann", "B"))
+cur.execute("INSERT INTO Student VALUES (?, ?, ?)", (2, "Ben", "C"))
+conn.commit()
+
+cur.execute("SELECT Name, Grade FROM Student WHERE StudentID = ?", (1,))
+row = cur.fetchone()
+print(row)
+
+cur.execute("UPDATE Student SET Grade = ? WHERE StudentID = ?", ("A", 2))
+cur.execute("DELETE FROM Student WHERE StudentID = ?", (1,))
+conn.commit()
+
+cur.execute("SELECT * FROM Student")
+rows = cur.fetchall()
+print(rows)
+conn.close()
+''',
+  "tests": '''import sqlite3 as _sq
+_t = ast.parse(_SRC)
+_names_used = _names(_SRC)
+assert "connect" in _names_used and "sqlite3" in _names_used, "Use sqlite3.connect(...) to open the database"
+assert "commit" in _names_used, "Call conn.commit() after changing the data"
+_sqls = [n.value.lower() for n in ast.walk(_t) if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+assert sum(q.strip().startswith("create table") for q in _sqls) == 1, "Create exactly one table with CREATE TABLE"
+for _k in ("insert into", "select", "update", "delete from"):
+    assert any(q.strip().startswith(_k) for q in _sqls), "No %s statement found" % _k.upper()
+assert any("?" in q for q in _sqls), "Use ? placeholders and pass the values as a tuple, not string joining"
+assert "row" in globals(), "Store the result of fetchone() in a variable called row"
+assert tuple(row) == ("Ann", "B"), "row should be ('Ann', 'B') from the SELECT with WHERE StudentID = 1, but is %r" % (row,)
+assert "rows" in globals(), "Store the result of fetchall() in a variable called rows"
+assert [tuple(r) for r in rows] == [(2, "Ben", "A")], "After the UPDATE (Ben's grade becomes 'A') and DELETE (Ann removed), rows should be [(2, 'Ben', 'A')] but is %r" % (rows,)
+'''},
+ {"slug": "web-app", "title": "Web app (Flask and Jinja)", "fn": "app.py and index.html", "kind": "webapp", "group": "Others",
+  "sample": '''from flask import Flask, render_template, request
+
+app = Flask(__name__)
+students = []
+
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        name = request.form["name"]
+        students.append(name)
+    return render_template("index.html", students=students)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
+''',
+  "sample2": '''<!DOCTYPE html>
+<html>
+<head>
+    <title>Students</title>
+</head>
+<body>
+    <form method="post">
+        <input type="text" name="name">
+        <input type="submit" value="Add">
+    </form>
+    <table border="1">
+        <tr>
+            <th>No.</th>
+            <th>Name</th>
+        </tr>
+        {% for s in students %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ s }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+''',
+  "tests": '''import sys, re, types, traceback, jinja2
+_routes = {}
+class _Req:
+    method = "GET"
+    form = {}
+request = _Req()
+class _Flask:
+    def __init__(self, name=None, *a, **k): pass
+    def route(self, rule, methods=None, **k):
+        def deco(f):
+            _routes[rule] = (f, [m.upper() for m in (methods or ["GET"])])
+            return f
+        return deco
+    def run(self, *a, **k): pass
+def _render(name, **ctx):
+    assert name == "index.html", "render_template should be given \\"index.html\\", not %r" % (name,)
+    return jinja2.Environment(autoescape=True).from_string(_HTML).render(**ctx)
+class _Redirect:
+    def __init__(self, loc="/"): self.loc = loc
+_fl = types.ModuleType("flask")
+_fl.Flask = _Flask; _fl.request = request; _fl.render_template = _render
+_fl.redirect = lambda loc="/", *a, **k: _Redirect(loc); _fl.url_for = lambda *a, **k: "/"
+sys.modules["flask"] = _fl
+try:
+    _t = ast.parse(_SRC)
+except SyntaxError as _e:
+    raise AssertionError("app.py line %s: SyntaxError: %s" % (_e.lineno, _e.msg))
+assert any(isinstance(n, ast.If) and isinstance(n.test, ast.Compare) and isinstance(n.test.left, ast.Name) and n.test.left.id == "__name__" for n in _t.body), "app.py should end with if __name__ == \\"__main__\\": app.run(...)"
+_g = {"__name__": "app_module"}
+try:
+    exec(compile(_SRC, "app.py", "exec"), _g)
+except AssertionError:
+    raise
+except Exception as _e:
+    _ln = [f.lineno for f in traceback.extract_tb(_e.__traceback__) if f.filename == "app.py"]
+    raise AssertionError("app.py line %s: %s: %s" % (_ln[-1] if _ln else "?", type(_e).__name__, _e))
+assert "/" in _routes, "app.py needs a route for \\"/\\" using @app.route(\\"/\\", methods=[\\"GET\\", \\"POST\\"])"
+_view, _m = _routes["/"]
+assert "GET" in _m and "POST" in _m, "The \\"/\\" route needs methods=[\\"GET\\", \\"POST\\"] so it can show the page and receive the form, found %r" % (_m,)
+_h = _HTML
+assert re.search(r"<form[^>]*method\\s*=\\s*[\\"']?post", _h, re.I), "index.html needs a <form method=\\"post\\">"
+_tm = re.search(r"<input[^>]*type\\s*=\\s*[\\"']?text[^>]*>", _h, re.I)
+assert _tm, "index.html needs an <input type=\\"text\\" name=\\"...\\"> text box"
+_nm = re.search(r"name\\s*=\\s*[\\"']([^\\"']+)[\\"']", _tm.group(0))
+assert _nm, "The text box needs a name attribute, e.g. name=\\"name\\", so the form can send it"
+assert re.search(r"<input[^>]*type\\s*=\\s*[\\"']?submit", _h, re.I), "index.html needs an <input type=\\"submit\\"> button"
+assert "{% for" in _h and "{% endfor" in _h, "index.html needs a Jinja {% for ... %} loop with {% endfor %}"
+assert "{{" in _h, "The table rows must use Jinja data tags such as {{ s }}"
+assert re.search(r"<table", _h, re.I) and re.search(r"<tr", _h, re.I) and re.search(r"<td", _h, re.I), "index.html needs a <table> with <tr> and <td> cells"
+request.method = "GET"; request.form = {}
+_r0 = _view()
+assert isinstance(_r0, str), "The view should return render_template(...), got %r" % (type(_r0).__name__,)
+assert "<td" not in _r0.lower(), "With nothing submitted the table should have no data rows, but the page already shows <td> cells"
+for _v in ("Cai", "Dee"):
+    request.method = "POST"; request.form = {_nm.group(1): _v}
+    _view()
+    request.method = "GET"; request.form = {}
+    _r = _view()
+    assert isinstance(_r, str), "The view should return the page after a GET"
+    assert _v in _r, "After the form sends %r, the page should list it, but it does not. Check app.py stores request.form[%r] and passes the list to render_template, and the loop prints it" % (_v, _nm.group(1))
+_cells = re.findall(r"<td[^>]*>(.*?)</td>", _r, re.S | re.I)
+assert _r.index("Cai") < _r.index("Dee"), "Items should be listed in the order they were added"
+assert sum(c.strip() == "Cai" or c.strip() == "Dee" for c in _cells) == 2, "Each submitted name should sit inside its own <td> in a table row, found cells %r" % (_cells,)
+'''},
+]
 for _a in ALGOS:
     _a.setdefault("kind", "func"); _a.setdefault("group", "Algorithms")
 for _a in STRUCTS:
     _a.setdefault("group", "Data structures")
 ALGOS.extend(STRUCTS)
+ALGOS.extend(OTHERS)
 for _a in ALGOS:
+    _a["pkgs"] = {"sql": ["sqlite3"], "script": ["sqlite3"], "webapp": ["jinja2"]}.get(_a["kind"], [])
     _a["limit_ms"] = _a.get("limit_min", 5) * 60000
     _a["limit_min"] = _a.get("limit_min", 5)
 
