@@ -23,6 +23,36 @@
       gut.scrollTop = ta.scrollTop;
     }
     ta.addEventListener('input', draw);
+    /* Python auto-indent: Enter keeps the current indent, adds 4 after a line ending in ":",
+       and steps back 4 after return/pass/break/continue/raise. Backspace in leading spaces
+       removes one indent level. Works with the iPad soft and hardware keyboards. */
+    function fire(type) { ta.dispatchEvent(new InputEvent('input', { inputType: type, bubbles: true })); }
+    ta.addEventListener('keydown', function (e) {
+      if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+      var a = ta.selectionStart, b = ta.selectionEnd;
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        var before = ta.value.slice(0, a);
+        var line = before.slice(before.lastIndexOf('\n') + 1);
+        var indent = line.match(/^ */)[0].length;
+        var code = line.replace(/#.*$/, '').replace(/\s+$/, '');
+        if (/:$/.test(code)) indent += 4;
+        else if (/^\s*(return|pass|break|continue|raise)\b/.test(code) && indent >= 4) indent -= 4;
+        ta.setRangeText('\n' + new Array(indent + 1).join(' '), a, b, 'end');
+        fire('insertLineBreak');
+        var lh = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+        var row = ta.value.slice(0, ta.selectionStart).split('\n').length;
+        if ((row + 1) * lh > ta.scrollTop + ta.clientHeight) ta.scrollTop = (row + 1) * lh - ta.clientHeight;
+      } else if (e.key === 'Backspace' && a === b && a > 0) {
+        var bf = ta.value.slice(0, a);
+        var ln = bf.slice(bf.lastIndexOf('\n') + 1);
+        if (ln.length >= 4 && /^ +$/.test(ln) && ln.length % 4 === 0) {
+          e.preventDefault();
+          ta.setRangeText('', a - 4, a, 'end');
+          fire('deleteContentBackward');
+        }
+      }
+    });
     ta.addEventListener('scroll', function () { gut.scrollTop = ta.scrollTop; });
     draw();
     return {

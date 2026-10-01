@@ -13,5 +13,8 @@
   {% endfor %}
   {% endfor %}
 </div>
-<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
+<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a>
+  {% from '_feedback.html' import fb_widget %}
+  {{ fb_widget('speed', 'Speed drills') }}
+</div>
 {% endblock %}

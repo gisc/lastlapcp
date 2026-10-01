@@ -48,7 +48,10 @@
 </div>
 {% endif %}
 </div>
-<div class="card center"><a class="btn ghost" href="{{ url_for('speed_index') }}">All algorithms</a></div>
+<div class="card center"><a class="btn ghost" href="{{ url_for('speed_index') }}">All algorithms</a>
+  {% from '_feedback.html' import fb_widget %}
+  {{ fb_widget('speed:' ~ a.slug, 'Speed drill · ' ~ a.title) }}
+</div>
 <script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
