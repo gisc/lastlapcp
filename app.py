@@ -14,6 +14,7 @@ from flask import (Flask, abort, g, redirect, render_template, request, send_fro
                    session, url_for)
 from authlib.integrations.flask_client import OAuth
 import papers_data
+import speed_data
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 SGT = timezone(timedelta(hours=8))
@@ -156,6 +157,16 @@ CREATE TABLE IF NOT EXISTS feedback(
   message TEXT NOT NULL, created_at TEXT NOT NULL,
   useful INTEGER NOT NULL DEFAULT 0, useful_at TEXT DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_feedback_user ON feedback(user_id);
+CREATE TABLE IF NOT EXISTS speed_attempts(
+  id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
+  algo TEXT NOT NULL, mode TEXT NOT NULL, started_at TEXT NOT NULL,
+  finished_at TEXT DEFAULT '', elapsed_ms INTEGER NOT NULL DEFAULT 0,
+  passed INTEGER NOT NULL DEFAULT 0, runs INTEGER NOT NULL DEFAULT 0,
+  code TEXT NOT NULL DEFAULT '', paste_count INTEGER NOT NULL DEFAULT 0,
+  flagged INTEGER NOT NULL DEFAULT 0, flag_note TEXT NOT NULL DEFAULT '',
+  cleared INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_speed_algo ON speed_attempts(algo, passed);
+CREATE INDEX IF NOT EXISTS idx_speed_user ON speed_attempts(user_id);
 """
 
 # One-time stem fixes: rename live rows in place (keeps question id and attempts)
@@ -1028,6 +1039,155 @@ TRIVIAL_WORDS = {"hi", "hello", "hey", "test", "testing", "ok", "okay", "k", "lo
 
 FB_SHORT_ERR = ("That looks too short or unclear to act on. "
                 "Please describe the error, issue or idea in a sentence or two.")
+
+# ---------------- tier 3 speed drills ----------------
+def _short_name(u):
+    n = (u["name"] or u["email"].split("@")[0]).strip()
+    parts = n.split()
+    return parts[0] + (" " + parts[1][0] + "." if len(parts) > 1 else "")
+
+def _roster_lookup(db):
+    """norm email -> (full name, class) from the roster table, else the ROSTER env. Class is never invented."""
+    rows = [(_norm_email(r["email"]), r["name"], r["class"]) for r in db.execute("SELECT email,name,class FROM roster")]
+    if not rows:
+        rows = [(r["norm"], r["name"], r["class"]) for r in ROSTER_ENV]
+    return {e: (n, c) for e, n, c in rows}
+
+def _speed_board(db, algo, uid):
+    roster = _roster_lookup(db)
+    rows = db.execute(
+        """SELECT a.user_id, a.mode, a.elapsed_ms, u.name, u.email FROM speed_attempts a
+           JOIN users u ON u.id=a.user_id
+           WHERE a.algo=? AND a.passed=1 AND (a.flagged=0 OR a.cleared=1) AND u.role='student'
+           ORDER BY a.elapsed_ms ASC, a.id ASC""", (algo,)).fetchall()
+    seen, board = set(), []
+    for r in rows:
+        if r["user_id"] in seen:
+            continue
+        seen.add(r["user_id"])
+        rn, rc = roster.get(_norm_email(r["email"]), (None, None))
+        board.append({"rank": len(board) + 1, "me": r["user_id"] == uid,
+                      "name": rn or r["name"] or "Student", "cls": rc or "",
+                      "mode": r["mode"], "ms": r["elapsed_ms"], "band": speed_data.band(r["elapsed_ms"])})
+    return board
+
+def _fmt_ms(ms):
+    s = ms / 1000.0
+    return "%d:%04.1f" % (int(s // 60), s % 60)
+app.jinja_env.filters["fmt_ms"] = _fmt_ms
+
+@app.route("/speed")
+@login_required
+def speed_index():
+    db = get_db()
+    u = current_user()
+    items = []
+    for a in speed_data.ALGOS:
+        best = db.execute(
+            """SELECT MIN(elapsed_ms) m FROM speed_attempts WHERE user_id=? AND algo=? AND passed=1
+               AND (flagged=0 OR cleared=1)""", (u["id"], a["slug"])).fetchone()["m"]
+        items.append({"slug": a["slug"], "title": a["title"], "best": best,
+                      "band": speed_data.band(best) if best is not None else ""})
+    return render_template("speed_index.html", items=items)
+
+@app.route("/speed/<slug>")
+@login_required
+def speed_algo(slug):
+    a = speed_data.BY_SLUG.get(slug)
+    if not a:
+        abort(404)
+    db = get_db()
+    u = current_user()
+    mine = db.execute(
+        """SELECT mode, elapsed_ms, passed, flagged, cleared, flag_note, started_at FROM speed_attempts
+           WHERE user_id=? AND algo=? ORDER BY id DESC LIMIT 8""", (u["id"], slug)).fetchall()
+    hist = []
+    for r in mine:
+        hist.append({"mode": r["mode"], "passed": bool(r["passed"]), "ms": r["elapsed_ms"],
+                     "band": speed_data.band(r["elapsed_ms"]) if r["passed"] else "",
+                     "flagged": bool(r["flagged"]) and not r["cleared"],
+                     "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
+    return render_template("speed_algo.html", a=a, board=_speed_board(db, slug, u["id"]), hist=hist,
+                           tests=speed_data.PRE + "\n" + a["tests"])
+
+@app.route("/speed/<slug>/start", methods=["POST"])
+@login_required
+def speed_start(slug):
+    if slug not in speed_data.BY_SLUG:
+        abort(404)
+    data = request.get_json(force=True, silent=True) or {}
+    mode = "drill" if data.get("mode") == "drill" else "practice"
+    db = get_db()
+    u = current_user()
+    cur = db.execute("INSERT INTO speed_attempts(user_id,algo,mode,started_at) VALUES(?,?,?,?)",
+                     (u["id"], slug, mode, datetime.now(timezone.utc).isoformat()))
+    db.commit()
+    return {"ok": True, "id": cur.lastrowid}
+
+@app.route("/speed/<slug>/run/<int:aid>", methods=["POST"])
+@login_required
+def speed_run(slug, aid):
+    db = get_db()
+    u = current_user()
+    row = db.execute("SELECT * FROM speed_attempts WHERE id=? AND user_id=? AND algo=?",
+                     (aid, u["id"], slug)).fetchone()
+    if not row:
+        abort(404)
+    if row["passed"]:
+        return {"ok": True, "done": True, "ms": row["elapsed_ms"]}
+    data = request.get_json(force=True, silent=True) or {}
+    code = str(data.get("code", ""))[:20000]
+    flags = ["Suspected paste: " + str(x)[:160] for x in (data.get("flags") or [])][:20]
+    pastes = int(data.get("paste_count") or 0)
+    passed = 1 if data.get("passed") else 0
+    if passed:
+        # Student code is never executed on the server. The pass/fail comes from the browser,
+        # so rankings rely on suspicion flags (paste, logic check) and teacher review.
+        flags += ["Logic check: " + n for n in speed_data.logic_notes(slug, code)]
+    flagged = 1 if flags else 0
+    now = datetime.now(timezone.utc)
+    ms = int((now - datetime.fromisoformat(row["started_at"])).total_seconds() * 1000) if passed else 0
+    db.execute(
+        """UPDATE speed_attempts SET runs=runs+1, code=?, paste_count=?, flagged=?, flag_note=?,
+           passed=?, elapsed_ms=?, finished_at=? WHERE id=?""",
+        (code, pastes, flagged, "; ".join(flags), passed, ms, now.isoformat() if passed else "", aid))
+    db.commit()
+    out = {"ok": True, "done": bool(passed), "ms": ms, "flagged": bool(flagged),
+           "paste_flag": any(f.startswith("Suspected paste") for f in flags),
+           "logic_flag": any(f.startswith("Logic check") for f in flags)}
+    if passed:
+        out["band"] = speed_data.band(ms)
+    return out
+
+@app.route("/teacher/speed")
+@teacher_required
+def teacher_speed():
+    db = get_db()
+    rows = db.execute(
+        """SELECT a.*, u.name, u.email FROM speed_attempts a JOIN users u ON u.id=a.user_id
+           WHERE u.role='student' ORDER BY a.id DESC LIMIT 300""").fetchall()
+    items = []
+    for r in rows:
+        items.append({"id": r["id"], "name": r["name"] or r["email"], "email": r["email"],
+                      "algo": speed_data.BY_SLUG[r["algo"]]["title"] if r["algo"] in speed_data.BY_SLUG else r["algo"],
+                      "mode": r["mode"], "passed": bool(r["passed"]), "ms": r["elapsed_ms"], "runs": r["runs"],
+                      "band": speed_data.band(r["elapsed_ms"]) if r["passed"] else "",
+                      "flagged": bool(r["flagged"]), "cleared": bool(r["cleared"]), "note": r["flag_note"],
+                      "pastes": r["paste_count"], "code": r["code"],
+                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
+    return render_template("teacher_speed.html", items=items)
+
+@app.route("/teacher/speed/<int:aid>/toggle", methods=["POST"])
+@teacher_required
+def teacher_speed_toggle(aid):
+    db = get_db()
+    row = db.execute("SELECT flagged FROM speed_attempts WHERE id=?", (aid,)).fetchone()
+    if row and row["flagged"]:
+        db.execute("UPDATE speed_attempts SET cleared=1-cleared WHERE id=?", (aid,))
+    elif row:
+        db.execute("UPDATE speed_attempts SET flagged=1, cleared=0, flag_note='Held by teacher' WHERE id=?", (aid,))
+    db.commit()
+    return redirect(url_for("teacher_speed"))
 
 @app.route("/feedback", methods=["POST"])
 @login_required

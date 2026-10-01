@@ -103,3 +103,22 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .elabel { font-weight: 700; margin-top: 3px; }
 .elabel span { font-weight: 400; color: #cfe0f5; font-size: .8rem; }
 .edate { color: #cfe0f5; font-size: .82rem; margin-top: 1px; }
+
+/* speed drills */
+.speedbtn { background: var(--gold); color: #1a1a1a; margin-bottom: 10px; }
+.ghostbtn { background: #fff; color: var(--navy); border: 2px solid var(--navy); }
+.sclock { font-size: 3rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; color: var(--navy); }
+.sclock.over, .sclock.red { color: #d12a2a; }
+.sclock.warn, .sclock.orange { color: #e08a00; }
+.sclock.green { color: #1f8f4e; }
+.sbest { font-weight: 700; font-size: .85rem; padding: 2px 8px; border-radius: 999px; background: #e7edf5; color: var(--navy); }
+.sbest.green { background: #d6f2e0; color: #176b3a; } .sbest.orange { background: #ffe6bf; color: #8a5200; } .sbest.red { background: #ffd4d4; color: #9b1c1c; }
+.sboard { list-style: none; padding: 0; margin: 10px 0 0; }
+.srow2 { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; font-weight: 600; }
+.srow2.green { background: #d6f2e0; color: #0f4a27; } .srow2.orange { background: #ffe6bf; color: #6b4000; } .srow2.red { background: #ffd4d4; color: #7a1414; }
+.srow2.me { outline: 3px solid var(--navy); }
+.srank { width: 1.6rem; font-weight: 800; } .sn { flex: 1; } .smode { font-size: .75rem; opacity: .7; text-transform: capitalize; } .st { font-variant-numeric: tabular-nums; font-weight: 800; }
+.codeblock.smallcode { font-size: .8rem; }
+#clocklabel { text-align: center; margin-bottom: 8px; }
+.scls { font-size: .72rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,.1); margin-left: 4px; }
+.you { font-weight: 600; opacity: .75; }

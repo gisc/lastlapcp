@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - Speed drills{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span></div>
+  <h1>Algorithm speed drills</h1>
+  <p class="muted">Type each algorithm from memory, against the clock. Target: under 5 minutes.</p>
+  {% for i in items %}
+  <a class="btn big" href="{{ url_for('speed_algo', slug=i.slug) }}">{{ i.title }}&nbsp;
+    {% if i.best is not none %}<span class="sbest {{ i.band }}">best {{ i.best|fmt_ms }}</span>{% else %}<span class="muted">not tried</span>{% endif %}</a>
+  {% endfor %}
+</div>
+<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
+{% endblock %}

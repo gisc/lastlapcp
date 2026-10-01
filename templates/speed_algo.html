@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ a.title }} speed drill{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span><span class="tag">Speed drill</span></div>
+  <h1>{{ a.title }}</h1>
+  <div id="intro">
+    <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. Your function must be called <b>{{ a.fn }}</b>.</p>
+    <pre class="codeblock smallcode">{{ a.sample }}</pre>
+    <button class="btn big" id="bpractice" type="button">Practise</button>
+    <button class="btn big ghostbtn" id="bdrill" type="button">Drill (5 min countdown)</button>
+    <p class="muted small"><b>Practise</b>: the timer counts up and turns red after 5:00. <b>Drill</b>: a 5:00 countdown; when it hits zero it stops, and you can still finish and submit.</p>
+  </div>
+  <div id="work" style="display:none">
+    <div id="clock" class="sclock">0:00</div>
+    <div id="clocklabel" class="muted center"></div>
+    <textarea id="code" class="field code-input" rows="16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type {{ a.fn }} here..."></textarea>
+    <button class="btn big" id="run" type="button">Run tests and submit</button>
+    <div id="status" class="verdict" style="display:none"></div>
+    <pre id="output" class="codeblock" style="display:none"></pre>
+    <div id="pastenote" class="muted small" style="display:none"></div>
+    <div id="after" style="display:none"><a class="btn big" href="">Try again</a></div>
+  </div>
+</div>
+<div class="card" id="boardcard">
+  <h2>Leaderboard</h2>
+  <p class="muted small">Best time per student. Green: within 5:00. Orange: over 5:00, under 6:00. Red: 6:00 or more.</p>
+  {% if board %}
+  <ol class="sboard">
+    {% for r in board %}
+    <li class="srow2 {{ r.band }}{{ ' me' if r.me }}"><span class="srank">{{ r.rank }}</span><span class="sn">{{ r.name }}{% if r.me %} <span class="you">(you)</span>{% endif %}{% if r.cls %} <span class="scls">{{ r.cls }}</span>{% endif %}</span><span class="smode">{{ r.mode }}</span><span class="st">{{ r.ms|fmt_ms }}</span></li>
+    {% endfor %}
+  </ol>
+  {% else %}<p class="muted">No finished runs yet. Be the first.</p>{% endif %}
+</div>
+<div id="histwrap">
+{% if hist %}
+<div class="card" id="histcard">
+  <h2>Your recent attempts</h2>
+  <ul class="blist">
+    {% for h in hist %}
+    <li class="bitem {{ {'green':'bgreen','orange':'borange','red':'bred'}.get(h.band, 'bgrey') }}">
+      {{ h.when }} &middot; {{ h.mode }} &middot; {% if h.passed %}{{ h.ms|fmt_ms }}{% else %}not finished{% endif %}
+      {% if h.flagged %}<div class="bfeedback">Held for teacher review (suspected paste or logic check). Not on the leaderboard unless your teacher clears it.</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+</div>
+<div class="card center"><a class="btn ghost" href="{{ url_for('speed_index') }}">All algorithms</a></div>
+<script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
+<script>
+const TESTS = {{ tests|tojson }};
+const SLUG = {{ a.slug|tojson }};
+const LIMIT = 300000;
+let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false, running = false;
+const flags = [], history = [];
+let pasteCount = 0, copied = '', justPasted = false;
+const code = document.getElementById('code');
+const norm = s => (s || '').replace(/\s+/g, ' ').trim();
+function getPy() {
+  if (!pyP) pyP = loadPyodide({ indexURL: "{{ url_for('static', filename='pyodide') }}/" });
+  return pyP;
+}
+getPy().catch(() => {});
+function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+function fmt(ms) { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function tick() {
+  if (done) return;
+  const el = performance.now() - t0, c = document.getElementById('clock');
+  if (mode === 'practice') {
+    c.textContent = fmt(el);
+    c.className = 'sclock' + (el > LIMIT ? ' over' : '');
+    document.getElementById('clocklabel').textContent = el > LIMIT ? 'Over 5:00 - keep going' : 'Practice';
+  } else if (el < LIMIT) {
+    c.textContent = fmt(LIMIT - el);
+    c.className = 'sclock' + (LIMIT - el < 30000 ? ' warn' : '');
+    document.getElementById('clocklabel').textContent = 'Drill - time left';
+  } else {
+    c.textContent = '0:00';
+    c.className = 'sclock over';
+    document.getElementById('clocklabel').textContent = 'Time is up. Keep going and submit - your finish time is still recorded.';
+  }
+}
+async function begin(m) {
+  mode = m;
+  document.getElementById('bpractice').disabled = true; document.getElementById('bdrill').disabled = true;
+  try {
+    const r = await fetch('/speed/' + SLUG + '/start', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }) });
+    attemptId = (await r.json()).id;
+  } catch (e) { alert('Could not start - check your connection.'); location.reload(); return; }
+  show('intro', false); show('work', true);
+  t0 = performance.now(); tick(); timer = setInterval(tick, 250);
+  code.focus();
+}
+document.getElementById('bpractice').addEventListener('click', () => begin('practice'));
+document.getElementById('bdrill').addEventListener('click', () => begin('drill'));
+
+// Whole-chunk paste detection. A paste is fine if the text already exists in this cell
+// (copying your own code to adapt it), otherwise it is flagged for the teacher.
+function judge(text, how) {
+  pasteCount++;
+  const n = norm(text);
+  if (!n) return;
+  const chunk = text.length >= 25 || text.split('\n').length >= 2;
+  if (!chunk) return;
+  if (copied && n === copied) return;
+  if (history.some(v => norm(v).includes(n))) return;
+  flags.push(how + ' of ' + text.length + ' chars not already in the cell, at ' + fmt(performance.now() - t0));
+  const pn = document.getElementById('pastenote');
+  pn.textContent = 'A pasted chunk that was not already in this cell was detected. The page cannot tell where it came from, so this attempt is marked for your teacher to review and will not be ranked until they clear it.';
+  show('pastenote', true);
+}
+['copy', 'cut'].forEach(ev => code.addEventListener(ev, () => {
+  const s = code.value.slice(code.selectionStart, code.selectionEnd);
+  if (s) copied = norm(s);
+}));
+code.addEventListener('paste', e => {
+  justPasted = true;
+  judge((e.clipboardData || window.clipboardData).getData('text') || '', 'Paste');
+});
+code.addEventListener('drop', e => {
+  justPasted = true;
+  judge((e.dataTransfer && e.dataTransfer.getData('text')) || '', 'Drop');
+});
+let prevVal = '';
+code.addEventListener('input', e => {
+  if (justPasted) { justPasted = false; }
+  else if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || (e.data && e.data.length >= 25)) {
+    const n = Math.max(0, code.value.length - prevVal.length);
+    judge(e.data || code.value.slice(Math.max(0, code.selectionEnd - n), code.selectionEnd), 'Large insert');
+  }
+  if (history.length === 0 || history[history.length - 1] !== prevVal) { history.push(prevVal); if (history.length > 60) history.shift(); }
+  prevVal = code.value;
+});
+code.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = code.selectionStart;
+    code.value = code.value.slice(0, s) + '    ' + code.value.slice(code.selectionEnd);
+    code.selectionStart = code.selectionEnd = s + 4;
+  }
+});
+
+document.getElementById('run').addEventListener('click', async () => {
+  if (done || running) return;
+  running = true;
+  const st = document.getElementById('status'), out = document.getElementById('output');
+  st.className = 'verdict'; show('status', true); show('output', false);
+  st.textContent = 'Running tests...';
+  let passed = false, text = '';
+  try {
+    const py = await getPy();
+    py.globals.set('_SRC', code.value);
+    const lines = [];
+    py.setStdout({ batched: s => lines.push(s) });
+    py.setStderr({ batched: s => lines.push(s) });
+    try {
+      await py.runPythonAsync(code.value + '\n\n' + TESTS);
+      passed = true;
+    } catch (err) {
+      const raw = (err && err.message) || String(err);
+      const keep = raw.split('\n').filter(l => {
+        const t = l.trim();
+        if (!t || t.startsWith('Traceback')) return false;
+        if (l.includes('python312.zip') || l.includes('_pyodide') || l.includes('_ban') || l.includes('_res')) return false;
+        if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
+        return true;
+      });
+      text = keep.slice(-5).join('\n');
+    }
+    if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
+  } catch (err) { text = 'Could not start the Python runtime: ' + ((err && err.message) || err); }
+  let j = null;
+  try {
+    const r = await fetch('/speed/' + SLUG + '/run/' + attemptId, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code.value, passed, flags, paste_count: pasteCount }) });
+    j = await r.json();
+  } catch (e) {}
+  running = false;
+  if (passed && j && j.done) {
+    done = true; clearInterval(timer);
+    const ms = j.ms;
+    const c = document.getElementById('clock');
+    c.textContent = (ms / 1000 >= 60 ? Math.floor(ms / 60000) + ':' : '0:') + String(((ms / 1000) % 60).toFixed(1)).padStart(4, '0');
+    c.className = 'sclock ' + j.band;
+    document.getElementById('clocklabel').textContent = 'Finished in';
+    out.textContent = 'All tests passed.'; show('output', true);
+    st.className = 'verdict good';
+    st.textContent = j.paste_flag ? 'Tests passed. A suspected paste was detected, so this attempt is held for teacher review and is not ranked yet.'
+      : j.logic_flag ? 'Tests passed, but the code does not clearly look like this algorithm, so it is held for teacher review and is not ranked yet.'
+      : (j.band === 'green' ? 'Done - within 5:00!' : j.band === 'orange' ? 'Done - a little over 5:00.' : 'Done - over 6:00. Go again.');
+    show('after', true);
+    document.getElementById('run').style.display = 'none';
+    document.querySelector('#after a').href = location.href;
+    try {
+      const html = await (await fetch(location.href, { credentials: 'same-origin' })).text();
+      const d = new DOMParser().parseFromString(html, 'text/html');
+      const nb = d.getElementById('boardcard'), nh = d.getElementById('histwrap');
+      if (nb) document.getElementById('boardcard').replaceWith(nb);
+      if (nh) document.getElementById('histwrap').replaceWith(nh);
+    } catch (e) {}
+  } else {
+    out.textContent = passed ? 'Tests passed but the result was not saved. Check your connection and press again.' : text;
+    show('output', true);
+    st.className = 'verdict bad';
+    st.textContent = passed ? 'Not saved yet.' : 'Not passing yet - the clock keeps running.';
+  }
+});
+</script>
+{% endblock %}
