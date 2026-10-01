@@ -122,3 +122,16 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 #clocklabel { text-align: center; margin-bottom: 8px; }
 .scls { font-size: .72rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,.1); margin-left: 4px; }
 .you { font-weight: 600; opacity: .75; }
+
+/* line-number gutter beside code editors */
+.codewrap { display: flex; align-items: stretch; width: 100%; margin: 6px 0; }
+.codewrap .gutter, .codewrap textarea.code-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95rem; line-height: 1.5; padding-top: 10px; padding-bottom: 10px; box-sizing: border-box; margin: 0; }
+.codewrap .gutter { flex: 0 0 auto; min-width: 2.6em; padding-left: 6px; padding-right: 8px; text-align: right;
+  background: #eef2f8; color: #7a879c; border: 1px solid #cdd7e4; border-right: 0; border-radius: 8px 0 0 8px;
+  overflow: hidden; user-select: none; -webkit-user-select: none; }
+.codewrap .gutter span { display: block; }
+.codewrap .gutter span.errline { background: #ffd9d9; color: #a11; font-weight: 800; }
+.codewrap textarea.code-input { flex: 1 1 auto; width: auto; min-width: 0; border-radius: 0 8px 8px 0;
+  white-space: pre; overflow: auto; resize: none; }

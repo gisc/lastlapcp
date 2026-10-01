@@ -238,6 +238,24 @@ def seed_t3(db):
             if (part["rubric"] or "") != seed_rubric or (part["model"] or "") != seed_model:
                 db.execute("UPDATE t3_parts SET rubric=?, model=? WHERE question_id=? AND ord=1",
                            (seed_rubric, seed_model, row["id"]))
+    # 2026-10-01: circular queue parts 1-2 never said _rear starts at -1, so a student who
+    # started it at 0 failed with a confusing message. Patch the stored rows only while they
+    # still hold the previous seed text (a teacher-edited part is left alone).
+    cq = next((q for q in bank if q["title"] == "Implement a circular queue"), None)
+    cq_old = [
+        ("Write the constructor __init__(capacity) that sets up a fixed-size list self._items of capacity None values, plus self._capacity, self._front, self._rear and a count self._count. Then write is_empty() and is_full() using the count.",
+         "q = CircularQueue(3)\nassert q.is_empty() == True and q.is_full() == False, 'a new queue is empty, not full'\nassert len(q._items) == 3, 'the underlying list has exactly capacity slots'"),
+        ("Add enqueue(item). It returns False when the queue is full. Otherwise it moves _rear forward by one slot, wrapping back to index 0 at the end of the list, stores the item there, and returns True. (Wrap with modulo: (self._rear + 1) % self._capacity.)",
+         "q = CircularQueue(3)\nassert q.enqueue('a') == True and q.enqueue('b') == True and q.enqueue('c') == True\nassert q.is_full() == True, 'three items fill a capacity-3 queue'\nassert q.enqueue('d') == False, 'enqueue on a full queue returns False'\nassert q._rear == 2, 'rear sits on the last stored item'"),
+    ]
+    if cq:
+        row = db.execute("SELECT id FROM t3_questions WHERE title=?", (cq["title"],)).fetchone()
+        if row:
+            for i, (oi, ot) in enumerate(cq_old, 1):
+                part = db.execute("SELECT instruction, tests FROM t3_parts WHERE question_id=? AND ord=?", (row["id"], i)).fetchone()
+                if part and part["instruction"] == oi and part["tests"] == ot:
+                    db.execute("UPDATE t3_parts SET instruction=?, tests=? WHERE question_id=? AND ord=?",
+                               (cq["parts"][i - 1]["instruction"], cq["parts"][i - 1]["tests"], row["id"], i))
     # 2026-09-30: feedback XP columns for DBs created before they existed
     fbcols = [r["name"] for r in db.execute("PRAGMA table_info(feedback)")]
     if "useful" not in fbcols:

@@ -55,15 +55,15 @@
   "intro": "A circular queue stores items in a fixed-size list and wraps the front and rear indexes around when they reach the end, so freed slots get reused. Build it part by part: constructor and state checks, enqueue, then dequeue. (Syllabus 1.3.3 / 2.3.3: create, insert and delete for linear and circular queues.)",
   "parts": [
    {
-    "instruction": "Write the constructor __init__(capacity) that sets up a fixed-size list self._items of capacity None values, plus self._capacity, self._front, self._rear and a count self._count. Then write is_empty() and is_full() using the count.",
+    "instruction": "Write the constructor __init__(capacity) that sets up a fixed-size list self._items of capacity None values, plus self._capacity, self._front, self._rear and a count self._count. Start _front at 0 and _rear at -1: _rear is the slot of the last stored item, so with an empty queue it sits one step behind _front and the first enqueue will land in slot 0. Then write is_empty() and is_full() using the count.",
     "starter": "class CircularQueue:\n    def __init__(self, capacity):\n        # fixed-size list of None, plus _capacity, _front, _rear and _count\n        pass\n\n    def is_empty(self):\n        pass\n\n    def is_full(self):\n        pass",
-    "tests": "q = CircularQueue(3)\nassert q.is_empty() == True and q.is_full() == False, 'a new queue is empty, not full'\nassert len(q._items) == 3, 'the underlying list has exactly capacity slots'",
+    "tests": "q = CircularQueue(3)\nassert q.is_empty() == True and q.is_full() == False, 'a new queue is empty, not full'\nassert len(q._items) == 3, 'the underlying list has exactly capacity slots'\nassert q._front == 0 and q._rear == -1, 'start _front at 0 and _rear at -1 (the slot before the first item), so the first enqueue lands in slot 0'",
     "model": "class CircularQueue:\n    def __init__(self, capacity):\n        self._items = [None] * capacity\n        self._capacity = capacity\n        self._front = 0\n        self._rear = -1\n        self._count = 0\n\n    def is_empty(self):\n        return self._count == 0\n\n    def is_full(self):\n        return self._count == self._capacity"
    },
    {
-    "instruction": "Add enqueue(item). It returns False when the queue is full. Otherwise it moves _rear forward by one slot, wrapping back to index 0 at the end of the list, stores the item there, and returns True. (Wrap with modulo: (self._rear + 1) % self._capacity.)",
+    "instruction": "Add enqueue(item). It returns False when the queue is full. Otherwise it moves _rear forward by one slot, wrapping back to index 0 at the end of the list, stores the item there, and returns True. (This relies on _rear starting at -1. Wrap with modulo: (self._rear + 1) % self._capacity.)",
     "starter": "    def enqueue(self, item):\n        # return False if full; otherwise advance _rear (wrapping) and store item\n        pass",
-    "tests": "q = CircularQueue(3)\nassert q.enqueue('a') == True and q.enqueue('b') == True and q.enqueue('c') == True\nassert q.is_full() == True, 'three items fill a capacity-3 queue'\nassert q.enqueue('d') == False, 'enqueue on a full queue returns False'\nassert q._rear == 2, 'rear sits on the last stored item'",
+    "tests": "q = CircularQueue(3)\nassert q.enqueue('a') == True and q.enqueue('b') == True and q.enqueue('c') == True\nassert q.is_full() == True, 'three items fill a capacity-3 queue'\nassert q.enqueue('d') == False, 'enqueue on a full queue returns False'\nassert q._items == ['a', 'b', 'c'], 'items go into slots 0, 1, 2 in order - if slot 0 is empty, __init__ probably set _rear to 0 instead of -1'\nassert q._rear == 2, 'rear sits on the last stored item'",
     "model": "    def enqueue(self, item):\n        if self.is_full():\n            return False\n        self._rear = (self._rear + 1) % self._capacity\n        self._items[self._rear] = item\n        self._count += 1\n        return True"
    },
    {

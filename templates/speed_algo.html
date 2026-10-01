@@ -50,6 +50,7 @@
 </div>
 <div class="card center"><a class="btn ghost" href="{{ url_for('speed_index') }}">All algorithms</a></div>
 <script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
+<script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ tests|tojson }};
 const SLUG = {{ a.slug|tojson }};
@@ -58,6 +59,7 @@ let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false,
 const flags = [], history = [];
 let pasteCount = 0, copied = '', justPasted = false;
 const code = document.getElementById('code');
+const gutter = CodeEdit.attach(code);
 const norm = s => (s || '').replace(/\s+/g, ' ').trim();
 function getPy() {
   if (!pyP) pyP = loadPyodide({ indexURL: "{{ url_for('static', filename='pyodide') }}/" });
@@ -141,6 +143,7 @@ code.addEventListener('keydown', e => {
     const s = code.selectionStart;
     code.value = code.value.slice(0, s) + '    ' + code.value.slice(code.selectionEnd);
     code.selectionStart = code.selectionEnd = s + 4;
+    gutter.refresh();
   }
 });
 
@@ -151,6 +154,8 @@ document.getElementById('run').addEventListener('click', async () => {
   st.className = 'verdict'; show('status', true); show('output', false);
   st.textContent = 'Running tests...';
   let passed = false, text = '';
+  gutter.mark(0);
+  const nStudent = code.value.split('\n').length;
   try {
     const py = await getPy();
     py.globals.set('_SRC', code.value);
@@ -169,7 +174,9 @@ document.getElementById('run').addEventListener('click', async () => {
         if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
         return true;
       });
-      text = keep.slice(-5).join('\n');
+      const fx = CodeEdit.fixTrace(keep.slice(-5).join('\n'), nStudent);
+      text = fx.text;
+      if (fx.line) gutter.mark(fx.line);
     }
     if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
   } catch (err) { text = 'Could not start the Python runtime: ' + ((err && err.message) || err); }

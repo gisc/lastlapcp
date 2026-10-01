@@ -26,17 +26,20 @@
   {{ fb_widget('t3p:' ~ q['id'] ~ ':' ~ ord, 'Tier 3 · ' ~ q['topic'] ~ ': ' ~ q['title'] ~ ' (part ' ~ ord ~ ')') }}
 </div>
 <script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
+<script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ part['tests']|tojson }};
 const ATTEMPT_URL = {{ url_for('t3_record', qid=q['id'], ord=ord)|tojson }};
 let pyP = null;
 const code = document.getElementById('code');
+const gutter = CodeEdit.attach(code);
 code.addEventListener('keydown', e => {
   if (e.key === 'Tab') {
     e.preventDefault();
     const s = code.selectionStart;
     code.value = code.value.slice(0, s) + '    ' + code.value.slice(code.selectionEnd);
     code.selectionStart = code.selectionEnd = s + 4;
+    gutter.refresh();
   }
 });
 function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
@@ -49,6 +52,8 @@ document.getElementById('run').addEventListener('click', async () => {
   st.className = 'verdict'; show('status', true); show('output', false);
   st.textContent = 'Loading Python runtime (first load downloads about 13 MB)...';
   let passed = false, text = '';
+  gutter.mark(0);
+  const nStudent = code.value.split('\n').length;
   try {
     const py = await getPy();
     st.textContent = 'Running tests...';
@@ -67,7 +72,9 @@ document.getElementById('run').addEventListener('click', async () => {
         if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
         return true;
       });
-      text = keep.slice(-6).join('\n');
+      const fx = CodeEdit.fixTrace(keep.slice(-6).join('\n'), nStudent);
+      text = fx.text;
+      if (fx.line) gutter.mark(fx.line);
     }
     if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
   } catch (err) {
