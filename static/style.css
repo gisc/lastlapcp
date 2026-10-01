@@ -135,3 +135,10 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .codewrap .gutter span.errline { background: #ffd9d9; color: #a11; font-weight: 800; }
 .codewrap textarea.code-input { flex: 1 1 auto; width: auto; min-width: 0; border-radius: 0 8px 8px 0;
   white-space: pre; overflow: auto; resize: none; }
+
+.stbtn { background: none; border: 0; font: inherit; font-weight: 700; color: inherit; cursor: pointer; text-decoration: underline dotted; padding: 4px 6px; min-height: 32px; }
+.cmodal { position: fixed; inset: 0; background: rgba(10,20,40,.7); z-index: 1000; align-items: center; justify-content: center; padding: 14px; }
+.cmbox { background: #fff; border-radius: 14px; max-width: 720px; width: 100%; max-height: 88vh; display: flex; flex-direction: column; padding: 14px; gap: 8px; }
+.cmhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cmtitle { font-weight: 700; color: var(--navy); }
+.cmcode { overflow: auto; flex: 1; margin: 0; white-space: pre; tab-size: 4; text-align: left; }

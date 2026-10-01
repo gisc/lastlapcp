@@ -24,11 +24,11 @@
 </div>
 <div class="card" id="boardcard">
   <h2>Leaderboard</h2>
-  <p class="muted small">Best time per student. Green: within {{ a.limit_min }}:00. Orange: over {{ a.limit_min }}:00, under {{ a.limit_min + 1 }}:00. Red: {{ a.limit_min + 1 }}:00 or more.</p>
+  <p class="muted small">Tap a time to see the code behind it. Best time per student. Green: within {{ a.limit_min }}:00. Orange: over {{ a.limit_min }}:00, under {{ a.limit_min + 1 }}:00. Red: {{ a.limit_min + 1 }}:00 or more.</p>
   {% if board %}
   <ol class="sboard">
     {% for r in board %}
-    <li class="srow2 {{ r.band }}{{ ' me' if r.me }}"><span class="srank">{{ r.rank }}</span><span class="sn">{{ r.name }}{% if r.me %} <span class="you">(you)</span>{% endif %}{% if r.cls %} <span class="scls">{{ r.cls }}</span>{% endif %}</span><span class="smode">{{ r.mode }}</span><span class="st">{{ r.ms|fmt_ms }}</span></li>
+    <li class="srow2 {{ r.band }}{{ ' me' if r.me }}"><span class="srank">{{ r.rank }}</span><span class="sn">{{ r.name }}{% if r.me %} <span class="you">(you)</span>{% endif %}{% if r.cls %} <span class="scls">{{ r.cls }}</span>{% endif %}</span><span class="smode">{{ r.mode }}</span><button type="button" class="st stbtn" data-aid="{{ r.aid }}" title="View submitted code">{{ r.ms|fmt_ms }}</button></li>
     {% endfor %}
   </ol>
   {% else %}<p class="muted">No finished runs yet. Be the first.</p>{% endif %}
@@ -52,6 +52,33 @@
   {% from '_feedback.html' import fb_widget %}
   {{ fb_widget('speed:' ~ a.slug, 'Speed drill · ' ~ a.title) }}
 </div>
+<div id="codemodal" class="cmodal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cmtitle">
+  <div class="cmbox">
+    <div class="cmhead"><div id="cmtitle" class="cmtitle"></div><button type="button" id="cmclose" class="btn ghost small" aria-label="Close">Close</button></div>
+    <pre id="cmcode" class="codeblock cmcode"></pre>
+    <p class="muted small">Submitted code, shown as text only. It is not run here.</p>
+  </div>
+</div>
+<script>
+(function(){
+  const m = document.getElementById('codemodal'), pre = document.getElementById('cmcode'), ttl = document.getElementById('cmtitle');
+  function close(){ m.style.display = 'none'; pre.textContent = ''; }
+  document.getElementById('cmclose').addEventListener('click', close);
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && m.style.display !== 'none') close(); });
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('.stbtn'); if (!b) return;
+    ttl.textContent = 'Loading...'; pre.textContent = ''; m.style.display = 'flex';
+    try {
+      const r = await fetch(location.pathname.replace(/\/$/, '') + '/code/' + b.dataset.aid, { credentials: 'same-origin' });
+      if (!r.ok) throw 0;
+      const j = await r.json();
+      ttl.textContent = j.name + (j.cls ? ' (' + j.cls + ')' : '') + ' - ' + j.time + ' - ' + j.mode;
+      pre.textContent = j.code || '(no code saved)';
+    } catch (err) { ttl.textContent = 'Could not load this code.'; }
+  });
+})();
+</script>
 <script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>

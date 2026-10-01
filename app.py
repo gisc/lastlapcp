@@ -11,7 +11,7 @@ from datetime import date, datetime, timedelta, timezone
 from functools import wraps
 
 from flask import (Flask, abort, g, redirect, render_template, request, send_from_directory,
-                   session, url_for)
+                   jsonify, session, url_for)
 from authlib.integrations.flask_client import OAuth
 import papers_data
 import speed_data
@@ -1074,7 +1074,7 @@ def _roster_lookup(db):
 def _speed_board(db, algo, uid):
     roster = _roster_lookup(db)
     rows = db.execute(
-        """SELECT a.user_id, a.mode, a.elapsed_ms, u.name, u.email FROM speed_attempts a
+        """SELECT a.id AS aid, a.user_id, a.mode, a.elapsed_ms, u.name, u.email FROM speed_attempts a
            JOIN users u ON u.id=a.user_id
            WHERE a.algo=? AND a.passed=1 AND (a.flagged=0 OR a.cleared=1) AND u.role='student'
            ORDER BY a.elapsed_ms ASC, a.id ASC""", (algo,)).fetchall()
@@ -1084,7 +1084,7 @@ def _speed_board(db, algo, uid):
             continue
         seen.add(r["user_id"])
         rn, rc = roster.get(_norm_email(r["email"]), (None, None))
-        board.append({"rank": len(board) + 1, "me": r["user_id"] == uid,
+        board.append({"rank": len(board) + 1, "me": r["user_id"] == uid, "aid": r["aid"],
                       "name": rn or r["name"] or "Student", "cls": rc or "",
                       "mode": r["mode"], "ms": r["elapsed_ms"], "band": speed_data.band(r["elapsed_ms"], algo)})
     return board
@@ -1128,6 +1128,22 @@ def speed_algo(slug):
                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
     return render_template("speed_algo.html", a=a, board=_speed_board(db, slug, u["id"]), hist=hist,
                            tests=speed_data.PRE + "\n" + a["tests"])
+
+@app.route("/speed/<slug>/code/<int:aid>")
+@login_required
+def speed_code(slug, aid):
+    """Code behind one leaderboard time. Only an attempt currently shown on this algorithm's board
+    (a student's best, passed, not held) can be opened, by any signed-in user. Returned as JSON text."""
+    if slug not in speed_data.BY_SLUG:
+        abort(404)
+    db = get_db()
+    u = current_user()
+    entry = next((r for r in _speed_board(db, slug, u["id"]) if r["aid"] == aid), None)
+    if not entry:
+        abort(404)
+    row = db.execute("SELECT code FROM speed_attempts WHERE id=?", (aid,)).fetchone()
+    return jsonify({"name": entry["name"], "cls": entry["cls"], "mode": entry["mode"],
+                    "time": _fmt_ms(entry["ms"]), "code": row["code"] if row else ""})
 
 @app.route("/speed/<slug>/start", methods=["POST"])
 @login_required
