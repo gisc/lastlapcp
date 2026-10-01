@@ -48,6 +48,7 @@
       if (n <= nStudent) { last = n; return 'Your code, line ' + n + where; }
       return 'Checker test (hidden, not a line in your code)';
     });
+    out = out.filter(function (l, i) { return i === 0 || l !== out[i - 1] || l.indexOf('Checker test') !== 0; });
     return { text: out.join('\n'), line: last };
   }
   window.CodeEdit = { attach: attach, fixTrace: fixTrace };
