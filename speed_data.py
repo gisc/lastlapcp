@@ -303,7 +303,7 @@ def _guard(f, *a):
     def tr(fr, ev, arg):
         st[0] += 1
         if st[0] > 300000:
-            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+            raise AssertionError("Your code ran far too long - a loop never stops. Check the while loop on the line named below: does current ever become None, and does every node's next end at None?")
         return tr
     old = sys.gettrace()
     sys.settrace(tr)
@@ -365,14 +365,22 @@ assert _big <= _small * 2 + 10, "insert should be O(1): it took %d steps on a lo
 ll = UnorderedLinkedList()
 for v in _seq:
     ll.insert(v)
-assert _guard(ll.search, 30) is True and _guard(ll.search, 99) is False, "search is wrong"
+for _v in (10, 20, 30):
+    assert _guard(ll.search, _v) is True, "search(%r) should be True - an item is in the list. Check every node, including the last one." % (_v,)
+assert _guard(ll.search, 99) is False, "search for a missing value should be False"
 assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
 assert _show(ll) == [20, 30, 20, 10], "a failed delete must leave the list unchanged: %r" % (_show(ll),)
 assert _guard(ll.delete, 20) is True, "delete(20) should return True (success) when the target is found"
 assert _show(ll) == [30, 20, 10], "delete should remove only the first 20: display() showed %r" % (_show(ll),)
-assert _guard(ll.delete, 10) is True and _show(ll) == [30, 20], "deleting the last item is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 30) is True and _show(ll) == [20], "deleting the head is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
+_r = _guard(ll.delete, 10)
+assert _r is True, "delete(10) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [30, 20], "deleting the last item is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 30)
+assert _r is True, "delete(30) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [20], "deleting the head is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 20)
+assert _r is True, "delete(20) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [], "deleting the only item should leave an empty list"
 assert _guard(ll.delete, 20) is False and _guard(ll.search, 20) is False, "after emptying, delete and search should report not found"
 _guard(ll.insert, 5)
 assert _show(ll) == [5], "insert after emptying the list is wrong"
@@ -439,7 +447,7 @@ def _guard(f, *a):
     def tr(fr, ev, arg):
         st[0] += 1
         if st[0] > 300000:
-            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+            raise AssertionError("Your code ran far too long - a loop never stops. Check the while loop on the line named below: does current ever become None, and does every node's next end at None?")
         return tr
     old = sys.gettrace()
     sys.settrace(tr)
@@ -481,11 +489,17 @@ assert _guard(ll.delete, 1) is False, "delete on an empty list should return Fal
 for v in (30, 10, 20, 20, 5):
     _guard(ll.insert, v)
 assert _show(ll) == [5, 10, 20, 20, 30], "insert should keep the list in ascending order: display() showed %r" % (_show(ll),)
-assert _guard(ll.search, 20) is True and _guard(ll.search, 25) is False and _guard(ll.search, 99) is False, "search is wrong"
+for _v in (5, 10, 20, 30):
+    assert _guard(ll.search, _v) is True, "search(%r) should be True - an item is in the list. Check every node, including the last one." % (_v,)
+assert _guard(ll.search, 25) is False and _guard(ll.search, 99) is False, "search for a missing value should be False"
 assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
 assert _show(ll) == [5, 10, 20, 30], "delete should remove only the first 20: display() showed %r" % (_show(ll),)
-assert _guard(ll.delete, 5) is True and _show(ll) == [10, 20, 30], "deleting the head is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 30) is True and _show(ll) == [10, 20], "deleting the last item is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 5)
+assert _r is True, "delete(5) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [10, 20, 30], "deleting the head is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 30)
+assert _r is True, "delete(30) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [10, 20], "deleting the last item is wrong: %r" % (_show(ll),)
 assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
 assert _show(ll) == [10, 20], "a failed delete must leave the list unchanged"
 _guard(ll.insert, 15)
@@ -573,7 +587,7 @@ def _guard(f, *a):
     def tr(fr, ev, arg):
         st[0] += 1
         if st[0] > 300000:
-            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+            raise AssertionError("Your code ran far too long - a loop never stops. For a circular list, stop when you get back to the head.")
         return tr
     old = sys.gettrace()
     sys.settrace(tr)
@@ -616,14 +630,22 @@ _seq = [10, 20, 30, 20]
 for v in _seq:
     _guard(ll.insert, v)
 _cur = _same(ll, _seq, "after inserts")
-assert _guard(ll.search, 30) is True and _guard(ll.search, 99) is False, "search is wrong"
+for _v in (10, 20, 30):
+    assert _guard(ll.search, _v) is True, "search(%r) should be True - an item is in the list. Check every node, including the last one." % (_v,)
+assert _guard(ll.search, 99) is False, "search for a missing value should be False"
 assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
 _cur = _show(ll)
 assert sorted(_cur) == [10, 20, 30] and len(_cur) == 3, "delete should remove exactly one 20: display() showed %r" % (_cur,)
-assert _guard(ll.delete, 10) is True and sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 10)
+assert _r is True, "delete(10) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
 assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
-assert _guard(ll.delete, 30) is True and _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
+_r = _guard(ll.delete, 30)
+assert _r is True, "delete(30) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
+_r = _guard(ll.delete, 20)
+assert _r is True, "delete(20) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert _show(ll) == [], "deleting the only item should leave an empty list"
 assert _guard(ll.search, 20) is False, "search after emptying should be False"
 _guard(ll.insert, 5)
 assert _show(ll) == [5], "insert after emptying the list is wrong"
@@ -631,8 +653,13 @@ _c = CircularLinkedList()
 for v in (1, 2, 3):
     _guard(_c.insert, v)
 assert _cyclic(_c), "this is not circular: the last node's link should point back to the head"
+for _v in (1, 2, 3):
+    assert _guard(_c.search, _v) is True, "search(%r) should be True - an item is in the list. Check every node, including the last one before you get back to the head." % (_v,)
+assert _guard(_c.search, 9) is False, "search for a missing value should be False"
 assert sorted(_show(_c)) == [1, 2, 3] and len(_show(_c)) == 3, "display() should show each item once, not go round again: %r" % (_show(_c),)
-assert _guard(_c.delete, 2) is True and sorted(_show(_c)) == [1, 3], "delete in a circular list is wrong: %r" % (_show(_c),)
+_r = _guard(_c.delete, 2)
+assert _r is True, "delete(2) should return True when it removes the item, but it returned %r (return True for success, False for not found)" % (_r,)
+assert sorted(_show(_c)) == [1, 3], "delete in a circular list is wrong: %r" % (_show(_c),)
 _c.insert(4)
 assert sorted(_show(_c)) == [1, 3, 4], "insert after a delete is wrong"
 '''},
