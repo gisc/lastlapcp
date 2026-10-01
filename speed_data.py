@@ -248,26 +248,21 @@ for v in range(50):
     q.enqueue(v)
 assert [q.dequeue() for _ in range(50)] == list(range(50)), "order wrong after many enqueues"
 '''},
- {"slug": "linked-list", "title": "Linked list", "fn": "LinkedList", "kind": "class",
+ {"slug": "unordered-linked-list", "title": "Linked list (unordered)", "fn": "UnorderedLinkedList", "kind": "class",
   "sample": '''class Node:
     def __init__(self, value):
         self.value = value
         self.next = None
 
 
-class LinkedList:
+class UnorderedLinkedList:
     def __init__(self):
         self.head = None
 
-    def append(self, value):
+    def insert(self, value):
         node = Node(value)
-        if self.head is None:
-            self.head = node
-            return
-        current = self.head
-        while current.next is not None:
-            current = current.next
-        current.next = node
+        node.next = self.head
+        self.head = node
 
     def search(self, value):
         current = self.head
@@ -291,31 +286,335 @@ class LinkedList:
             current = current.next
         return False
 
-    def to_list(self):
+    def display(self):
         result = []
         current = self.head
         while current is not None:
             result.append(current.value)
             current = current.next
+        print(result)
         return result
 ''',
-  "tests": '''_ban("deque")
-ll = LinkedList()
-assert ll.to_list() == [], "a new LinkedList should give [] from to_list()"
-assert ll.search(1) is False, "search on an empty list should be False"
-assert ll.delete(1) is False, "delete on an empty list should return False"
-for v in (10, 20, 30, 20):
-    ll.append(v)
-assert ll.to_list() == [10, 20, 30, 20], "append should add to the end: got %r" % (ll.to_list(),)
-assert ll.search(30) is True and ll.search(99) is False, "search is wrong"
-assert ll.delete(20) is True, "delete(20) should return True when found"
-assert ll.to_list() == [10, 30, 20], "delete should remove only the first 20: got %r" % (ll.to_list(),)
-assert ll.delete(10) is True and ll.to_list() == [30, 20], "deleting the head is wrong: got %r" % (ll.to_list(),)
-assert ll.delete(20) is True and ll.to_list() == [30], "deleting the tail is wrong: got %r" % (ll.to_list(),)
-assert ll.delete(99) is False, "delete of a missing value should return False"
-assert ll.delete(30) is True and ll.to_list() == [], "deleting the only item should leave an empty list"
-ll.append(5)
-assert ll.to_list() == [5], "append after emptying the list is wrong"
+  "tests": '''_ban("deque", "sorted", "sort")
+import sys, io, re
+def _guard(f, *a):
+    """stop a runaway loop (e.g. a circular list that never comes back to the head)"""
+    st = [0]
+    def tr(fr, ev, arg):
+        st[0] += 1
+        if st[0] > 300000:
+            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+        return tr
+    old = sys.gettrace()
+    sys.settrace(tr)
+    try:
+        return f(*a)
+    finally:
+        sys.settrace(old)
+def _cyclic(l):
+    """True if following the node links from the list ever comes back to a node already seen"""
+    for v in list(vars(l).values()):
+        seen = set(); n = v
+        while n is not None and hasattr(n, "__dict__") and not isinstance(n, (list, dict)):
+            if id(n) in seen:
+                return True
+            seen.add(id(n))
+            nxt = [x for x in vars(n).values() if hasattr(x, "__dict__") and not isinstance(x, (list, dict))]
+            n = nxt[0] if nxt else None
+    return False
+def _show(l):
+    buf = io.StringIO(); old = sys.stdout; sys.stdout = buf
+    try:
+        r = _guard(l.display)
+    finally:
+        sys.stdout = old
+    if r is not None:
+        try:
+            return [int(x) for x in r]
+        except Exception:
+            pass
+    return [int(x) for x in re.findall(r"-?\d+", buf.getvalue())]
+def _same(l, expect, what):
+    got = _show(l)
+    assert got == expect or got == expect[::-1] and True, "%s: display() should show %r but showed %r" % (what, expect, got)
+    return got
+ll = UnorderedLinkedList()
+assert _show(ll) == [], "display() of an empty list should show nothing"
+assert _guard(ll.search, 1) is False, "search on an empty list should be False"
+assert _guard(ll.delete, 1) is False, "delete on an empty list should return False"
+_seq = [10, 20, 30, 20]
+for v in _seq:
+    _guard(ll.insert, v)
+_cur = _same(ll, _seq, "after inserts")
+assert _guard(ll.search, 30) is True and _guard(ll.search, 99) is False, "search is wrong"
+assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
+_cur = _show(ll)
+assert sorted(_cur) == [10, 20, 30] and len(_cur) == 3, "delete should remove exactly one 20: display() showed %r" % (_cur,)
+assert _guard(ll.delete, 10) is True and sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
+assert _guard(ll.delete, 30) is True and _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
+assert _guard(ll.search, 20) is False, "search after emptying should be False"
+_guard(ll.insert, 5)
+assert _show(ll) == [5], "insert after emptying the list is wrong"
+'''},
+ {"slug": "ordered-linked-list", "title": "Linked list (ordered)", "fn": "OrderedLinkedList", "kind": "class",
+  "sample": '''class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+
+class OrderedLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert(self, value):
+        node = Node(value)
+        if self.head is None or value <= self.head.value:
+            node.next = self.head
+            self.head = node
+            return
+        current = self.head
+        while current.next is not None and current.next.value < value:
+            current = current.next
+        node.next = current.next
+        current.next = node
+
+    def search(self, value):
+        current = self.head
+        while current is not None and current.value <= value:
+            if current.value == value:
+                return True
+            current = current.next
+        return False
+
+    def delete(self, value):
+        current = self.head
+        previous = None
+        while current is not None and current.value <= value:
+            if current.value == value:
+                if previous is None:
+                    self.head = current.next
+                else:
+                    previous.next = current.next
+                return True
+            previous = current
+            current = current.next
+        return False
+
+    def display(self):
+        result = []
+        current = self.head
+        while current is not None:
+            result.append(current.value)
+            current = current.next
+        print(result)
+        return result
+''',
+  "tests": '''_ban("deque", "sorted", "sort")
+import sys, io, re
+def _guard(f, *a):
+    """stop a runaway loop (e.g. a circular list that never comes back to the head)"""
+    st = [0]
+    def tr(fr, ev, arg):
+        st[0] += 1
+        if st[0] > 300000:
+            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+        return tr
+    old = sys.gettrace()
+    sys.settrace(tr)
+    try:
+        return f(*a)
+    finally:
+        sys.settrace(old)
+def _cyclic(l):
+    """True if following the node links from the list ever comes back to a node already seen"""
+    for v in list(vars(l).values()):
+        seen = set(); n = v
+        while n is not None and hasattr(n, "__dict__") and not isinstance(n, (list, dict)):
+            if id(n) in seen:
+                return True
+            seen.add(id(n))
+            nxt = [x for x in vars(n).values() if hasattr(x, "__dict__") and not isinstance(x, (list, dict))]
+            n = nxt[0] if nxt else None
+    return False
+def _show(l):
+    buf = io.StringIO(); old = sys.stdout; sys.stdout = buf
+    try:
+        r = _guard(l.display)
+    finally:
+        sys.stdout = old
+    if r is not None:
+        try:
+            return [int(x) for x in r]
+        except Exception:
+            pass
+    return [int(x) for x in re.findall(r"-?\d+", buf.getvalue())]
+def _same(l, expect, what):
+    got = _show(l)
+    assert got == expect or got == expect[::-1] and False, "%s: display() should show %r but showed %r" % (what, expect, got)
+    return got
+ll = OrderedLinkedList()
+assert _show(ll) == [], "display() of an empty list should show nothing"
+assert _guard(ll.search, 1) is False, "search on an empty list should be False"
+assert _guard(ll.delete, 1) is False, "delete on an empty list should return False"
+for v in (30, 10, 20, 20, 5):
+    _guard(ll.insert, v)
+assert _show(ll) == [5, 10, 20, 20, 30], "insert should keep the list in ascending order: display() showed %r" % (_show(ll),)
+assert _guard(ll.search, 20) is True and _guard(ll.search, 25) is False and _guard(ll.search, 99) is False, "search is wrong"
+assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
+assert _show(ll) == [5, 10, 20, 30], "delete should remove only the first 20: display() showed %r" % (_show(ll),)
+assert _guard(ll.delete, 5) is True and _show(ll) == [10, 20, 30], "deleting the head is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 30) is True and _show(ll) == [10, 20], "deleting the last item is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
+_guard(ll.insert, 15)
+assert _show(ll) == [10, 15, 20], "insert in the middle is wrong: %r" % (_show(ll),)
+for v in (10, 15, 20):
+    assert _guard(ll.delete, v) is True
+assert _show(ll) == [] and _guard(ll.search, 10) is False, "deleting every item should leave an empty list"
+_guard(ll.insert, 7)
+assert _show(ll) == [7], "insert after emptying the list is wrong"
+'''},
+ {"slug": "circular-linked-list", "title": "Linked list (circular)", "fn": "CircularLinkedList", "kind": "class",
+  "sample": '''class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+
+class CircularLinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert(self, value):
+        node = Node(value)
+        if self.head is None:
+            node.next = node
+            self.head = node
+            return
+        current = self.head
+        while current.next is not self.head:
+            current = current.next
+        current.next = node
+        node.next = self.head
+
+    def search(self, value):
+        if self.head is None:
+            return False
+        current = self.head
+        while True:
+            if current.value == value:
+                return True
+            current = current.next
+            if current is self.head:
+                return False
+
+    def delete(self, value):
+        if self.head is None:
+            return False
+        current = self.head
+        previous = None
+        while True:
+            if current.value == value:
+                if current.next is current:
+                    self.head = None
+                elif previous is None:
+                    last = self.head
+                    while last.next is not self.head:
+                        last = last.next
+                    self.head = current.next
+                    last.next = self.head
+                else:
+                    previous.next = current.next
+                return True
+            previous = current
+            current = current.next
+            if current is self.head:
+                return False
+
+    def display(self):
+        result = []
+        if self.head is not None:
+            current = self.head
+            while True:
+                result.append(current.value)
+                current = current.next
+                if current is self.head:
+                    break
+        print(result)
+        return result
+''',
+  "tests": '''_ban("deque", "sorted", "sort")
+import sys, io, re
+def _guard(f, *a):
+    """stop a runaway loop (e.g. a circular list that never comes back to the head)"""
+    st = [0]
+    def tr(fr, ev, arg):
+        st[0] += 1
+        if st[0] > 300000:
+            raise AssertionError("Your code ran far too long - a loop probably never stops (for a circular list, stop when you get back to the head).")
+        return tr
+    old = sys.gettrace()
+    sys.settrace(tr)
+    try:
+        return f(*a)
+    finally:
+        sys.settrace(old)
+def _cyclic(l):
+    """True if following the node links from the list ever comes back to a node already seen"""
+    for v in list(vars(l).values()):
+        seen = set(); n = v
+        while n is not None and hasattr(n, "__dict__") and not isinstance(n, (list, dict)):
+            if id(n) in seen:
+                return True
+            seen.add(id(n))
+            nxt = [x for x in vars(n).values() if hasattr(x, "__dict__") and not isinstance(x, (list, dict))]
+            n = nxt[0] if nxt else None
+    return False
+def _show(l):
+    buf = io.StringIO(); old = sys.stdout; sys.stdout = buf
+    try:
+        r = _guard(l.display)
+    finally:
+        sys.stdout = old
+    if r is not None:
+        try:
+            return [int(x) for x in r]
+        except Exception:
+            pass
+    return [int(x) for x in re.findall(r"-?\d+", buf.getvalue())]
+def _same(l, expect, what):
+    got = _show(l)
+    assert got == expect or got == expect[::-1] and True, "%s: display() should show %r but showed %r" % (what, expect, got)
+    return got
+ll = CircularLinkedList()
+assert _show(ll) == [], "display() of an empty list should show nothing"
+assert _guard(ll.search, 1) is False, "search on an empty list should be False"
+assert _guard(ll.delete, 1) is False, "delete on an empty list should return False"
+_seq = [10, 20, 30, 20]
+for v in _seq:
+    _guard(ll.insert, v)
+_cur = _same(ll, _seq, "after inserts")
+assert _guard(ll.search, 30) is True and _guard(ll.search, 99) is False, "search is wrong"
+assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
+_cur = _show(ll)
+assert sorted(_cur) == [10, 20, 30] and len(_cur) == 3, "delete should remove exactly one 20: display() showed %r" % (_cur,)
+assert _guard(ll.delete, 10) is True and sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
+assert _guard(ll.delete, 30) is True and _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
+assert _guard(ll.search, 20) is False, "search after emptying should be False"
+_guard(ll.insert, 5)
+assert _show(ll) == [5], "insert after emptying the list is wrong"
+_c = CircularLinkedList()
+for v in (1, 2, 3):
+    _guard(_c.insert, v)
+assert _cyclic(_c), "this is not circular: the last node's link should point back to the head"
+assert sorted(_show(_c)) == [1, 2, 3] and len(_show(_c)) == 3, "display() should show each item once, not go round again: %r" % (_show(_c),)
+assert _guard(_c.delete, 2) is True and sorted(_show(_c)) == [1, 3], "delete in a circular list is wrong: %r" % (_show(_c),)
+_c.insert(4)
+assert sorted(_show(_c)) == [1, 3, 4], "insert after a delete is wrong"
 '''},
  {"slug": "hash-table", "title": "Hash table (insert and search)", "fn": "HashTable", "kind": "class",
   "sample": '''class HashTable:
@@ -548,9 +847,14 @@ def logic_notes(slug, code):
     if slug == "hash-table":
         if any(isinstance(n, _ast.Dict) for n in _ast.walk(tree)):
             notes.append("uses a Python dict instead of an array and a hash function")
-    elif slug == "linked-list":
+    elif slug.endswith("-linked-list"):
         if nclass < 2:
             notes.append("no separate node class holding a pointer to the next node found")
+        if slug == "circular-linked-list":
+            heads = [n for n in _ast.walk(tree) if isinstance(n, _ast.Compare) and any(
+                (isinstance(x, _ast.Attribute) and x.attr in ("head", "start", "first")) or (isinstance(x, _ast.Name) and x.id in ("head", "start", "first")) for x in [n.left] + n.comparators)]
+            if not heads:
+                notes.append("no check for coming back round to the head found, which is what makes the list circular")
     elif slug == "binary-search-tree":
         if nclass < 2:
             notes.append("no separate node class with left and right links found")
