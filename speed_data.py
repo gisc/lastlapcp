@@ -193,7 +193,7 @@ for a in ([4], [1, 3], [1, 3, 5, 7, 9], [2, 4, 6, 8, 10, 12], list(range(0, 40, 
   "tests": _sort_tests("quick_sort")},
 ]
 STRUCTS = [
- {"slug": "stack", "title": "Stack", "fn": "Stack", "kind": "class",
+ {"slug": "stack", "title": "Stack (Python built-in functions)", "fn": "Stack", "kind": "class",
   "sample": '''class Stack:
     def __init__(self):
         self.items = []
@@ -231,7 +231,63 @@ except Exception:
 s.push("a"); s.push("b"); assert s.pop() == "b"; s.push("c")
 assert [s.pop(), s.pop()] == ["c", "a"], "mixed push and pop order is wrong"
 '''},
- {"slug": "queue", "title": "Queue", "fn": "Queue", "kind": "class",
+ {"slug": "stack-array", "title": "Stack (with top)", "fn": "ArrayStack", "kind": "class",
+  "sample": '''class ArrayStack:
+    def __init__(self, size=5):
+        self.size = size
+        self.items = [None] * size
+        self.top = -1
+
+    def push(self, item):
+        if self.is_full():
+            return False
+        self.top = self.top + 1
+        self.items[self.top] = item
+        return True
+
+    def pop(self):
+        if self.is_empty():
+            return None
+        item = self.items[self.top]
+        self.top = self.top - 1
+        return item
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self.items[self.top]
+
+    def is_empty(self):
+        return self.top == -1
+
+    def is_full(self):
+        return self.top == self.size - 1
+''',
+  "tests": '''_ban("append", "insert", "remove", "extend")
+s = ArrayStack(3)
+assert s.top == -1, "a new stack has top = -1 (nothing stored yet), got %r" % (s.top,)
+assert s.is_empty() is True and s.is_full() is False, "a new stack is empty and not full"
+assert s.pop() is None and s.peek() is None, "pop() and peek() on an empty stack should return None"
+assert s.push("a") is True and s.top == 0, "push should return True and move top to 0, got top = %r" % (s.top,)
+assert s.push("b") is True and s.push("c") is True, "push should return True while there is space"
+assert s.top == 2 and s.is_full() is True, "three pushes fill a size-3 stack with top = 2"
+assert s.push("d") is False, "push on a full stack should return False"
+assert s.top == 2, "a failed push must not move top"
+assert len(s.items) == 3, "the array must stay a fixed size of 3, but it has %d slots" % len(s.items)
+assert s.peek() == "c" and s.top == 2, "peek() should show the top item 'c' without moving top"
+assert s.pop() == "c" and s.top == 1, "pop() should return 'c' and move top down to 1, got top = %r" % (s.top,)
+assert s.is_full() is False, "the stack is no longer full after a pop"
+assert [s.pop(), s.pop()] == ["b", "a"], "pop() should give last-in first-out"
+assert s.top == -1 and s.is_empty() is True, "after popping everything top is -1 again"
+assert s.pop() is None, "pop() on an empty stack should return None"
+s.push(1); s.push(2); assert s.pop() == 2; s.push(3)
+assert [s.pop(), s.pop()] == [3, 1], "mixed push and pop order is wrong"
+big = ArrayStack()
+for v in range(5):
+    assert big.push(v) is True, "the default size is 5, so push(%d) should work" % v
+assert big.push(5) is False, "the default size is 5, so the 6th push should return False"
+'''},
+ {"slug": "queue", "title": "Queue (Python built-in functions)", "fn": "Queue", "kind": "class",
   "sample": '''class Queue:
     def __init__(self):
         self.items = []
@@ -271,6 +327,69 @@ assert [q.dequeue(), q.dequeue()] == ["b", "c"], "mixed enqueue and dequeue orde
 for v in range(50):
     q.enqueue(v)
 assert [q.dequeue() for _ in range(50)] == list(range(50)), "order wrong after many enqueues"
+'''},
+ {"slug": "queue-array", "title": "Queue (with front and rear)", "fn": "ArrayQueue", "kind": "class",
+  "sample": '''class ArrayQueue:
+    def __init__(self, size=5):
+        self.size = size
+        self.items = [None] * size
+        self.front = 0
+        self.rear = -1
+        self.count = 0
+
+    def enqueue(self, item):
+        if self.is_full():
+            return False
+        self.rear = (self.rear + 1) % self.size
+        self.items[self.rear] = item
+        self.count = self.count + 1
+        return True
+
+    def dequeue(self):
+        if self.is_empty():
+            return None
+        item = self.items[self.front]
+        self.front = (self.front + 1) % self.size
+        self.count = self.count - 1
+        return item
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self.items[self.front]
+
+    def is_empty(self):
+        return self.count == 0
+
+    def is_full(self):
+        return self.count == self.size
+''',
+  "tests": '''_ban("append", "insert", "remove", "extend")
+q = ArrayQueue(3)
+assert q.front == 0 and q.rear == -1, "a new queue has front = 0 and rear = -1, got front = %r, rear = %r" % (q.front, q.rear)
+assert q.is_empty() is True and q.is_full() is False, "a new queue is empty and not full"
+assert q.dequeue() is None and q.peek() is None, "dequeue() and peek() on an empty queue should return None"
+assert q.enqueue("a") is True and q.rear == 0, "enqueue should return True and move rear to 0, got rear = %r" % (q.rear,)
+assert q.enqueue("b") is True and q.enqueue("c") is True, "enqueue should return True while there is space"
+assert q.rear == 2 and q.front == 0 and q.is_full() is True, "three enqueues fill a size-3 queue: rear 2, front 0"
+assert q.enqueue("d") is False, "enqueue on a full queue should return False"
+assert q.rear == 2, "a failed enqueue must not move rear"
+assert len(q.items) == 3, "the array must stay a fixed size of 3, but it has %d slots" % len(q.items)
+assert q.peek() == "a" and q.front == 0, "peek() should show the front item 'a' without moving front"
+assert q.dequeue() == "a" and q.front == 1, "dequeue() should return 'a' and move front to 1, got front = %r" % (q.front,)
+assert q.is_full() is False, "the queue is no longer full after a dequeue"
+assert q.enqueue("d") is True, "after a dequeue there is space again, so enqueue('d') should work"
+assert q.rear == 0, "rear should wrap around to index 0 (use % size), got rear = %r" % (q.rear,)
+assert q.items[0] == "d", "the wrapped item should be stored at index 0, but items is %r" % (q.items,)
+assert q.is_full() is True and q.enqueue("e") is False, "the queue is full again, enqueue should return False"
+assert [q.dequeue(), q.dequeue(), q.dequeue()] == ["b", "c", "d"], "dequeue() should give first-in first-out across the wraparound"
+assert q.front == 1 and q.rear == 0, "front should have wrapped to 1 (after 3 more dequeues) and rear stays 0, got front = %r, rear = %r" % (q.front, q.rear)
+assert q.is_empty() is True and q.dequeue() is None, "the queue is empty again"
+for round_ in range(4):
+    for v in range(3):
+        assert q.enqueue((round_, v)) is True, "enqueue should work on a queue that has space (round %d)" % round_
+    assert q.enqueue("x") is False, "a full queue should reject enqueue"
+    assert [q.dequeue() for _ in range(3)] == [(round_, 0), (round_, 1), (round_, 2)], "order wrong after wrapping (round %d)" % round_
 '''},
  {"slug": "unordered-linked-list", "title": "Linked list (unordered)", "fn": "UnorderedLinkedList", "kind": "class",
   "sample": '''class Node:
@@ -729,7 +848,7 @@ assert h.search(35) is None and h.search("plum") is None, "search for a missing 
 h.insert(15, "z")
 assert h.search(15) == "z" and h.search(5) == "a" and h.search(25) == "c", "inserting an existing key should update its value only"
 '''},
- {"slug": "binary-search-tree", "title": "Binary search tree", "fn": "BST", "kind": "class", "limit_min": 8,
+ {"slug": "binary-search-tree", "title": "Binary search tree (linked version)", "fn": "BST", "kind": "class", "limit_min": 8,
   "sample": '''class Node:
     def __init__(self, value):
         self.value = value
@@ -830,6 +949,114 @@ assert t2.inorder() == sorted(vals), "inorder on a larger random tree is wrong"
 assert t2.maximum() == max(vals) and t2.minimum() == min(vals), "maximum/minimum wrong on a larger tree"
 assert all(t2.search(v) for v in vals), "search missed an inserted value"
 '''},
+ {"slug": "bst-array", "title": "Binary search tree (array version)", "fn": "ArrayBST", "kind": "class", "limit_min": 10,
+  "sample": '''class ArrayBST:
+    # root is index 0; for the node at index i:
+    # left child is at 2*i + 1, right child is at 2*i + 2
+    def __init__(self, size=15):
+        self.size = size
+        self.tree = [None] * size
+
+    def insert(self, value):
+        i = 0
+        while i < self.size:
+            if self.tree[i] is None:
+                self.tree[i] = value
+                return True
+            if value == self.tree[i]:
+                return False
+            if value < self.tree[i]:
+                i = 2 * i + 1
+            else:
+                i = 2 * i + 2
+        return False
+
+    def search(self, value):
+        i = 0
+        while i < self.size and self.tree[i] is not None:
+            if value == self.tree[i]:
+                return True
+            if value < self.tree[i]:
+                i = 2 * i + 1
+            else:
+                i = 2 * i + 2
+        return False
+
+    def inorder(self, i=0):
+        if i >= self.size or self.tree[i] is None:
+            return []
+        return self.inorder(2 * i + 1) + [self.tree[i]] + self.inorder(2 * i + 2)
+
+    def preorder(self, i=0):
+        if i >= self.size or self.tree[i] is None:
+            return []
+        return [self.tree[i]] + self.preorder(2 * i + 1) + self.preorder(2 * i + 2)
+
+    def postorder(self, i=0):
+        if i >= self.size or self.tree[i] is None:
+            return []
+        return self.postorder(2 * i + 1) + self.postorder(2 * i + 2) + [self.tree[i]]
+
+    def maximum(self):
+        if self.tree[0] is None:
+            return None
+        i = 0
+        while 2 * i + 2 < self.size and self.tree[2 * i + 2] is not None:
+            i = 2 * i + 2
+        return self.tree[i]
+
+    def minimum(self):
+        if self.tree[0] is None:
+            return None
+        i = 0
+        while 2 * i + 1 < self.size and self.tree[2 * i + 1] is not None:
+            i = 2 * i + 1
+        return self.tree[i]
+''',
+  "tests": '''_ban("sorted", "sort", "max", "min", "Node", "append")
+t = ArrayBST(7)
+assert len(t.tree) == 7 and all(x is None for x in t.tree), "a new tree is a list of 7 empty (None) slots, got %r" % (t.tree,)
+assert t.inorder() == [] and t.preorder() == [] and t.postorder() == [], "traversals of an empty tree should give []"
+assert t.search(1) is False and t.maximum() is None and t.minimum() is None, "an empty tree: search is False, maximum and minimum are None"
+assert t.insert(50) is True and t.tree[0] == 50, "the first value goes in the root, index 0"
+assert t.insert(30) is True and t.tree[1] == 30, "30 < 50 goes to the left child, index 2*0+1 = 1, but tree is %r" % (t.tree,)
+assert t.insert(70) is True and t.tree[2] == 70, "70 > 50 goes to the right child, index 2*0+2 = 2, but tree is %r" % (t.tree,)
+assert t.insert(20) is True and t.tree[3] == 20, "20 goes to the left child of index 1, which is 2*1+1 = 3, but tree is %r" % (t.tree,)
+assert t.insert(40) is True and t.tree[4] == 40, "40 goes to the right child of index 1, which is 2*1+2 = 4, but tree is %r" % (t.tree,)
+assert t.insert(60) is True and t.tree[5] == 60, "60 goes to the left child of index 2, which is 2*2+1 = 5, but tree is %r" % (t.tree,)
+assert t.insert(80) is True and t.tree[6] == 80, "80 goes to the right child of index 2, which is 2*2+2 = 6, but tree is %r" % (t.tree,)
+assert t.tree == [50, 30, 70, 20, 40, 60, 80], "the full tree should be [50, 30, 70, 20, 40, 60, 80] but is %r" % (t.tree,)
+assert t.insert(50) is False and t.insert(40) is False, "a duplicate value should return False"
+assert t.insert(10) is False, "10 would need index 7, past the end of a size-7 array, so insert should return False"
+assert t.tree == [50, 30, 70, 20, 40, 60, 80] and len(t.tree) == 7, "a failed insert must not change the array or its size"
+t = ArrayBST(7)
+for v in (1, 2, 3):
+    assert t.insert(v) is True, "insert(%r) should work" % (v,)
+assert t.tree == [1, None, 2, None, None, None, 3], "inserting 1, 2, 3 in order gives a chain to the right: indexes 0, 2, 6, but tree is %r" % (t.tree,)
+assert t.insert(4) is False, "4 would need index 14, past the end of a size-7 array, so insert should return False"
+t = ArrayBST(31)
+for v in (50, 30, 70, 20, 40, 60, 80, 35, 45):
+    t.insert(v)
+assert t.tree[:11] == [50, 30, 70, 20, 40, 60, 80, None, None, 35, 45], "35 and 45 are the children of 40 (index 4): indexes 9 and 10, but tree is %r" % (t.tree,)
+assert t.insert(40) is False and t.insert(35) is False and t.insert(45) is False, "a duplicate value should return False"
+assert t.tree[:11] == [50, 30, 70, 20, 40, 60, 80, None, None, 35, 45] and t.tree[11:] == [None] * 20, "a duplicate must not be stored again, but tree is %r" % (t.tree,)
+assert t.inorder() == [20, 30, 35, 40, 45, 50, 60, 70, 80], "inorder should be left, root, right: got %r" % (t.inorder(),)
+assert t.preorder() == [50, 30, 20, 40, 35, 45, 70, 60, 80], "preorder should be root, left, right: got %r" % (t.preorder(),)
+assert t.postorder() == [20, 35, 45, 40, 30, 60, 80, 70, 50], "postorder should be left, right, root: got %r" % (t.postorder(),)
+assert t.maximum() == 80 and t.minimum() == 20, "maximum should be 80 and minimum 20, got %r and %r" % (t.maximum(), t.minimum())
+for v in (45, 20, 80, 60):
+    assert t.search(v) is True, "search(%r) should be True" % (v,)
+for v in (10, 55, 99):
+    assert t.search(v) is False, "search(%r) should be False" % (v,)
+random.seed(5)
+vals = random.sample(range(1000), 40)
+t2 = ArrayBST(8191)
+for v in vals:
+    assert t2.insert(v) is True, "insert(%r) should work while there is space" % (v,)
+assert t2.inorder() == sorted(vals), "inorder on a larger random tree is wrong"
+assert t2.maximum() == max(vals) and t2.minimum() == min(vals), "maximum/minimum wrong on a larger tree"
+assert all(t2.search(v) for v in vals), "search missed an inserted value"
+'''},
 ]
 for _a in ALGOS:
     _a.setdefault("kind", "func"); _a.setdefault("group", "Algorithms")
@@ -926,6 +1153,9 @@ def logic_notes(slug, code):
                 (isinstance(x, _ast.Attribute) and x.attr in ("head", "start", "first")) or (isinstance(x, _ast.Name) and x.id in ("head", "start", "first")) for x in [n.left] + n.comparators)]
             if not heads:
                 notes.append("no check for coming back round to the head found, which is what makes the list circular")
+    elif slug == "queue-array":
+        if not any(isinstance(n, _ast.BinOp) and isinstance(n.op, _ast.Mod) for n in _ast.walk(tree)):
+            notes.append("no wraparound with % found, which is what makes the array queue circular")
     elif slug == "binary-search-tree":
         if nclass < 2:
             notes.append("no separate node class with left and right links found")
