@@ -28,7 +28,31 @@ class _Spy(list):
         self.writes += 1
         list.__setitem__(self, i, v)
 def _res(f, a):
+    import inspect
     b = list(a)
+    try:
+        ps = list(inspect.signature(f).parameters.values())
+        need = [p for p in ps if p.default is p.empty and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+    except Exception:
+        need = [0]
+    if len(need) == 3:
+        # in-place style f(items, low, high): try inclusive high first, then exclusive
+        first = None; err = None
+        try:
+            first = f(b, 0, len(b) - 1)
+            first = b if first is None else first
+            if list(first) == sorted(a): return first
+        except Exception as e:
+            err = e
+        b2 = list(a)
+        try:
+            r = f(b2, 0, len(b2))
+            r = b2 if r is None else r
+            if list(r) == sorted(a): return r
+        except Exception:
+            pass
+        if err is not None: raise err
+        return first
     r = f(b)
     return b if r is None else r
 '''
