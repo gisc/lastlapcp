@@ -342,19 +342,38 @@ ll = UnorderedLinkedList()
 assert _show(ll) == [], "display() of an empty list should show nothing"
 assert _guard(ll.search, 1) is False, "search on an empty list should be False"
 assert _guard(ll.delete, 1) is False, "delete on an empty list should return False"
+def _steps(f, *a):
+    st = [0]
+    def tr(fr, ev, arg):
+        st[0] += 1
+        return tr
+    old = sys.gettrace(); sys.settrace(tr)
+    try:
+        f(*a)
+    finally:
+        sys.settrace(old)
+    return st[0]
 _seq = [10, 20, 30, 20]
 for v in _seq:
     _guard(ll.insert, v)
-_cur = _same(ll, _seq, "after inserts")
+assert _show(ll) == [20, 30, 20, 10], "insert should add at the head, so the newest item is first: display() showed %r" % (_show(ll),)
+_small = _steps(ll.insert, 1)
+for v in range(300):
+    ll.insert(v)
+_big = _steps(ll.insert, 2)
+assert _big <= _small * 2 + 10, "insert should be O(1): it took %d steps on a long list but %d on a short one. Insert at the head without walking the list." % (_big, _small)
+ll = UnorderedLinkedList()
+for v in _seq:
+    ll.insert(v)
 assert _guard(ll.search, 30) is True and _guard(ll.search, 99) is False, "search is wrong"
-assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
-_cur = _show(ll)
-assert sorted(_cur) == [10, 20, 30] and len(_cur) == 3, "delete should remove exactly one 20: display() showed %r" % (_cur,)
-assert _guard(ll.delete, 10) is True and sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
-assert _guard(ll.delete, 30) is True and _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
+assert _show(ll) == [20, 30, 20, 10], "a failed delete must leave the list unchanged: %r" % (_show(ll),)
+assert _guard(ll.delete, 20) is True, "delete(20) should return True (success) when the target is found"
+assert _show(ll) == [30, 20, 10], "delete should remove only the first 20: display() showed %r" % (_show(ll),)
+assert _guard(ll.delete, 10) is True and _show(ll) == [30, 20], "deleting the last item is wrong: %r" % (_show(ll),)
+assert _guard(ll.delete, 30) is True and _show(ll) == [20], "deleting the head is wrong: %r" % (_show(ll),)
 assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
-assert _guard(ll.search, 20) is False, "search after emptying should be False"
+assert _guard(ll.delete, 20) is False and _guard(ll.search, 20) is False, "after emptying, delete and search should report not found"
 _guard(ll.insert, 5)
 assert _show(ll) == [5], "insert after emptying the list is wrong"
 '''},
@@ -467,7 +486,8 @@ assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
 assert _show(ll) == [5, 10, 20, 30], "delete should remove only the first 20: display() showed %r" % (_show(ll),)
 assert _guard(ll.delete, 5) is True and _show(ll) == [10, 20, 30], "deleting the head is wrong: %r" % (_show(ll),)
 assert _guard(ll.delete, 30) is True and _show(ll) == [10, 20], "deleting the last item is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
+assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
+assert _show(ll) == [10, 20], "a failed delete must leave the list unchanged"
 _guard(ll.insert, 15)
 assert _show(ll) == [10, 15, 20], "insert in the middle is wrong: %r" % (_show(ll),)
 for v in (10, 15, 20):
@@ -601,7 +621,7 @@ assert _guard(ll.delete, 20) is True, "delete(20) should return True when found"
 _cur = _show(ll)
 assert sorted(_cur) == [10, 20, 30] and len(_cur) == 3, "delete should remove exactly one 20: display() showed %r" % (_cur,)
 assert _guard(ll.delete, 10) is True and sorted(_show(ll)) == [20, 30], "deleting the head or an end is wrong: %r" % (_show(ll),)
-assert _guard(ll.delete, 99) is False, "delete of a missing value should return False"
+assert _guard(ll.delete, 99) is False, "delete of a target that is not in the list should return False (not found)"
 assert _guard(ll.delete, 30) is True and _show(ll) == [20], "delete is wrong: %r" % (_show(ll),)
 assert _guard(ll.delete, 20) is True and _show(ll) == [], "deleting the only item should leave an empty list"
 assert _guard(ll.search, 20) is False, "search after emptying should be False"
