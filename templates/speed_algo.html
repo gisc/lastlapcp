@@ -5,11 +5,11 @@
   <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span><span class="tag">Speed drill</span></div>
   <h1>{{ a.title }}</h1>
   <div id="intro">
-    <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. Your function must be called <b>{{ a.fn }}</b>.</p>
+    <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. Your {{ 'class' if a.kind == 'class' else 'function' }} must be called <b>{{ a.fn }}</b>.</p>
     <pre class="codeblock smallcode">{{ a.sample }}</pre>
     <button class="btn big" id="bpractice" type="button">Practise</button>
-    <button class="btn big ghostbtn" id="bdrill" type="button">Drill (5 min countdown)</button>
-    <p class="muted small"><b>Practise</b>: the timer counts up and turns red after 5:00. <b>Drill</b>: a 5:00 countdown; when it hits zero it stops, and you can still finish and submit.</p>
+    <button class="btn big ghostbtn" id="bdrill" type="button">Drill ({{ a.limit_min }} min countdown)</button>
+    <p class="muted small"><b>Practise</b>: the timer counts up and turns red after {{ a.limit_min }}:00. <b>Drill</b>: a {{ a.limit_min }}:00 countdown; when it hits zero it stops, and you can still finish and submit.</p>
   </div>
   <div id="work" style="display:none">
     <div id="clock" class="sclock">0:00</div>
@@ -24,7 +24,7 @@
 </div>
 <div class="card" id="boardcard">
   <h2>Leaderboard</h2>
-  <p class="muted small">Best time per student. Green: within 5:00. Orange: over 5:00, under 6:00. Red: 6:00 or more.</p>
+  <p class="muted small">Best time per student. Green: within {{ a.limit_min }}:00. Orange: over {{ a.limit_min }}:00, under {{ a.limit_min + 1 }}:00. Red: {{ a.limit_min + 1 }}:00 or more.</p>
   {% if board %}
   <ol class="sboard">
     {% for r in board %}
@@ -53,7 +53,7 @@
 <script>
 const TESTS = {{ tests|tojson }};
 const SLUG = {{ a.slug|tojson }};
-const LIMIT = 300000;
+const LIMIT = {{ a.limit_ms }}, LIM_MIN = {{ a.limit_min }};
 let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false, running = false;
 const flags = [], history = [];
 let pasteCount = 0, copied = '', justPasted = false;
@@ -72,7 +72,7 @@ function tick() {
   if (mode === 'practice') {
     c.textContent = fmt(el);
     c.className = 'sclock' + (el > LIMIT ? ' over' : '');
-    document.getElementById('clocklabel').textContent = el > LIMIT ? 'Over 5:00 - keep going' : 'Practice';
+    document.getElementById('clocklabel').textContent = el > LIMIT ? 'Over ' + LIM_MIN + ':00 - keep going' : 'Practice';
   } else if (el < LIMIT) {
     c.textContent = fmt(LIMIT - el);
     c.className = 'sclock' + (LIMIT - el < 30000 ? ' warn' : '');
@@ -191,7 +191,7 @@ document.getElementById('run').addEventListener('click', async () => {
     st.className = 'verdict good';
     st.textContent = j.paste_flag ? 'Tests passed. A suspected paste was detected, so this attempt is held for teacher review and is not ranked yet.'
       : j.logic_flag ? 'Tests passed, but the code does not clearly look like this algorithm, so it is held for teacher review and is not ranked yet.'
-      : (j.band === 'green' ? 'Done - within 5:00!' : j.band === 'orange' ? 'Done - a little over 5:00.' : 'Done - over 6:00. Go again.');
+      : (j.band === 'green' ? 'Done - within ' + LIM_MIN + ':00!' : j.band === 'orange' ? 'Done - a little over ' + LIM_MIN + ':00.' : 'Done - over ' + (LIM_MIN + 1) + ':00. Go again.');
     show('after', true);
     document.getElementById('run').style.display = 'none';
     document.querySelector('#after a').href = location.href;

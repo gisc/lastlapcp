@@ -168,13 +168,316 @@ for a in ([4], [1, 3], [1, 3, 5, 7, 9], [2, 4, 6, 8, 10, 12], list(range(0, 40, 
 ''',
   "tests": _sort_tests("quick_sort")},
 ]
+STRUCTS = [
+ {"slug": "stack", "title": "Stack", "fn": "Stack", "kind": "class",
+  "sample": '''class Stack:
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        if self.is_empty():
+            return None
+        return self.items.pop()
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self.items[-1]
+
+    def is_empty(self):
+        return len(self.items) == 0
+''',
+  "tests": '''s = Stack()
+assert s.is_empty() is True, "a new Stack should be empty (is_empty() should return True)"
+for v in (1, 2, 3):
+    s.push(v)
+assert s.is_empty() is False, "is_empty() should be False after pushes"
+assert s.peek() == 3, "peek() should show the top item 3 without removing it, got %r" % (s.peek(),)
+assert s.peek() == 3, "peek() must not remove the item"
+got = [s.pop(), s.pop(), s.pop()]
+assert got == [3, 2, 1], "pop() should give last-in first-out: expected [3, 2, 1] but got %r" % (got,)
+assert s.is_empty() is True, "the Stack should be empty after popping everything"
+try:
+    s.pop(); s.peek()
+except Exception:
+    pass
+s.push("a"); s.push("b"); assert s.pop() == "b"; s.push("c")
+assert [s.pop(), s.pop()] == ["c", "a"], "mixed push and pop order is wrong"
+'''},
+ {"slug": "queue", "title": "Queue", "fn": "Queue", "kind": "class",
+  "sample": '''class Queue:
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self, item):
+        self.items.append(item)
+
+    def dequeue(self):
+        if self.is_empty():
+            return None
+        return self.items.pop(0)
+
+    def peek(self):
+        if self.is_empty():
+            return None
+        return self.items[0]
+
+    def is_empty(self):
+        return len(self.items) == 0
+''',
+  "tests": '''q = Queue()
+assert q.is_empty() is True, "a new Queue should be empty (is_empty() should return True)"
+for v in (1, 2, 3):
+    q.enqueue(v)
+assert q.is_empty() is False, "is_empty() should be False after enqueues"
+assert q.peek() == 1, "peek() should show the front item 1 without removing it, got %r" % (q.peek(),)
+assert q.peek() == 1, "peek() must not remove the item"
+got = [q.dequeue(), q.dequeue(), q.dequeue()]
+assert got == [1, 2, 3], "dequeue() should give first-in first-out: expected [1, 2, 3] but got %r" % (got,)
+assert q.is_empty() is True, "the Queue should be empty after dequeuing everything"
+try:
+    q.dequeue(); q.peek()
+except Exception:
+    pass
+q.enqueue("a"); q.enqueue("b"); assert q.dequeue() == "a"; q.enqueue("c")
+assert [q.dequeue(), q.dequeue()] == ["b", "c"], "mixed enqueue and dequeue order is wrong"
+for v in range(50):
+    q.enqueue(v)
+assert [q.dequeue() for _ in range(50)] == list(range(50)), "order wrong after many enqueues"
+'''},
+ {"slug": "linked-list", "title": "Linked list", "fn": "LinkedList", "kind": "class",
+  "sample": '''class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def append(self, value):
+        node = Node(value)
+        if self.head is None:
+            self.head = node
+            return
+        current = self.head
+        while current.next is not None:
+            current = current.next
+        current.next = node
+
+    def search(self, value):
+        current = self.head
+        while current is not None:
+            if current.value == value:
+                return True
+            current = current.next
+        return False
+
+    def delete(self, value):
+        current = self.head
+        previous = None
+        while current is not None:
+            if current.value == value:
+                if previous is None:
+                    self.head = current.next
+                else:
+                    previous.next = current.next
+                return True
+            previous = current
+            current = current.next
+        return False
+
+    def to_list(self):
+        result = []
+        current = self.head
+        while current is not None:
+            result.append(current.value)
+            current = current.next
+        return result
+''',
+  "tests": '''_ban("deque")
+ll = LinkedList()
+assert ll.to_list() == [], "a new LinkedList should give [] from to_list()"
+assert ll.search(1) is False, "search on an empty list should be False"
+assert ll.delete(1) is False, "delete on an empty list should return False"
+for v in (10, 20, 30, 20):
+    ll.append(v)
+assert ll.to_list() == [10, 20, 30, 20], "append should add to the end: got %r" % (ll.to_list(),)
+assert ll.search(30) is True and ll.search(99) is False, "search is wrong"
+assert ll.delete(20) is True, "delete(20) should return True when found"
+assert ll.to_list() == [10, 30, 20], "delete should remove only the first 20: got %r" % (ll.to_list(),)
+assert ll.delete(10) is True and ll.to_list() == [30, 20], "deleting the head is wrong: got %r" % (ll.to_list(),)
+assert ll.delete(20) is True and ll.to_list() == [30], "deleting the tail is wrong: got %r" % (ll.to_list(),)
+assert ll.delete(99) is False, "delete of a missing value should return False"
+assert ll.delete(30) is True and ll.to_list() == [], "deleting the only item should leave an empty list"
+ll.append(5)
+assert ll.to_list() == [5], "append after emptying the list is wrong"
+'''},
+ {"slug": "hash-table", "title": "Hash table (insert and search)", "fn": "HashTable", "kind": "class",
+  "sample": '''class HashTable:
+    def __init__(self, size=10):
+        self.size = size
+        self.slots = [[] for _ in range(size)]
+
+    def _hash(self, key):
+        if isinstance(key, int):
+            return key % self.size
+        total = 0
+        for ch in str(key):
+            total = total + ord(ch)
+        return total % self.size
+
+    def insert(self, key, value):
+        bucket = self.slots[self._hash(key)]
+        for pair in bucket:
+            if pair[0] == key:
+                pair[1] = value
+                return
+        bucket.append([key, value])
+
+    def search(self, key):
+        bucket = self.slots[self._hash(key)]
+        for pair in bucket:
+            if pair[0] == key:
+                return pair[1]
+        return None
+''',
+  "tests": '''_ban("dict", "defaultdict", "OrderedDict")
+h = HashTable()
+assert h.search(5) is None, "search for a missing key should return None"
+pairs = [(5, "a"), (15, "b"), (25, "c"), (7, "d"), (17, "e"), ("apple", 1), ("pear", 2)]
+for k, v in pairs:
+    h.insert(k, v)
+for k, v in pairs:
+    got = h.search(k)
+    assert got == v, "search(%r) should give %r but gave %r (check collisions are handled)" % (k, v, got)
+assert h.search(35) is None and h.search("plum") is None, "search for a missing key should return None"
+h.insert(15, "z")
+assert h.search(15) == "z" and h.search(5) == "a" and h.search(25) == "c", "inserting an existing key should update its value only"
+'''},
+ {"slug": "binary-search-tree", "title": "Binary search tree", "fn": "BST", "kind": "class", "limit_min": 8,
+  "sample": '''class Node:
+    def __init__(self, value):
+        self.value = value
+        self.left = None
+        self.right = None
+
+
+class BST:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, value):
+        self.root = self._insert(self.root, value)
+
+    def _insert(self, node, value):
+        if node is None:
+            return Node(value)
+        if value < node.value:
+            node.left = self._insert(node.left, value)
+        elif value > node.value:
+            node.right = self._insert(node.right, value)
+        return node
+
+    def search(self, value):
+        node = self.root
+        while node is not None:
+            if value == node.value:
+                return True
+            node = node.left if value < node.value else node.right
+        return False
+
+    def inorder(self, node="start"):
+        if node == "start":
+            node = self.root
+        if node is None:
+            return []
+        return self.inorder(node.left) + [node.value] + self.inorder(node.right)
+
+    def preorder(self, node="start"):
+        if node == "start":
+            node = self.root
+        if node is None:
+            return []
+        return [node.value] + self.preorder(node.left) + self.preorder(node.right)
+
+    def postorder(self, node="start"):
+        if node == "start":
+            node = self.root
+        if node is None:
+            return []
+        return self.postorder(node.left) + self.postorder(node.right) + [node.value]
+
+    def reverse(self, node="start"):
+        # reverse in-order: right, root, left (largest to smallest)
+        if node == "start":
+            node = self.root
+        if node is None:
+            return []
+        return self.reverse(node.right) + [node.value] + self.reverse(node.left)
+
+    def maximum(self):
+        node = self.root
+        while node is not None and node.right is not None:
+            node = node.right
+        return node.value if node else None
+
+    def minimum(self):
+        node = self.root
+        while node is not None and node.left is not None:
+            node = node.left
+        return node.value if node else None
+''',
+  "tests": '''_ban("sorted", "sort", "max", "min")
+t = BST()
+assert t.inorder() == [] and t.preorder() == [] and t.postorder() == [] and t.reverse() == [], "traversals of an empty tree should give []"
+assert t.search(1) is False, "search on an empty tree should be False"
+try:
+    t.maximum(); t.minimum()
+except Exception:
+    pass
+for v in (50, 30, 70, 20, 40, 60, 80, 35, 45):
+    t.insert(v)
+assert t.inorder() == [20, 30, 35, 40, 45, 50, 60, 70, 80], "inorder should be left, root, right: got %r" % (t.inorder(),)
+assert t.preorder() == [50, 30, 20, 40, 35, 45, 70, 60, 80], "preorder should be root, left, right: got %r" % (t.preorder(),)
+assert t.postorder() == [20, 35, 45, 40, 30, 60, 80, 70, 50], "postorder should be left, right, root: got %r" % (t.postorder(),)
+assert t.reverse() == [80, 70, 60, 50, 45, 40, 35, 30, 20], "reverse should list the values from largest to smallest: got %r" % (t.reverse(),)
+assert t.maximum() == 80 and t.minimum() == 20, "maximum should be 80 and minimum 20, got %r and %r" % (t.maximum(), t.minimum())
+for v in (45, 20, 80, 60):
+    assert t.search(v) is True, "search(%r) should be True" % (v,)
+for v in (10, 55, 99):
+    assert t.search(v) is False, "search(%r) should be False" % (v,)
+random.seed(5)
+vals = random.sample(range(1000), 60)
+t2 = BST()
+for v in vals:
+    t2.insert(v)
+assert t2.inorder() == sorted(vals), "inorder on a larger random tree is wrong"
+assert t2.maximum() == max(vals) and t2.minimum() == min(vals), "maximum/minimum wrong on a larger tree"
+assert all(t2.search(v) for v in vals), "search missed an inserted value"
+'''},
+]
+for _a in ALGOS:
+    _a.setdefault("kind", "func"); _a.setdefault("group", "Algorithms")
+for _a in STRUCTS:
+    _a.setdefault("group", "Data structures")
+ALGOS.extend(STRUCTS)
+for _a in ALGOS:
+    _a["limit_ms"] = _a.get("limit_min", 5) * 60000
+    _a["limit_min"] = _a.get("limit_min", 5)
+
 BY_SLUG = {a["slug"]: a for a in ALGOS}
 
-def band(ms):
-    if ms <= TARGET_MS: return "green"
-    if ms < ORANGE_MS: return "orange"
+def band(ms, slug=None):
+    """green within the limit, orange within one minute over, red beyond."""
+    limit = BY_SLUG[slug]["limit_ms"] if slug in BY_SLUG else TARGET_MS
+    if ms <= limit: return "green"
+    if ms < limit + 60000: return "orange"
     return "red"
-
 
 # ---- soft logic check (AST only, safe to run on untrusted text) ----
 import ast as _ast
@@ -241,4 +544,14 @@ def logic_notes(slug, code):
             notes.append("no recursion on a pivot partition found (an explicit-stack version needs review)")
         elif two_base and not any(isinstance(n, _ast.Name) and "pivot" in n.id.lower() for n in _ast.walk(tree)):
             notes.append("looks like merging two sorted lists (merge sort) rather than partitioning on a pivot")
+    nclass = sum(isinstance(n, _ast.ClassDef) for n in _ast.walk(tree))
+    if slug == "hash-table":
+        if any(isinstance(n, _ast.Dict) for n in _ast.walk(tree)):
+            notes.append("uses a Python dict instead of an array and a hash function")
+    elif slug == "linked-list":
+        if nclass < 2:
+            notes.append("no separate node class holding a pointer to the next node found")
+    elif slug == "binary-search-tree":
+        if nclass < 2:
+            notes.append("no separate node class with left and right links found")
     return notes

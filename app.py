@@ -1068,7 +1068,7 @@ def _speed_board(db, algo, uid):
         rn, rc = roster.get(_norm_email(r["email"]), (None, None))
         board.append({"rank": len(board) + 1, "me": r["user_id"] == uid,
                       "name": rn or r["name"] or "Student", "cls": rc or "",
-                      "mode": r["mode"], "ms": r["elapsed_ms"], "band": speed_data.band(r["elapsed_ms"])})
+                      "mode": r["mode"], "ms": r["elapsed_ms"], "band": speed_data.band(r["elapsed_ms"], algo)})
     return board
 
 def _fmt_ms(ms):
@@ -1087,7 +1087,8 @@ def speed_index():
             """SELECT MIN(elapsed_ms) m FROM speed_attempts WHERE user_id=? AND algo=? AND passed=1
                AND (flagged=0 OR cleared=1)""", (u["id"], a["slug"])).fetchone()["m"]
         items.append({"slug": a["slug"], "title": a["title"], "best": best,
-                      "band": speed_data.band(best) if best is not None else ""})
+                      "band": speed_data.band(best, a["slug"]) if best is not None else "",
+                      "group": a["group"], "limit_min": a["limit_min"]})
     return render_template("speed_index.html", items=items)
 
 @app.route("/speed/<slug>")
@@ -1104,7 +1105,7 @@ def speed_algo(slug):
     hist = []
     for r in mine:
         hist.append({"mode": r["mode"], "passed": bool(r["passed"]), "ms": r["elapsed_ms"],
-                     "band": speed_data.band(r["elapsed_ms"]) if r["passed"] else "",
+                     "band": speed_data.band(r["elapsed_ms"], slug) if r["passed"] else "",
                      "flagged": bool(r["flagged"]) and not r["cleared"],
                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
     return render_template("speed_algo.html", a=a, board=_speed_board(db, slug, u["id"]), hist=hist,
@@ -1156,7 +1157,7 @@ def speed_run(slug, aid):
            "paste_flag": any(f.startswith("Suspected paste") for f in flags),
            "logic_flag": any(f.startswith("Logic check") for f in flags)}
     if passed:
-        out["band"] = speed_data.band(ms)
+        out["band"] = speed_data.band(ms, slug)
     return out
 
 @app.route("/teacher/speed")
@@ -1171,7 +1172,7 @@ def teacher_speed():
         items.append({"id": r["id"], "name": r["name"] or r["email"], "email": r["email"],
                       "algo": speed_data.BY_SLUG[r["algo"]]["title"] if r["algo"] in speed_data.BY_SLUG else r["algo"],
                       "mode": r["mode"], "passed": bool(r["passed"]), "ms": r["elapsed_ms"], "runs": r["runs"],
-                      "band": speed_data.band(r["elapsed_ms"]) if r["passed"] else "",
+                      "band": speed_data.band(r["elapsed_ms"], r["algo"]) if r["passed"] else "",
                       "flagged": bool(r["flagged"]), "cleared": bool(r["cleared"]), "note": r["flag_note"],
                       "pastes": r["paste_count"], "code": r["code"],
                       "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})

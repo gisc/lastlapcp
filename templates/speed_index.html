@@ -4,10 +4,13 @@
 <div class="card">
   <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span></div>
   <h1>Algorithm speed drills</h1>
-  <p class="muted">Type each algorithm from memory, against the clock. Target: under 5 minutes.</p>
-  {% for i in items %}
+  <p class="muted">Type each one from memory, against the clock. Target: under 5 minutes (binary search tree: 8).</p>
+  {% for grp in ['Algorithms', 'Data structures'] %}
+  <h3 class="sub">{{ grp }}</h3>
+  {% for i in items if i.group == grp %}
   <a class="btn big" href="{{ url_for('speed_algo', slug=i.slug) }}">{{ i.title }}&nbsp;
     {% if i.best is not none %}<span class="sbest {{ i.band }}">best {{ i.best|fmt_ms }}</span>{% else %}<span class="muted">not tried</span>{% endif %}</a>
+  {% endfor %}
   {% endfor %}
 </div>
 <div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
