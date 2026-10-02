@@ -9,7 +9,17 @@
     <tr><th>Class</th><th>Window (SGT)</th><th>Minutes</th><th>Status</th></tr>
     {% for x in wins %}<tr><td>{{ x.label }}</td><td>{{ x.start }} - {{ x.end }}</td><td>{{ x.mins }}</td><td>{{ x.state }}</td></tr>{% endfor %}
   </table></div>
-  <p class="muted small">Windows are the lesson times you confirmed (25S21 12:30-14:00, 25S11+25S22 14:00-15:30). Each student starts their own 75-minute clock with a Start button, capped at their class cutoff. Valid attempt: passed, unflagged drills that started and finished inside the student's own clock. Ranking (confirmed): most different drills, then the lowest total of each drill's best valid time. Repeats only improve time. Held attempts stay off. Teachers are never counted.</p>
+  <p class="muted small">Windows are the lesson times you confirmed (25S21 12:30-14:00, 25S11+25S22 14:00-15:30). Each student starts their own 75-minute clock with a Start button, capped at their class cutoff. Valid attempt: passed, unflagged drills that started and finished inside the student's own clock. Ranking (confirmed): most laps (different finished drills), then automatic partial credit, then the lowest total of each drill's best valid time. Repeats only improve time. Held attempts stay off. Teachers are never counted.</p>
+  {% if board %}
+  <h2>Teacher override: partial credit</h2>
+  <div class="tmapwrap"><table class="tmap">
+    <tr><th>Student</th><th>Class</th><th>Laps</th><th>Auto partial</th><th>Override</th></tr>
+    {% for r in board %}<tr><td>{{ r.name }}</td><td>{{ r.cls }}</td><td>{{ r.drills }}</td><td>{{ '%.2f' % r.auto }}</td>
+      <td><form method="post" action="{{ url_for('teacher_comp_override') }}"><input type="hidden" name="uid" value="{{ r.uid }}">
+        <input name="partial" size="4" value="{{ '' if r.override is none else r.override }}" placeholder="auto"> <button class="btn ghost" type="submit">Set</button></form></td></tr>{% endfor %}
+  </table></div>
+  <p class="muted small">Leave blank and press Set to go back to automatic. The override replaces the automatic partial credit for that student only.</p>
+  {% endif %}
   <p class="muted"><b>Below is exactly what a student will see.</b></p>
 </div>
 {% endif %}
@@ -33,6 +43,8 @@
   {% if capped %}<p class="muted small">Your clock ends at {{ cutoff }}, when your lesson ends.</p>{% endif %}
   <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Pick a drill</a>
   {% endif %}
+  <h2>What the words mean</h2>
+  <ul class="muted comprules">{% for k, v in c.DEFINE %}<li><b>{{ k }}</b>: {{ v }}</li>{% endfor %}</ul>
   <h2>How it works</h2>
   <ol class="muted comprules">{% for r in c.RULES %}<li>{{ r }}</li>{% endfor %}</ol>
   <h2>{{ c.EXAMPLE_TITLE }}</h2>
@@ -42,8 +54,8 @@
   <h2>Sprint board</h2>
   {% if board %}
   <div class="tmapwrap"><table class="tmap">
-    <tr><th>#</th><th>Student</th><th>Class</th><th>Drills</th><th>Total time</th></tr>
-    {% for r in board %}<tr {% if r.uid == me %}class="me"{% endif %}><td>{{ r.rank }}</td><td>{{ r.name }}{% if r.uid == me %} (you){% endif %}</td><td>{{ r.cls }}</td><td><b>{{ r.drills }}</b></td><td>{{ r.total|fmt_ms }}</td></tr>{% endfor %}
+    <tr><th>#</th><th>Student</th><th>Class</th><th>Laps</th><th>Partial</th><th>Total time</th></tr>
+    {% for r in board %}<tr {% if r.uid == me %}class="me"{% endif %}><td>{{ r.rank }}</td><td>{{ r.name }}{% if r.uid == me %} (you){% endif %}</td><td>{{ r.cls }}</td><td><b>{{ r.drills }}</b></td><td>{{ '%.1f' % r.partial }}</td><td>{{ r.total|fmt_ms if r.drills else '-' }}</td></tr>{% endfor %}
   </table></div>
   {% else %}<p class="muted">Nothing on the board yet. Be the first lap.</p>{% endif %}
 </div>

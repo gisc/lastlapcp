@@ -10,20 +10,24 @@ TAGLINE = "How many laps can you stack before the chequered flag?"
 BLURB = ("Finish as many different speed drills as you can, as fast as you can. "
          "Each drill is one lap. Retry a drill to beat your own time, and it still counts as one lap. "
          "Stuck? Read the message, tweak, run again. Have fun with it.")
+DEFINE = [
+    ("Drill", "one exercise, for example Bubble sort or Stack."),
+    ("Lap", "one different drill you finish with all checks passing. Doing the same drill again is still one lap."),
+]
 RULES = [
     "Press Start when you are ready. You get 75 minutes. If your lesson ends sooner, your clock stops at the end of your lesson.",
     "A drill only counts if you start it and finish it while your clock is running. Anything started before you press Start, or finished after your clock ends, does not count.",
-    "A drill counts when all its checks pass. Each different drill you pass is one lap.",
-    "Doing the same drill again never adds a lap. If your new time is faster, it replaces your old time for that drill.",
-    "Ranking: most different drills first. If drills are tied, the lowest total time wins. Your total is the sum of your best time on each drill.",
-    "A drill your teacher is reviewing is left off the board until it is cleared.",
+    "Ranking: most laps first. If laps are tied, the higher partial credit wins. If still tied, the lowest total time wins.",
+    "Total time is the sum of your best time on each drill you finished. A faster retry replaces your old time for that drill.",
+    "Partial credit: on a drill you have not finished, the checks you pass still earn a share of one point. The checks run in order and stop at the first one that fails, so it is only a rough guide, and some short drills give none. It only breaks ties.",
+    "Your teacher can adjust partial credit, and a drill under teacher review is left off the board until it is cleared.",
 ]
 EXAMPLE_TITLE = "Example"
 EXAMPLE = [
-    "Mia passes Bubble sort in 2:10, Linear search in 1:30 and Stack in 3:00. That is 3 laps, total 6:40.",
+    "Mia finishes Bubble sort in 2:10, Linear search in 1:30 and Stack in 3:00. That is 3 laps, total 6:40.",
     "She retries Bubble sort and does it in 1:50. Still 3 laps, but her total drops to 6:20.",
-    "Sam passes 4 different drills with a total of 14:00. Sam ranks above Mia, because 4 drills beats 3, even though Sam's total is longer.",
-    "Leo also passes 3 drills with a total of 6:00. Leo ranks above Mia, because the drills are tied and 6:00 is lower than 6:20.",
+    "Sam finishes 4 drills in a total of 14:00. Sam ranks above Mia: 4 laps beats 3, even though Sam's total is longer.",
+    "Leo also finishes 3 drills, in a slower 7:00, but has partial credit 0.4 on a 4th. Mia has 0.2. Leo ranks above Mia: laps are tied, so partial credit decides before time.",
 ]
 
 # Set True only when the teacher has confirmed the windows.
@@ -76,7 +80,10 @@ def standings(db, roster_lookup, norm_email):
            WHERE a.passed=1 AND (a.flagged=0 OR a.cleared=1) AND u.role='student' ORDER BY a.finished_at, a.id""").fetchall()
     joins = {r["user_id"]: datetime.fromisoformat(r["joined_at"]).astimezone(SGT)
              for r in db.execute("SELECT user_id, joined_at FROM comp_joins")}
+    ovr = {r["user_id"]: r for r in db.execute("SELECT user_id, partial, note FROM comp_override")}
     per = {}
+    def _slot(uid, rn, name, rc):
+        return per.setdefault(uid, {"uid": uid, "name": rn or name or "Student", "cls": rc, "bests": {}, "pbest": {}})
     for r in rows:
         rn, rc = roster.get(norm_email(r["email"]), (None, None))
         w = window_for_class(rc)
@@ -88,14 +95,38 @@ def standings(db, roster_lookup, norm_email):
             continue
         if s < j or f > personal_end(w, j):
             continue
-        p = per.setdefault(r["user_id"], {"uid": r["user_id"], "name": rn or r["name"] or "Student",
-                                          "cls": rc, "bests": {}})
+        p = _slot(r["user_id"], rn, r["name"], rc)
         cur = p["bests"].get(r["algo"])
         if cur is None or r["elapsed_ms"] < cur:
             p["bests"][r["algo"]] = r["elapsed_ms"]
+    # Automatic partial credit: best check progress (0-1) on a drill the student has not finished inside their clock.
+    for r in db.execute(
+            """SELECT a.user_id, a.algo, a.ck_frac, a.started_at, a.ck_at, u.name, u.email FROM speed_attempts a
+               JOIN users u ON u.id=a.user_id
+               WHERE a.passed=0 AND a.ck_frac>0 AND (a.flagged=0 OR a.cleared=1) AND u.role='student'""").fetchall():
+        rn, rc = roster.get(norm_email(r["email"]), (None, None))
+        w = window_for_class(rc); j = joins.get(r["user_id"])
+        if not w or j is None or j < w["start"] or j >= w["end"] or not r["ck_at"]:
+            continue
+        if datetime.fromisoformat(r["started_at"]) < j or datetime.fromisoformat(r["ck_at"]) > personal_end(w, j):
+            continue
+        p = _slot(r["user_id"], rn, r["name"], rc)
+        p["pbest"][r["algo"]] = max(p["pbest"].get(r["algo"], 0), r["ck_frac"])
     for p in per.values():
         p["drills"] = len(p["bests"]); p["total"] = sum(p["bests"].values())
-    board = sorted(per.values(), key=lambda p: (-p["drills"], p["total"], p["name"]))
+        p["auto"] = round(sum(v for k, v in p["pbest"].items() if k not in p["bests"]), 2)
+        o = ovr.get(p["uid"])
+        p["override"] = o["partial"] if o else None
+        p["partial"] = o["partial"] if o else p["auto"]
+    for uid, o in ovr.items():
+        if uid not in per:
+            u = db.execute("SELECT name, email FROM users WHERE id=?", (uid,)).fetchone()
+            if u:
+                rn, rc = roster.get(norm_email(u["email"]), (None, None))
+                if window_for_class(rc):
+                    p = _slot(uid, rn, u["name"], rc)
+                    p.update(drills=0, total=0, auto=0, override=o["partial"], partial=o["partial"])
+    board = sorted(per.values(), key=lambda p: (-p["drills"], -p["partial"], p["total"], p["name"]))
     for i, p in enumerate(board, 1):
         p["rank"] = i
     return board

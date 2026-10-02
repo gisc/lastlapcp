@@ -93,6 +93,7 @@
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ tests|tojson }};
+const CKTOTAL = {{ cktotal }};
 const RESETDB = "import os\nfor _f in ('data.db', 'data.db-journal'):\n    if os.path.exists(_f): os.remove(_f)";
 const SLUG = {{ a.slug|tojson }}, KIND = {{ a.kind|tojson }}, PKGS = {{ a.pkgs|tojson }};
 const LIMIT = {{ a.limit_ms }}, LIM_MIN = {{ a.limit_min }};
@@ -200,7 +201,7 @@ document.getElementById('run').addEventListener('click', async () => {
   const st = document.getElementById('status'), out = document.getElementById('output');
   st.className = 'verdict'; show('status', true); show('output', false);
   st.textContent = 'Running tests...';
-  let passed = false, text = '';
+  let passed = false, text = '', ckDone = 0;
   gutter.mark(0);
   const nStudent = code.value.split('\n').length;
   try {
@@ -211,6 +212,7 @@ document.getElementById('run').addEventListener('click', async () => {
     py.setStdout({ batched: s => lines.push(s) });
     py.setStderr({ batched: s => lines.push(s) });
     try {
+      py.runPython('_CK = set()');
       if (PKGS.length) await py.loadPackage(PKGS);
       if (KIND === 'script') await py.runPythonAsync(RESETDB);
       if (KIND === 'sql' || KIND === 'webapp') await py.runPythonAsync(TESTS);
@@ -229,12 +231,13 @@ document.getElementById('run').addEventListener('click', async () => {
       text = fx.text;
       if (fx.line) gutter.mark(fx.line);
     }
+    try { ckDone = py.runPython('len(_CK)'); } catch (e) {}
     if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
   } catch (err) { text = 'Could not start the Python runtime: ' + ((err && err.message) || err); }
   let j = null;
   try {
     const r = await fetch('/speed/' + SLUG + '/run/' + attemptId, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: code2 ? '### app.py\n' + code.value + '\n### index.html\n' + code2.value : code.value, passed, flags, paste_count: pasteCount }) });
+      body: JSON.stringify({ code: code2 ? '### app.py\n' + code.value + '\n### index.html\n' + code2.value : code.value, passed, flags, paste_count: pasteCount, ck_done: ckDone }) });
     j = await r.json();
   } catch (e) {}
   running = false;

@@ -1389,3 +1389,33 @@ def logic_notes(slug, code):
         if nclass < 2:
             notes.append("no separate node class with left and right links found")
     return notes
+
+
+_INSTR_CACHE = {}
+def instrument(slug):
+    """Competition progress marks: after every assert in the checker add _CK.add(n). Returns (tests_text, total_asserts).
+    A failed run's progress = distinct asserts that passed / total. Checks stop at the first failure, so it is a rough guide."""
+    if slug in _INSTR_CACHE:
+        return _INSTR_CACHE[slug]
+    import ast as _a
+    tree = _a.parse(BY_SLUG[slug]["tests"])
+    counter = [0]
+    class T(_a.NodeTransformer):
+        def generic_visit(self, node):
+            node = super().generic_visit(node)
+            for field in ("body", "orelse", "finalbody"):
+                seq = getattr(node, field, None)
+                if isinstance(seq, list):
+                    new = []
+                    for st in seq:
+                        new.append(st)
+                        if isinstance(st, _a.Assert):
+                            n = counter[0]; counter[0] += 1
+                            new.append(_a.parse("_CK.add(%d)" % n).body[0])
+                    setattr(node, field, new)
+            return node
+    tree = T().visit(tree)
+    _a.fix_missing_locations(tree)
+    out = (_a.unparse(tree), counter[0])
+    _INSTR_CACHE[slug] = out
+    return out

@@ -165,9 +165,11 @@ CREATE TABLE IF NOT EXISTS speed_attempts(
   passed INTEGER NOT NULL DEFAULT 0, runs INTEGER NOT NULL DEFAULT 0,
   code TEXT NOT NULL DEFAULT '', paste_count INTEGER NOT NULL DEFAULT 0,
   flagged INTEGER NOT NULL DEFAULT 0, flag_note TEXT NOT NULL DEFAULT '',
-  cleared INTEGER NOT NULL DEFAULT 0);
+  cleared INTEGER NOT NULL DEFAULT 0, ck_frac REAL NOT NULL DEFAULT 0, ck_at TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS idx_speed_algo ON speed_attempts(algo, passed);
 CREATE INDEX IF NOT EXISTS idx_speed_user ON speed_attempts(user_id);
+CREATE TABLE IF NOT EXISTS comp_override(
+  user_id INTEGER PRIMARY KEY REFERENCES users(id), partial REAL NOT NULL, note TEXT NOT NULL DEFAULT '');
 CREATE TABLE IF NOT EXISTS comp_joins(
   user_id INTEGER PRIMARY KEY REFERENCES users(id), joined_at TEXT NOT NULL);
 """
@@ -330,6 +332,11 @@ def init_db():
         db.execute("ALTER TABLE questions ADD COLUMN code TEXT DEFAULT ''")
     if "case_sensitive" not in cols:
         db.execute("ALTER TABLE questions ADD COLUMN case_sensitive INTEGER NOT NULL DEFAULT 0")
+    spcols = [r["name"] for r in db.execute("PRAGMA table_info(speed_attempts)")]
+    if "ck_frac" not in spcols:
+        db.execute("ALTER TABLE speed_attempts ADD COLUMN ck_frac REAL NOT NULL DEFAULT 0")
+    if "ck_at" not in spcols:
+        db.execute("ALTER TABLE speed_attempts ADD COLUMN ck_at TEXT NOT NULL DEFAULT ''")
     t3qcols = [r["name"] for r in db.execute("PRAGMA table_info(t3_questions)")]
     if "kind" not in t3qcols:
         db.execute("ALTER TABLE t3_questions ADD COLUMN kind TEXT NOT NULL DEFAULT 'code'")
@@ -1133,7 +1140,7 @@ def speed_algo(slug):
                      "flagged": bool(r["flagged"]) and not r["cleared"],
                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
     return render_template("speed_algo.html", a=a, board=_speed_board(db, slug, u["id"]), hist=hist,
-                           tests=speed_data.PRE + "\n" + a["tests"])
+                           tests=speed_data.PRE + "\n" + speed_data.instrument(slug)[0], cktotal=speed_data.instrument(slug)[1])
 
 @app.route("/speed/<slug>/code/<int:aid>")
 @login_required
@@ -1188,10 +1195,16 @@ def speed_run(slug, aid):
     flagged = 1 if flags else 0
     now = datetime.now(timezone.utc)
     ms = int((now - datetime.fromisoformat(row["started_at"])).total_seconds() * 1000) if passed else 0
+    total = speed_data.instrument(slug)[1] or 1
+    try:
+        ck_done = max(0, int(data.get("ck_done") or 0))
+    except (TypeError, ValueError):
+        ck_done = 0
+    frac = 1.0 if passed else min(ck_done, total - 1) / total
     db.execute(
         """UPDATE speed_attempts SET runs=runs+1, code=?, paste_count=?, flagged=?, flag_note=?,
-           passed=?, elapsed_ms=?, finished_at=? WHERE id=?""",
-        (code, pastes, flagged, "; ".join(flags), passed, ms, now.isoformat() if passed else "", aid))
+           passed=?, elapsed_ms=?, finished_at=?, ck_frac=MAX(ck_frac, ?), ck_at=? WHERE id=?""",
+        (code, pastes, flagged, "; ".join(flags), passed, ms, now.isoformat() if passed else "", frac, now.isoformat(), aid))
     db.commit()
     out = {"ok": True, "done": bool(passed), "ms": ms, "flagged": bool(flagged),
            "paste_flag": any(f.startswith("Suspected paste") for f in flags),
@@ -1288,6 +1301,26 @@ def teacher_comp():
     return render_template("comp.html", c=comp, w=comp.WINDOWS[0], board=board, me=0, preview=True,
                            wins=wins, now=now.strftime("%a %-d %b %H:%M"), end_iso="", left_s=comp.PERSONAL_MIN * 60,
                            joined=False, done=False, capped=False, cutoff="")
+
+@app.route("/teacher/comp/override", methods=["POST"])
+@teacher_required
+def teacher_comp_override():
+    db = get_db()
+    try:
+        uid = int(request.form.get("uid", ""))
+    except ValueError:
+        abort(400)
+    raw = request.form.get("partial", "").strip()
+    if raw == "":
+        db.execute("DELETE FROM comp_override WHERE user_id=?", (uid,))
+    else:
+        try:
+            val = max(0.0, min(float(raw), 9.99))
+        except ValueError:
+            abort(400)
+        db.execute("INSERT INTO comp_override(user_id, partial) VALUES(?,?) ON CONFLICT(user_id) DO UPDATE SET partial=excluded.partial", (uid, val))
+    db.commit()
+    return redirect(url_for("teacher_comp"))
 
 @app.route("/feedback", methods=["POST"])
 @login_required
