@@ -26,7 +26,7 @@
 {% endif %}
 <div class="card compcard">
   <div class="qmeta"><span class="tag tier">&#127937; Live</span></div>
-  <img class="compart" src="{{ url_for('static', filename='comp_f1.svg') }}" alt="A Formula 1 car with code symbols racing to the chequered flag">
+  <div class="comphero"><img src="{{ url_for('static', filename='comp_f1.jpg') }}" width="1000" height="563" alt="A coral Formula 1 style car speeding past a cheering crowd, with streams of code symbols behind it"><div class="herocap"><code>while lap &lt; 19: drive()</code></div></div>
   <h1>{{ c.NAME }}</h1>
   <p><b>{{ c.TAGLINE }}</b></p>
   <p class="muted">{{ c.BLURB }}</p>

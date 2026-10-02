@@ -8,4 +8,9 @@ body { background: linear-gradient(180deg, #064b4a, #07302f); }
 .tmap th { background: #e6f5f2; }
 .expl { background: #eef8f6; border-left-color: #0b6b63; }
 .compnote { background: #fff1ec; border-left: 4px solid #ff7a59; padding: 8px 10px; border-radius: 8px; font-size: .85rem; color: #3a1307; }
-.compart { display: block; width: 100%; height: auto; border-radius: 14px; margin: 4px 0 10px; }
+.comphero { position: relative; overflow: hidden; border-radius: 14px; margin: 4px 0 10px; background: #07302f; }
+.comphero img { display: block; width: 100%; height: auto; transform-origin: 70% 60%; animation: herozoom 9s ease-in-out infinite alternate; }
+.herocap { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 8px; background: linear-gradient(0deg, rgba(5,30,29,.85), rgba(5,30,29,0)); text-align: center; }
+.herocap code { color: #7ff0d8; font-weight: 700; font-size: .95rem; }
+@keyframes herozoom { from { transform: scale(1) translateX(0); } to { transform: scale(1.08) translateX(-2%); } }
+@media (prefers-reduced-motion: reduce) { .comphero img { animation: none; } }
