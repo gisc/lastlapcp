@@ -3,7 +3,7 @@
 {% block content %}
 <div class="card">
   <h1>Speed drill log</h1>
-  <p class="muted">Latest 300 attempts. Flags are suspicions, not proof. "Suspected paste" means a chunk was pasted that was not already in the cell (the page cannot see where it came from). "Logic check" means the tests passed but the code did not clearly look like the named algorithm (a heuristic; correct variants can trip it). "Edge case" means a passing Stack or Queue has no check for an empty structure in pop, peek or dequeue (any guard counts, it does not have to be is_empty). Flagged attempts stay off the leaderboard until you clear them. Results are the browser pass/fail (the server does not run student code): open the code link to check an entry, or hold it off the board.</p>
+  <p class="muted">Latest 300 attempts. Flags are suspicions, not proof. "Suspected paste" means a chunk was pasted that was not already in the cell (the page cannot see where it came from). "Logic check" means the tests passed but the code did not clearly look like the named algorithm (a heuristic; correct variants can trip it). "Edge case" means a passing Stack or Queue showed no check for an empty structure in pop, peek or dequeue (an automatic read of the code, so confirm in the code; any real check counts, it does not have to be is_empty, and unclear cases are not flagged). Flagged attempts stay off the leaderboard until you clear them. Results are the browser pass/fail (the server does not run student code): open the code link to check an entry, or hold it off the board.</p>
   <div class="tmapwrap"><table class="tmap">
     <tr><th>When</th><th>Student</th><th>Algorithm</th><th>Mode</th><th>Result</th><th>Runs</th><th>Flag</th></tr>
     {% for i in items %}

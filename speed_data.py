@@ -1394,39 +1394,88 @@ def logic_notes(slug, code):
 _INSTR_CACHE = {}
 # Drills whose tests never insist on what happens when you remove from an empty structure.
 EDGE_REMOVERS = {"stack": ("pop", "peek"), "queue": ("dequeue", "peek")}
+_EMPTY_ERRORS = {"IndexError", "LookupError", "Exception", "BaseException"}
 
-def edge_notes(slug, code):
-    """Edge-case notes for teacher review. Static read of the code only (nothing is run).
-    A removal method counts as handling the empty case if it has any guard of its own (an if, a
-    conditional expression, try/except or an and/or test), or hands over to another method of the
-    class that does. A literal is_empty() call is not required."""
+def edge_check(slug, code):
+    """Static read (nothing is run) of how pop/peek/dequeue deal with an empty structure.
+    Returns (missing, unresolved): lists of method names.
+      missing    - no check that depends on the structure's own state was found, so removing from an
+                   empty one would fail (conditions about other things and unrelated except clauses do not count)
+      unresolved - something looks like a check but it cannot be confirmed from the code alone
+    Handled cases (a state-based if/else that returns or raises, a one-line conditional, a slice, next(..., default),
+    an except IndexError/Exception, or a helper method that does one of these) are in neither list."""
     names = EDGE_REMOVERS.get(slug)
     if not names:
-        return []
+        return [], []
     try:
         tree = _ast.parse(code)
     except SyntaxError:
-        return []
+        return [], []
     methods = {}
     for c in _ast.walk(tree):
         if isinstance(c, _ast.ClassDef):
             for f in c.body:
                 if isinstance(f, _ast.FunctionDef):
                     methods.setdefault(f.name, f)
-    def own_guard(f):
-        return any(isinstance(n, (_ast.If, _ast.IfExp, _ast.Try, _ast.BoolOp)) for n in _ast.walk(f))
-    def guarded(f, depth=0):
-        if own_guard(f):
-            return True
+    def uses_self(node):
+        return any(isinstance(n, _ast.Name) and n.id == "self" for n in _ast.walk(node))
+    def state_names(f):
+        out = set()
+        for n in _ast.walk(f):
+            if isinstance(n, _ast.Assign) and uses_self(n.value):
+                for t in n.targets:
+                    out |= {x.id for x in _ast.walk(t) if isinstance(x, _ast.Name)}
+        return out
+    def relevant(test, f):
+        st = state_names(f)
+        return uses_self(test) or any(isinstance(n, _ast.Name) and n.id in st for n in _ast.walk(test))
+    def exits(nodes):
+        return any(isinstance(n, (_ast.Return, _ast.Raise)) for b in nodes for n in _ast.walk(b))
+    def classify(f, depth=0):
+        """'ok', 'unresolved' or 'missing'"""
+        weak = False
+        for n in _ast.walk(f):
+            if isinstance(n, _ast.If) and relevant(n.test, f):
+                if exits(n.body) or exits(n.orelse):
+                    return "ok"
+                weak = True
+            elif isinstance(n, _ast.IfExp) and relevant(n.test, f):
+                return "ok"
+            elif isinstance(n, _ast.BoolOp) and relevant(n, f):
+                return "ok"
+            elif isinstance(n, _ast.Try):
+                for h in n.handlers:
+                    t = h.type
+                    ts = [] if t is None else (t.elts if isinstance(t, _ast.Tuple) else [t])
+                    if t is None or any(isinstance(x, _ast.Name) and x.id in _EMPTY_ERRORS for x in ts):
+                        return "ok"
+                    weak = weak or False
+            elif isinstance(n, _ast.Subscript) and isinstance(n.slice, _ast.Slice) and uses_self(n):
+                return "ok"
+            elif (isinstance(n, _ast.Call) and isinstance(n.func, _ast.Name) and n.func.id == "next"
+                  and len(n.args) + len(n.keywords) >= 2):
+                return "ok"
         if depth < 2:
             for n in _ast.walk(f):
                 if (isinstance(n, _ast.Call) and isinstance(n.func, _ast.Attribute) and isinstance(n.func.value, _ast.Name)
-                        and n.func.value.id == "self" and n.func.attr in methods and methods[n.func.attr] is not f
-                        and guarded(methods[n.func.attr], depth + 1)):
-                    return True
-        return False
-    return [m + "() has no check for an empty %s" % ("stack" if slug == "stack" else "queue")
-            for m in names if m in methods and not guarded(methods[m])]
+                        and n.func.value.id == "self" and n.func.attr in methods and methods[n.func.attr] is not f):
+                    r = classify(methods[n.func.attr], depth + 1)
+                    if r == "ok":
+                        return "ok"
+                    weak = weak or r == "unresolved"
+        return "unresolved" if weak else "missing"
+    missing, unresolved = [], []
+    for m in names:
+        if m in methods:
+            r = classify(methods[m])
+            (missing if r == "missing" else unresolved if r == "unresolved" else []).append(m)
+    return missing, unresolved
+
+def edge_notes(slug, code):
+    """Teacher-review notes for methods where no empty check was found (see edge_check)."""
+    what = "stack" if slug == "stack" else "queue"
+    miss = edge_check(slug, code)[0]
+    return ["%s - no check for an empty %s found (automatic read, confirm in the code)" % (", ".join(m + "()" for m in miss), what)] if miss else []
 
 def instrument(slug):
     """Competition progress marks: after every assert in the checker add _CK.add(n). Returns (tests_text, total_asserts).
