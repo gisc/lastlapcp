@@ -350,6 +350,15 @@ def init_db():
     seed_t3(db)
     db.close()
 
+def _edge_reason(slug, note):
+    """Student-facing reason for an 'Edge case' flag, built from the teacher note."""
+    m = re.search(r"Edge case: ([^;]*?) - no check for an empty (stack|queue)", note or "")
+    if not m:
+        return ""
+    return ("Held off the leaderboard: %s did not check for an empty %s, so removing from an empty one would fail. "
+            "Add a check (an if, or try/except) so it returns None instead. This comes from an automatic read of your code, "
+            "so your teacher can clear it if it is wrong." % (m.group(1), m.group(2)))
+
 def backfill_edge_flags(db):
     """Flag earlier passed stack/queue attempts whose code has no empty check on pop/peek/dequeue.
     Static read only, idempotent, never touches cleared attempts, code or times."""
@@ -1186,6 +1195,9 @@ def speed_algo(slug):
         hist.append({"mode": r["mode"], "passed": bool(r["passed"]), "ms": r["elapsed_ms"],
                      "band": speed_data.band(r["elapsed_ms"], slug) if r["passed"] else "",
                      "flagged": bool(r["flagged"]) and not r["cleared"],
+                     "edge": _edge_reason(slug, r["flag_note"]) if r["flagged"] and not r["cleared"] else "",
+                     "other_flag": bool(r["flagged"]) and not r["cleared"] and any(
+                         k in (r["flag_note"] or "") for k in ("Suspected paste", "Logic check", "Held by teacher")),
                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
     example = ""
     if u["role"] == "teacher":
@@ -1264,7 +1276,8 @@ def speed_run(slug, aid):
     db.commit()
     out = {"ok": True, "done": bool(passed), "ms": ms, "flagged": bool(flagged),
            "paste_flag": any(f.startswith("Suspected paste") for f in flags),
-           "logic_flag": any(f.startswith("Logic check") for f in flags)}
+           "logic_flag": any(f.startswith("Logic check") for f in flags),
+           "edge_flag": any(f.startswith("Edge case") for f in flags)}
     if passed:
         out["band"] = speed_data.band(ms, slug)
     return out

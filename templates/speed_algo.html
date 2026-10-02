@@ -57,7 +57,8 @@
     {% for h in hist %}
     <li class="bitem {{ {'green':'bgreen','orange':'borange','red':'bred'}.get(h.band, 'bgrey') }}">
       {{ h.when }} &middot; {{ h.mode }} &middot; {% if h.passed %}{{ h.ms|fmt_ms }}{% else %}not finished{% endif %}
-      {% if h.flagged %}<div class="bfeedback">Held for teacher review (suspected paste or logic check). Not on the leaderboard unless your teacher clears it.</div>{% endif %}
+      {% if h.flagged and (h.other_flag or not h.edge) %}<div class="bfeedback">Held for teacher review (suspected paste or logic check). Not on the leaderboard unless your teacher clears it.</div>{% endif %}
+      {% if h.edge %}<div class="bfeedback">{{ h.edge }}</div>{% endif %}
     </li>
     {% endfor %}
   </ul>
@@ -306,6 +307,7 @@ document.getElementById('run').addEventListener('click', async () => {
     st.className = 'verdict good';
     st.textContent = j.paste_flag ? 'Tests passed. A suspected paste was detected, so this attempt is held for teacher review and is not ranked yet.'
       : j.logic_flag ? 'Tests passed, but the code does not clearly look like this algorithm, so it is held for teacher review and is not ranked yet.'
+      : j.edge_flag ? 'Tests passed, but pop, peek or dequeue does not check for an empty structure, so this attempt is held off the leaderboard until your teacher clears it.'
       : (j.band === 'green' ? 'Done - within ' + LIM_MIN + ':00!' : j.band === 'orange' ? 'Done - a little over ' + LIM_MIN + ':00.' : 'Done - over ' + (LIM_MIN + 1) + ':00. Go again.');
     show('after', true);
     document.getElementById('run').style.display = 'none';
