@@ -1119,8 +1119,8 @@ def _speed_board(db, algo, uid):
     return board
 
 def _fmt_ms(ms):
-    s = ms / 1000.0
-    return "%d:%04.1f" % (int(s // 60), s % 60)
+    tenths = int(ms // 100)
+    return "%d:%02d.%d" % (tenths // 600, (tenths // 10) % 60, tenths % 10)
 app.jinja_env.filters["fmt_ms"] = _fmt_ms
 
 @app.route("/speed")
@@ -1136,7 +1136,14 @@ def speed_index():
         items.append({"slug": a["slug"], "title": a["title"], "best": best,
                       "band": speed_data.band(best, a["slug"]) if best is not None else "",
                       "group": a["group"], "limit_min": a["limit_min"]})
-    return render_template("speed_index.html", items=items)
+    tiles = None
+    if u["role"] != "teacher" and comp.CONFIRMED:
+        cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+        w = comp.student_window(cls, datetime.now(SGT))
+        j = comp.get_join(db, u["id"]) if w else None
+        if w and j and datetime.now(SGT) < comp.personal_end(w, j):
+            tiles = _comp_tiles(db, u["id"])
+    return render_template("speed_index.html", items=items, tiles=tiles)
 
 @app.route("/speed/<slug>")
 @login_required
@@ -1270,6 +1277,21 @@ def _comp_view(preview):
     w = comp.window_for_class(cls) if not preview else None
     return db, u, now, board, cls, w
 
+def _comp_tiles(db, uid):
+    """Compact tile data for the sprint: every drill, coloured by the student's best valid in-clock time
+    (green within the drill's limit, orange within one minute over, red beyond, grey = no finished lap yet)."""
+    bests = {}
+    if uid:
+        for p in comp.standings(db, _roster_lookup, _norm_email):
+            if p["uid"] == uid:
+                bests = p["bests"]
+    tiles = []
+    for x in speed_data.ALGOS:
+        b = bests.get(x["slug"])
+        tiles.append({"slug": x["slug"], "title": x["title"], "group": x["group"], "limit_min": x["limit_min"],
+                      "best": b, "band": speed_data.band(b, x["slug"]) if b is not None else "todo"})
+    return tiles
+
 @app.route("/comp")
 @login_required
 def comp_page():
@@ -1289,7 +1311,7 @@ def comp_page():
     return render_template("comp.html", c=comp, w=w, board=board, me=u["id"], preview=False, joined=bool(joined),
                            done=bool(joined) and left <= 0, capped=bool(pend) and pend == w["end"] and joined is not None,
                            end_iso=pend.isoformat() if pend else "", left_s=max(left, 0),
-                           cutoff=w["end"].strftime("%H:%M"))
+                           cutoff=w["end"].strftime("%H:%M"), tiles=_comp_tiles(db, u["id"]))
 
 @app.route("/comp/join", methods=["POST"])
 @login_required
@@ -1316,7 +1338,7 @@ def teacher_comp():
              "mins": int((w["end"] - w["start"]).total_seconds() // 60), "state": comp.state(w, now)} for w in comp.WINDOWS]
     return render_template("comp.html", c=comp, w=comp.WINDOWS[0], board=board, me=0, preview=True,
                            wins=wins, now=now.strftime("%a %-d %b %H:%M"), end_iso="", left_s=comp.PERSONAL_MIN * 60,
-                           joined=False, done=False, capped=False, cutoff="")
+                           joined=False, done=False, capped=False, cutoff="", tiles=_comp_tiles(db, 0))
 
 @app.route("/teacher/comp/override", methods=["POST"])
 @teacher_required

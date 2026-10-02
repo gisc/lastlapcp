@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_tiles.html" import drill_tiles %}
 {% block title %}LastLapCP - {{ c.NAME }}{% endblock %}
 {% block content %}
 {% if preview %}
@@ -32,6 +33,8 @@
   <div class="bigxp"><span id="clock">--:--</span> <span>left</span></div>
   <p class="muted small">Before a student presses Start, they see a button instead of the clock.</p>
   <span class="btn big speedbtn">Start my 75 minutes</span>
+  <h2>Pick a drill <span class="muted small">(shown once the student has pressed Start)</span></h2>
+  {{ drill_tiles(tiles) }}
   {% elif not joined %}
   <form method="post" action="{{ url_for('comp_join') }}"><button class="btn big speedbtn" type="submit">Start my 75 minutes</button></form>
   <p class="muted small">Your clock starts when you press Start and stops at {{ c.PERSONAL_MIN }} minutes, or at {{ cutoff }} when your lesson ends, whichever comes first.</p>
@@ -41,7 +44,8 @@
   {% else %}
   <div class="bigxp"><span id="clock">{{ '%d:%02d' % (left_s // 60, left_s % 60) }}</span> <span>left</span></div>
   {% if capped %}<p class="muted small">Your clock ends at {{ cutoff }}, when your lesson ends.</p>{% endif %}
-  <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Pick a drill</a>
+  <h2>Pick a drill</h2>
+  {{ drill_tiles(tiles) }}
   {% endif %}
   <h2>What the words mean</h2>
   <ul class="muted comprules">{% for k, v in c.DEFINE %}<li><b>{{ k }}</b>: {{ v }}</li>{% endfor %}</ul>

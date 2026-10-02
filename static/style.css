@@ -143,3 +143,18 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .cmtitle { font-weight: 700; color: var(--navy); }
 .cmcode { overflow: auto; flex: 1; margin: 0; white-space: pre; tab-size: 4; text-align: left; }
 .comprules{padding-left:20px;margin:6px 0 14px}.comprules li{margin:6px 0;line-height:1.4}
+
+/* compact drill tiles (sprint) */
+.tilegrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 6px 0; }
+.tilegrp { grid-column: 1 / -1; font-weight: 800; font-size: .8rem; color: var(--navy); margin-top: 6px; }
+.tile { min-width: 0; overflow-wrap: anywhere; display: flex; flex-direction: column; justify-content: space-between; min-height: 58px; padding: 7px 8px; border-radius: 10px; text-decoration: none; background: #e7edf5; color: #26354a; border: 2px solid transparent; }
+.tname { font-size: .78rem; font-weight: 700; line-height: 1.15; }
+.ttime { font-size: .85rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.ttime small { font-weight: 600; opacity: .7; font-size: .7rem; }
+.tile.green { background: #d6f2e0; color: #0f4a27; border-color: #2ea05f; }
+.tile.orange { background: #ffe6bf; color: #6b4000; border-color: #e08a00; }
+.tile.red { background: #ffd4d4; color: #7a1414; border-color: #d12a2a; }
+.kdot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin: 0 4px 0 8px; background: #e7edf5; border: 1px solid #99a; }
+.kdot.green { background: #2ea05f; } .kdot.orange { background: #e08a00; } .kdot.red { background: #d12a2a; }
+@media (min-width: 560px) { .tilegrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.tile .tname { white-space: normal; overflow: visible; text-overflow: clip; display: block; }

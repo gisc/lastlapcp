@@ -1,0 +1,14 @@
+{% macro drill_tiles(tiles) %}
+<div class="tilegrid">
+{% for grp in ['Algorithms', 'Data structures', 'Others'] %}
+  <div class="tilegrp">{{ grp }}</div>
+  {% for t in tiles if t.group == grp %}
+  <a class="tile {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) }}">
+    <span class="tname">{{ t.title }}</span>
+    <span class="ttime">{% if t.best is not none %}{{ t.best|fmt_ms }}{% else %}&ndash;{% endif %}<small> / {{ t.limit_min }}m</small></span>
+  </a>
+  {% endfor %}
+{% endfor %}
+</div>
+<p class="muted small tilekey"><span class="kdot green"></span>within the limit <span class="kdot orange"></span>up to 1 min over <span class="kdot red"></span>more than 1 min over <span class="kdot todo"></span>not finished yet. Colour is your best finished time in this sprint against the drill's limit.</p>
+{% endmacro %}
