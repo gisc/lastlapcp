@@ -5,7 +5,7 @@
   <div class="qmeta"><span class="tag tier">Tier 3</span><span class="tag paper">P2</span><span class="tag">Speed drill</span></div>
   <h1>{{ a.title }}</h1>
   <div id="intro">
-    {% if comp_skin %}<p class="compnote"><b>Pit Stop Sprint:</b> the sample shows here before every attempt, including retries. It is hidden while you type, and you type your own correct version. Any correct version passes. Pasting code from outside the box is blocked; copying your own code inside the box is fine.</p>{% endif %}
+    {% if comp_skin %}<p class="compnote"><b>Pit Stop Sprint:</b> the sample shows here before every attempt, including retries. It is hidden while you type, and you type your own version. It passes when it works, as long as it uses the names this page asks for (function, class, table or variable names). Any correct approach is fine. Pasting code from outside the box is blocked; copying your own code inside the box is fine.</p>{% endif %}
     <p class="muted">Study the sample, then type it from memory. The sample is hidden once you start, and the editor starts empty. {% if a.kind == 'sql' %}Type it as one SQL script. It runs on an empty database, statement by statement.{% elif a.kind == 'webapp' %}Type both files, one in each box. Flask is not run here: your app.py is tested with a stand-in for Flask, and your index.html is rendered with Jinja.{% elif a.kind == 'script' %}Type it as one Python script. Use the same variable names.{% else %}Your {{ 'class' if a.kind == 'class' else 'function' }} must be called <b>{{ a.fn }}</b>.{% endif %}</p>
     {% if a.kind == 'webapp' %}
     <p class="muted small cell-label"><b>app.py</b></p>
