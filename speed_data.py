@@ -949,7 +949,7 @@ assert t2.inorder() == sorted(vals), "inorder on a larger random tree is wrong"
 assert t2.maximum() == max(vals) and t2.minimum() == min(vals), "maximum/minimum wrong on a larger tree"
 assert all(t2.search(v) for v in vals), "search missed an inserted value"
 '''},
- {"slug": "bst-array", "title": "Binary search tree (array version)", "fn": "ArrayBST", "kind": "class", "limit_min": 10,
+ {"slug": "bst-array", "title": "Binary search tree (array version)", "fn": "ArrayBST", "kind": "class", "limit_min": 8,
   "sample": '''class ArrayBST:
     # root is index 0; for the node at index i:
     # left child is at 2*i + 1, right child is at 2*i + 2
