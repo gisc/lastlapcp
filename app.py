@@ -15,6 +15,7 @@ from flask import (Flask, abort, g, redirect, render_template, request, send_fro
 from authlib.integrations.flask_client import OAuth
 import papers_data
 import speed_data
+import speed_examples
 import comp
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -1168,7 +1169,14 @@ def speed_algo(slug):
                      "band": speed_data.band(r["elapsed_ms"], slug) if r["passed"] else "",
                      "flagged": bool(r["flagged"]) and not r["cleared"],
                      "when": datetime.fromisoformat(r["started_at"]).astimezone(SGT).strftime("%d %b %H:%M")})
-    return render_template("speed_algo.html", a=a, board=_speed_board(db, slug, u["id"]), hist=hist,
+    example = ""
+    if u["role"] == "teacher":
+        example = speed_examples.EXAMPLES.get(slug, "")
+    elif comp.CONFIRMED:
+        cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+        if comp.student_window(cls, datetime.now(SGT)):
+            example = speed_examples.EXAMPLES.get(slug, "")
+    return render_template("speed_algo.html", a=a, example=example, board=_speed_board(db, slug, u["id"]), hist=hist,
                            tests=speed_data.PRE + "\n" + speed_data.instrument(slug)[0], cktotal=speed_data.instrument(slug)[1])
 
 @app.route("/speed/<slug>/code/<int:aid>")

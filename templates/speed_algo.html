@@ -15,6 +15,10 @@
     {% else %}
     <pre class="codeblock smallcode">{{ a.sample }}</pre>
     {% endif %}
+    {% if example %}
+    <p class="muted small cell-label"><b>Example test</b> (read-only, not part of your answer; the real checks use other inputs too)</p>
+    <pre class="codeblock smallcode exampletest">{{ example }}</pre>
+    {% endif %}
     <button class="btn big" id="bpractice" type="button">Practise</button>
     <button class="btn big ghostbtn" id="bdrill" type="button">Drill ({{ a.limit_min }} min countdown)</button>
     <p class="muted small"><b>Practise</b>: the timer counts up and turns red after {{ a.limit_min }}:00. <b>Drill</b>: a {{ a.limit_min }}:00 countdown; when it hits zero it stops, and you can still finish and submit.</p>

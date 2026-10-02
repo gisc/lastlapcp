@@ -158,3 +158,4 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .kdot.green { background: #2ea05f; } .kdot.orange { background: #e08a00; } .kdot.red { background: #d12a2a; }
 @media (min-width: 560px) { .tilegrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .tile .tname { white-space: normal; overflow: visible; text-overflow: clip; display: block; }
+pre.exampletest { white-space: pre-wrap; overflow-wrap: anywhere; }
