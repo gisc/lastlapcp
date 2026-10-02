@@ -1277,6 +1277,13 @@ def _comp_view(preview):
     w = comp.window_for_class(cls) if not preview else None
     return db, u, now, board, cls, w
 
+def _tile_band(ms, limit_ms):
+    """Competition tiles only: green at or under the limit, orange up to and including 1 minute over, red beyond.
+    (The practice boards keep speed_data.band, where exactly limit+1:00 is red.)"""
+    if ms is None: return "todo"
+    if ms <= limit_ms: return "green"
+    return "orange" if ms <= limit_ms + 60000 else "red"
+
 def _comp_tiles(db, uid):
     """Compact tile data for the sprint: every drill, coloured by the student's best valid in-clock time
     (green within the drill's limit, orange within one minute over, red beyond, grey = no finished lap yet)."""
@@ -1289,7 +1296,7 @@ def _comp_tiles(db, uid):
     for x in speed_data.ALGOS:
         b = bests.get(x["slug"])
         tiles.append({"slug": x["slug"], "title": x["title"], "group": x["group"], "limit_min": x["limit_min"],
-                      "best": b, "band": speed_data.band(b, x["slug"]) if b is not None else "todo"})
+                      "best": b, "band": _tile_band(b, x["limit_ms"])})
     return tiles
 
 @app.route("/comp")
