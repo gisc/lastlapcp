@@ -1135,7 +1135,7 @@ assert enrol == [(1, 1, "Computing")], "After the DELETE, Enrolment should only 
  {"slug": "relational-database-sqlite3", "title": "Relational database with sqlite3 (Python)", "fn": "Python script", "kind": "script", "group": "Others",
   "sample": '''import sqlite3
 
-conn = sqlite3.connect(":memory:")
+conn = sqlite3.connect("data.db")
 cur = conn.cursor()
 
 cur.execute("CREATE TABLE Student (StudentID INTEGER PRIMARY KEY, Name TEXT, Grade TEXT)")
@@ -1158,8 +1158,12 @@ conn.close()
 ''',
   "tests": '''import sqlite3 as _sq
 _t = ast.parse(_SRC)
+for _n in ast.walk(_t):
+    if isinstance(_n, ast.Name) and isinstance(_n.ctx, ast.Store) and len(_n.id) == 1:
+        raise AssertionError("Line %d: variable '%s' is a single letter. Use a meaningful name such as student or rec" % (_n.lineno, _n.id))
 _names_used = _names(_SRC)
 assert "connect" in _names_used and "sqlite3" in _names_used, "Use sqlite3.connect(...) to open the database"
+assert any(n.value == "data.db" for n in ast.walk(_t) if isinstance(n, ast.Constant)), "Open the database file with sqlite3.connect('data.db')"
 assert "commit" in _names_used, "Call conn.commit() after changing the data"
 _sqls = [n.value.lower() for n in ast.walk(_t) if isinstance(n, ast.Constant) and isinstance(n.value, str)]
 assert sum(q.strip().startswith("create table") for q in _sqls) == 1, "Create exactly one table with CREATE TABLE"
@@ -1204,10 +1208,10 @@ if __name__ == "__main__":
             <th>No.</th>
             <th>Name</th>
         </tr>
-        {% for s in students %}
+        {% for student in students %}
         <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ s }}</td>
+            <td>{{ student }}</td>
         </tr>
         {% endfor %}
     </table>
@@ -1261,7 +1265,9 @@ _nm = re.search(r"name\\s*=\\s*[\\"']([^\\"']+)[\\"']", _tm.group(0))
 assert _nm, "The text box needs a name attribute, e.g. name=\\"name\\", so the form can send it"
 assert re.search(r"<input[^>]*type\\s*=\\s*[\\"']?submit", _h, re.I), "index.html needs an <input type=\\"submit\\"> button"
 assert "{% for" in _h and "{% endfor" in _h, "index.html needs a Jinja {% for ... %} loop with {% endfor %}"
-assert "{{" in _h, "The table rows must use Jinja data tags such as {{ s }}"
+_lv = re.search(r"{%-?\\s*for\\s+(\\w+)\\s+in\\s", _h)
+assert _lv and len(_lv.group(1)) > 1, "Do not use a single-letter loop variable. Write {% for student in students %}"
+assert "{{" in _h, "The table rows must use Jinja data tags such as {{ student }}"
 assert re.search(r"<table", _h, re.I) and re.search(r"<tr", _h, re.I) and re.search(r"<td", _h, re.I), "index.html needs a <table> with <tr> and <td> cells"
 request.method = "GET"; request.form = {}
 _r0 = _view()

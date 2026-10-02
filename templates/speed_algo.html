@@ -93,6 +93,7 @@
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ tests|tojson }};
+const RESETDB = "import os\nfor _f in ('data.db', 'data.db-journal'):\n    if os.path.exists(_f): os.remove(_f)";
 const SLUG = {{ a.slug|tojson }}, KIND = {{ a.kind|tojson }}, PKGS = {{ a.pkgs|tojson }};
 const LIMIT = {{ a.limit_ms }}, LIM_MIN = {{ a.limit_min }};
 let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false, running = false;
@@ -211,6 +212,7 @@ document.getElementById('run').addEventListener('click', async () => {
     py.setStderr({ batched: s => lines.push(s) });
     try {
       if (PKGS.length) await py.loadPackage(PKGS);
+      if (KIND === 'script') await py.runPythonAsync(RESETDB);
       if (KIND === 'sql' || KIND === 'webapp') await py.runPythonAsync(TESTS);
       else await py.runPythonAsync(code.value + '\n\n' + TESTS);
       passed = true;
