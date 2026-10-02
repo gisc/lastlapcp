@@ -10,10 +10,21 @@ TAGLINE = "How many laps can you stack before the chequered flag?"
 BLURB = ("Finish as many different speed drills as you can, as fast as you can. "
          "Each drill is one lap. Retry a drill to beat your own time, and it still counts as one lap. "
          "Stuck? Read the message, tweak, run again. Have fun with it.")
-RULES = ["Press Start when you are ready. You get 75 minutes, or until the end of your lesson if that comes first.",
-         "A lap is a different drill with all checks passing. Retrying the same drill can improve your time but is still one lap.",
-         "Ranking: most different drills first, then the lowest total of your best times.",
-         "Drills held by your teacher for review are left off until cleared."]
+RULES = [
+    "Press Start when you are ready. You get 75 minutes. If your lesson ends sooner, your clock stops at the end of your lesson.",
+    "A drill only counts if you start it and finish it while your clock is running. Anything started before you press Start, or finished after your clock ends, does not count.",
+    "A drill counts when all its checks pass. Each different drill you pass is one lap.",
+    "Doing the same drill again never adds a lap. If your new time is faster, it replaces your old time for that drill.",
+    "Ranking: most different drills first. If drills are tied, the lowest total time wins. Your total is the sum of your best time on each drill.",
+    "A drill your teacher is reviewing is left off the board until it is cleared.",
+]
+EXAMPLE_TITLE = "Example"
+EXAMPLE = [
+    "Mia passes Bubble sort in 2:10, Linear search in 1:30 and Stack in 3:00. That is 3 laps, total 6:40.",
+    "She retries Bubble sort and does it in 1:50. Still 3 laps, but her total drops to 6:20.",
+    "Sam passes 4 different drills with a total of 14:00. Sam ranks above Mia, because 4 drills beats 3, even though Sam's total is longer.",
+    "Leo also passes 3 drills with a total of 6:00. Leo ranks above Mia, because the drills are tied and 6:00 is lower than 6:20.",
+]
 
 # Set True only when the teacher has confirmed the windows.
 CONFIRMED = False

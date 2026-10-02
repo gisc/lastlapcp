@@ -142,3 +142,4 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 .cmhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .cmtitle { font-weight: 700; color: var(--navy); }
 .cmcode { overflow: auto; flex: 1; margin: 0; white-space: pre; tab-size: 4; text-align: left; }
+.comprules{padding-left:20px;margin:6px 0 14px}.comprules li{margin:6px 0;line-height:1.4}

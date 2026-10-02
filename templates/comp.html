@@ -33,7 +33,10 @@
   {% if capped %}<p class="muted small">Your clock ends at {{ cutoff }}, when your lesson ends.</p>{% endif %}
   <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Pick a drill</a>
   {% endif %}
-  <div class="muted">{% for r in c.RULES %}<p>{{ r }}</p>{% endfor %}</div>
+  <h2>How it works</h2>
+  <ol class="muted comprules">{% for r in c.RULES %}<li>{{ r }}</li>{% endfor %}</ol>
+  <h2>{{ c.EXAMPLE_TITLE }}</h2>
+  <ul class="muted comprules">{% for r in c.EXAMPLE %}<li>{{ r }}</li>{% endfor %}</ul>
 </div>
 <div class="card">
   <h2>Sprint board</h2>
