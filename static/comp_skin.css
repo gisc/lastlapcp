@@ -7,3 +7,4 @@ body { background: linear-gradient(180deg, #064b4a, #07302f); }
 .btn.ghost { background: #dff1ee; color: #0b6b63; }
 .tmap th { background: #e6f5f2; }
 .expl { background: #eef8f6; border-left-color: #0b6b63; }
+.compnote { background: #fff1ec; border-left: 4px solid #ff7a59; padding: 8px 10px; border-radius: 8px; font-size: .85rem; color: #3a1307; }
