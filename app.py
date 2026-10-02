@@ -355,9 +355,10 @@ def _edge_reason(slug, note):
     m = re.search(r"Edge case: ([^;]*?) - no check for an empty (stack|queue)", note or "")
     if not m:
         return ""
-    return ("Held off the leaderboard: %s did not check for an empty %s, so removing from an empty one would fail. "
-            "Add a check (an if, or try/except) so it returns None instead. This comes from an automatic read of your code, "
-            "so your teacher can clear it if it is wrong." % (m.group(1), m.group(2)))
+    names = " and ".join(x.strip() for x in m.group(1).split(","))
+    return ("Held off the speed leaderboard: no empty-%s check was found in %s. Review how your code handles an empty %s. "
+            "This is an automatic code check, not a final judgement; your teacher can clear the flag if the handling is valid."
+            % (m.group(2), names, m.group(2)))
 
 def backfill_edge_flags(db):
     """Flag earlier passed stack/queue attempts whose code has no empty check on pop/peek/dequeue.
@@ -1277,7 +1278,8 @@ def speed_run(slug, aid):
     out = {"ok": True, "done": bool(passed), "ms": ms, "flagged": bool(flagged),
            "paste_flag": any(f.startswith("Suspected paste") for f in flags),
            "logic_flag": any(f.startswith("Logic check") for f in flags),
-           "edge_flag": any(f.startswith("Edge case") for f in flags)}
+           "edge_flag": any(f.startswith("Edge case") for f in flags),
+           "edge_text": _edge_reason(slug, "; ".join(flags)) if any(f.startswith("Edge case") for f in flags) else ""}
     if passed:
         out["band"] = speed_data.band(ms, slug)
     return out
