@@ -1123,6 +1123,12 @@ def _fmt_ms(ms):
     return "%d:%02d.%d" % (tenths // 600, (tenths // 10) % 60, tenths % 10)
 app.jinja_env.filters["fmt_ms"] = _fmt_ms
 
+def _fmt_ms_up(ms):
+    """Tile display: round UP to the next tenth, so a time just over a limit never shows as the limit itself."""
+    tenths = -(-int(ms) // 100)
+    return "%d:%02d.%d" % (tenths // 600, (tenths // 10) % 60, tenths % 10)
+app.jinja_env.filters["fmt_ms_up"] = _fmt_ms_up
+
 @app.route("/speed")
 @login_required
 def speed_index():

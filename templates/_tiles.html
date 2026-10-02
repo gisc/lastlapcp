@@ -5,7 +5,7 @@
   {% for t in tiles if t.group == grp %}
   <a class="tile {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) }}">
     <span class="tname">{{ t.title }}</span>
-    <span class="ttime">{% if t.best is not none %}{{ t.best|fmt_ms }}{% else %}&ndash;{% endif %}<small> / {{ t.limit_min }}m</small></span>
+    <span class="ttime">{% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}&ndash;{% endif %}<small> / {{ t.limit_min }}m</small></span>
   </a>
   {% endfor %}
 {% endfor %}
