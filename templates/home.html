@@ -3,6 +3,13 @@
 {% if u['role'] == 'teacher' %}
 <div class="card center"><a class="btn" href="{{ url_for('teacher') }}">Teacher dashboard</a></div>
 {% endif %}
+{% if cw %}
+<div class="card compcard">
+  <h2>&#127937; {{ comp.NAME }} is on</h2>
+  <p class="muted">{{ comp.TAGLINE }} Open until {{ cw.end.strftime('%H:%M') }}.</p>
+  <a class="btn big speedbtn" href="{{ url_for('comp_page') }}">Join the sprint</a>
+</div>
+{% endif %}
 <div class="card hero">
   <div class="hello">Hi {{ u['name'].split(' ')[0] if u['name'] else u['email'] }}</div>
   <div class="bigxp">{{ stats.xp }} <span>XP</span></div>

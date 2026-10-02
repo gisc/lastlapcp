@@ -15,6 +15,7 @@ from flask import (Flask, abort, g, redirect, render_template, request, send_fro
 from authlib.integrations.flask_client import OAuth
 import papers_data
 import speed_data
+import comp
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 SGT = timezone(timedelta(hours=8))
@@ -545,7 +546,10 @@ def home():
                 WHERE p.question_id=? AND a.user_id=? AND a.passed=1""", (r["id"], u["id"])).fetchone()["c"]
         (t3t if r["kind"] == "theory" else t3).append(
             {"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
-    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t, exams=exams)
+    cw = None
+    if u["role"] != "teacher":
+        cw = comp.student_window(_roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1], datetime.now(SGT))
+    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t, exams=exams, cw=cw, comp=comp)
 
 @app.route("/login")
 def login():
@@ -1223,6 +1227,44 @@ def teacher_speed_toggle(aid):
         db.execute("UPDATE speed_attempts SET flagged=1, cleared=0, flag_note='Held by teacher' WHERE id=?", (aid,))
     db.commit()
     return redirect(url_for("teacher_speed"))
+
+# ---------------- timed competition ----------------
+def _comp_view(preview):
+    db = get_db()
+    u = current_user()
+    now = datetime.now(SGT)
+    roster = _roster_lookup(db)
+    board = comp.standings(db, _roster_lookup, _norm_email)
+    cls = roster.get(_norm_email(u["email"]), (None, None))[1]
+    w = comp.window_for_class(cls) if not preview else None
+    return db, u, now, board, cls, w
+
+@app.route("/comp")
+@login_required
+def comp_page():
+    u = current_user()
+    if u["role"] == "teacher":
+        return redirect(url_for("teacher_comp"))
+    db = get_db()
+    now = datetime.now(SGT)
+    cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+    w = comp.student_window(cls, now)
+    if not w:
+        abort(404)
+    board = comp.standings(db, _roster_lookup, _norm_email)
+    return render_template("comp.html", c=comp, w=w, board=board, me=u["id"], preview=False,
+                           end_iso=w["end"].isoformat(), left_s=int((w["end"] - now).total_seconds()))
+
+@app.route("/teacher/comp")
+@teacher_required
+def teacher_comp():
+    db = get_db()
+    now = datetime.now(SGT)
+    board = comp.standings(db, _roster_lookup, _norm_email)
+    wins = [{"label": w["label"], "start": w["start"].strftime("%a %-d %b %H:%M"), "end": w["end"].strftime("%H:%M"),
+             "mins": int((w["end"] - w["start"]).total_seconds() // 60), "state": comp.state(w, now)} for w in comp.WINDOWS]
+    return render_template("comp.html", c=comp, w=comp.WINDOWS[0], board=board, me=0, preview=True,
+                           wins=wins, now=now.strftime("%a %-d %b %H:%M"), end_iso="", left_s=75 * 60)
 
 @app.route("/feedback", methods=["POST"])
 @login_required

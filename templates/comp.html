@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ c.NAME }}{% endblock %}
+{% block content %}
+{% if preview %}
+<div class="card">
+  <h1>Competition preview (teacher only)</h1>
+  <p class="muted">Students see nothing until their class window opens, and only when the windows are confirmed. Now: {{ now }} SGT. Windows confirmed: <b>{{ 'yes' if c.CONFIRMED else 'NO - provisional, nobody can see it' }}</b>.</p>
+  <div class="tmapwrap"><table class="tmap">
+    <tr><th>Class</th><th>Window (SGT)</th><th>Minutes</th><th>Status</th></tr>
+    {% for x in wins %}<tr><td>{{ x.label }}</td><td>{{ x.start }} - {{ x.end }}</td><td>{{ x.mins }}</td><td>{{ x.state }}</td></tr>{% endfor %}
+  </table></div>
+  <p class="muted small">Provisional windows are the full lessons as stated. Lap rule: passed, unflagged drills that started and finished inside the student's class window. Ranking: most laps, then earliest last lap. Held attempts stay off. Teachers are never counted.</p>
+  <p class="muted"><b>Below is exactly what a student will see.</b></p>
+</div>
+{% endif %}
+<div class="card compcard">
+  <div class="qmeta"><span class="tag tier">&#127937; Live</span></div>
+  <h1>{{ c.NAME }}</h1>
+  <p><b>{{ c.TAGLINE }}</b></p>
+  <p class="muted">{{ c.BLURB }}</p>
+  <div class="bigxp"><span id="clock">{% if preview %}--:--{% else %}{{ '%d:%02d' % (left_s // 60, left_s % 60) }}{% endif %}</span> <span>left</span></div>
+  <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Pick a drill</a>
+  <div class="muted">{% for r in c.RULES %}<p>{{ r }}</p>{% endfor %}</div>
+</div>
+<div class="card">
+  <h2>Sprint board</h2>
+  {% if board %}
+  <div class="tmapwrap"><table class="tmap">
+    <tr><th>#</th><th>Student</th><th>Class</th><th>Laps</th><th>Drills</th></tr>
+    {% for r in board %}<tr {% if r.uid == me %}class="me"{% endif %}><td>{{ r.rank }}</td><td>{{ r.name }}{% if r.uid == me %} (you){% endif %}</td><td>{{ r.cls }}</td><td><b>{{ r.laps }}</b></td><td>{{ r.drills }}</td></tr>{% endfor %}
+  </table></div>
+  {% else %}<p class="muted">No laps yet. Be the first on the board.</p>{% endif %}
+</div>
+<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
+{% if not preview %}
+<script>
+(function(){var end=new Date({{ end_iso|tojson }}).getTime(),el=document.getElementById('clock');
+function t(){var s=Math.max(0,Math.round((end-Date.now())/1000));el.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);if(s<=0)location.href='/';}
+setInterval(t,1000);t();})();
+</script>
+{% endif %}
+{% endblock %}
