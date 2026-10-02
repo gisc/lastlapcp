@@ -168,6 +168,8 @@ CREATE TABLE IF NOT EXISTS speed_attempts(
   cleared INTEGER NOT NULL DEFAULT 0);
 CREATE INDEX IF NOT EXISTS idx_speed_algo ON speed_attempts(algo, passed);
 CREATE INDEX IF NOT EXISTS idx_speed_user ON speed_attempts(user_id);
+CREATE TABLE IF NOT EXISTS comp_joins(
+  user_id INTEGER PRIMARY KEY REFERENCES users(id), joined_at TEXT NOT NULL);
 """
 
 # One-time stem fixes: rename live rows in place (keeps question id and attempts)
@@ -1252,8 +1254,28 @@ def comp_page():
     if not w:
         abort(404)
     board = comp.standings(db, _roster_lookup, _norm_email)
-    return render_template("comp.html", c=comp, w=w, board=board, me=u["id"], preview=False,
-                           end_iso=w["end"].isoformat(), left_s=int((w["end"] - now).total_seconds()))
+    joined = comp.get_join(db, u["id"])
+    pend = comp.personal_end(w, joined) if joined else None
+    left = int((pend - now).total_seconds()) if pend else 0
+    return render_template("comp.html", c=comp, w=w, board=board, me=u["id"], preview=False, joined=bool(joined),
+                           done=bool(joined) and left <= 0, capped=bool(pend) and pend == w["end"] and joined is not None,
+                           end_iso=pend.isoformat() if pend else "", left_s=max(left, 0),
+                           cutoff=w["end"].strftime("%H:%M"))
+
+@app.route("/comp/join", methods=["POST"])
+@login_required
+def comp_join():
+    u = current_user()
+    if u["role"] == "teacher":
+        abort(403)
+    db = get_db()
+    now = datetime.now(SGT)
+    cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+    if not comp.student_window(cls, now):
+        abort(404)
+    db.execute("INSERT OR IGNORE INTO comp_joins(user_id, joined_at) VALUES(?,?)", (u["id"], now.isoformat()))
+    db.commit()
+    return redirect(url_for("comp_page"))
 
 @app.route("/teacher/comp")
 @teacher_required
@@ -1264,7 +1286,8 @@ def teacher_comp():
     wins = [{"label": w["label"], "start": w["start"].strftime("%a %-d %b %H:%M"), "end": w["end"].strftime("%H:%M"),
              "mins": int((w["end"] - w["start"]).total_seconds() // 60), "state": comp.state(w, now)} for w in comp.WINDOWS]
     return render_template("comp.html", c=comp, w=comp.WINDOWS[0], board=board, me=0, preview=True,
-                           wins=wins, now=now.strftime("%a %-d %b %H:%M"), end_iso="", left_s=75 * 60)
+                           wins=wins, now=now.strftime("%a %-d %b %H:%M"), end_iso="", left_s=comp.PERSONAL_MIN * 60,
+                           joined=False, done=False, capped=False, cutoff="")
 
 @app.route("/feedback", methods=["POST"])
 @login_required

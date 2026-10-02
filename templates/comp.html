@@ -9,7 +9,7 @@
     <tr><th>Class</th><th>Window (SGT)</th><th>Minutes</th><th>Status</th></tr>
     {% for x in wins %}<tr><td>{{ x.label }}</td><td>{{ x.start }} - {{ x.end }}</td><td>{{ x.mins }}</td><td>{{ x.state }}</td></tr>{% endfor %}
   </table></div>
-  <p class="muted small">Provisional windows are the full lessons as stated. Lap rule: passed, unflagged drills that started and finished inside the student's class window. Ranking: most laps, then earliest last lap. Held attempts stay off. Teachers are never counted.</p>
+  <p class="muted small">Windows are the lesson times you confirmed (25S21 12:30-14:00, 25S11+25S22 14:00-15:30). Each student starts their own 75-minute clock with a Start button, capped at their class cutoff. Lap rule: passed, unflagged drills that started and finished inside the student's own clock. Ranking: most laps, then earliest last lap. Held attempts stay off. Teachers are never counted.</p>
   <p class="muted"><b>Below is exactly what a student will see.</b></p>
 </div>
 {% endif %}
@@ -18,8 +18,21 @@
   <h1>{{ c.NAME }}</h1>
   <p><b>{{ c.TAGLINE }}</b></p>
   <p class="muted">{{ c.BLURB }}</p>
-  <div class="bigxp"><span id="clock">{% if preview %}--:--{% else %}{{ '%d:%02d' % (left_s // 60, left_s % 60) }}{% endif %}</span> <span>left</span></div>
+  {% if preview %}
+  <div class="bigxp"><span id="clock">--:--</span> <span>left</span></div>
+  <p class="muted small">Before a student presses Start, they see a button instead of the clock.</p>
+  <span class="btn big speedbtn">Start my 75 minutes</span>
+  {% elif not joined %}
+  <form method="post" action="{{ url_for('comp_join') }}"><button class="btn big speedbtn" type="submit">Start my 75 minutes</button></form>
+  <p class="muted small">Your clock starts when you press Start and stops at {{ c.PERSONAL_MIN }} minutes, or at {{ cutoff }} when your lesson ends, whichever comes first.</p>
+  {% elif done %}
+  <h2>&#127937; Chequered flag!</h2>
+  <p class="muted">Your laps are locked in. Check the board below.</p>
+  {% else %}
+  <div class="bigxp"><span id="clock">{{ '%d:%02d' % (left_s // 60, left_s % 60) }}</span> <span>left</span></div>
+  {% if capped %}<p class="muted small">Your clock ends at {{ cutoff }}, when your lesson ends.</p>{% endif %}
   <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Pick a drill</a>
+  {% endif %}
   <div class="muted">{% for r in c.RULES %}<p>{{ r }}</p>{% endfor %}</div>
 </div>
 <div class="card">
@@ -32,10 +45,10 @@
   {% else %}<p class="muted">No laps yet. Be the first on the board.</p>{% endif %}
 </div>
 <div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
-{% if not preview %}
+{% if not preview and joined and not done %}
 <script>
 (function(){var end=new Date({{ end_iso|tojson }}).getTime(),el=document.getElementById('clock');
-function t(){var s=Math.max(0,Math.round((end-Date.now())/1000));el.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);if(s<=0)location.href='/';}
+function t(){var s=Math.max(0,Math.round((end-Date.now())/1000));el.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);if(s<=0)location.reload();}
 setInterval(t,1000);t();})();
 </script>
 {% endif %}

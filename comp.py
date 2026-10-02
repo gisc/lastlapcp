@@ -10,22 +10,25 @@ TAGLINE = "How many laps can you stack before the chequered flag?"
 BLURB = ("Every speed drill you finish is one lap. Play any drills, as often as you like. "
          "Your lap count on the board is all that matters, so a fast fix-and-retry beats a perfect first go. "
          "Stuck? Read the message, tweak, run again. Have fun with it.")
-RULES = ["Only drills finished inside your lesson window count as laps.",
+RULES = ["Press Start when you are ready. You get 75 minutes, or until the end of your lesson if that comes first.",
          "A lap is a drill whose checks all pass. Re-running and retrying is fine.",
          "Most laps tops the board. Ties go to whoever got there first.",
          "Drills held by your teacher for review are left off until cleared."]
 
 # Set True only when the teacher has confirmed the windows.
 CONFIRMED = False
+PERSONAL_MIN = 75
+UNIQUE_DRILLS = False   # False: every passed drill is a lap (repeats count). True: each drill counts once.
 
 def _w(day, a, b):
     return (datetime.fromisoformat(f"{day}T{a}:00").replace(tzinfo=SGT),
             datetime.fromisoformat(f"{day}T{b}:00").replace(tzinfo=SGT))
 
-# Provisional: the lesson times as stated. The 75-minute length vs these lesson lengths is undecided.
+# Lesson windows as confirmed by the teacher: 25S21 12:30-14:00, 25S11+25S22 14:00-15:30 (2 Oct 2026, SGT).
+# Each student starts their own PERSONAL_MIN clock after joining; it is capped at the class cutoff.
 WINDOWS = [
     {"label": "25S21", "classes": ("25S21",), "start": _w("2026-10-02", "12:30", "14:00")[0], "end": _w("2026-10-02", "12:30", "14:00")[1]},
-    {"label": "25S11 + 25S22", "classes": ("25S11", "25S22"), "start": _w("2026-10-02", "14:00", "15:39")[0], "end": _w("2026-10-02", "14:00", "15:39")[1]},
+    {"label": "25S11 + 25S22", "classes": ("25S11", "25S22"), "start": _w("2026-10-02", "14:00", "15:30")[0], "end": _w("2026-10-02", "14:00", "15:30")[1]},
 ]
 
 def window_for_class(cls):
@@ -46,14 +49,23 @@ def student_window(cls, now):
     w = window_for_class(cls)
     return w if w and state(w, now) == "open" else None
 
+def personal_end(w, joined):
+    return min(joined + timedelta(minutes=PERSONAL_MIN), w["end"])
+
+def get_join(db, uid):
+    r = db.execute("SELECT joined_at FROM comp_joins WHERE user_id=?", (uid,)).fetchone()
+    return datetime.fromisoformat(r["joined_at"]).astimezone(SGT) if r else None
+
 def standings(db, roster_lookup, norm_email):
     """One board across classes. A lap = passed, unflagged (or cleared) attempt that started and finished
-    inside that student's class window."""
+    inside that student's own clock (joined_at to min(joined_at + 75 min, class cutoff))."""
     roster = roster_lookup(db)
     rows = db.execute(
         """SELECT a.id, a.user_id, a.algo, a.elapsed_ms, a.started_at, a.finished_at, u.name, u.email
            FROM speed_attempts a JOIN users u ON u.id=a.user_id
            WHERE a.passed=1 AND (a.flagged=0 OR a.cleared=1) AND u.role='student' ORDER BY a.finished_at, a.id""").fetchall()
+    joins = {r["user_id"]: datetime.fromisoformat(r["joined_at"]).astimezone(SGT)
+             for r in db.execute("SELECT user_id, joined_at FROM comp_joins")}
     per = {}
     for r in rows:
         rn, rc = roster.get(norm_email(r["email"]), (None, None))
@@ -61,7 +73,12 @@ def standings(db, roster_lookup, norm_email):
         if not w:
             continue
         s = datetime.fromisoformat(r["started_at"]); f = datetime.fromisoformat(r["finished_at"])
-        if s < w["start"] or f > w["end"]:
+        j = joins.get(r["user_id"])
+        if j is None or j < w["start"] or j >= w["end"]:
+            continue
+        if s < j or f > personal_end(w, j):
+            continue
+        if UNIQUE_DRILLS and r["algo"] in per.get(r["user_id"], {"algos": ()})["algos"]:
             continue
         p = per.setdefault(r["user_id"], {"uid": r["user_id"], "name": rn or r["name"] or "Student",
                                           "cls": rc, "laps": 0, "last": f, "best": r["elapsed_ms"], "algos": set()})
