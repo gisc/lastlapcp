@@ -100,6 +100,7 @@ const LIMIT = {{ a.limit_ms }}, LIM_MIN = {{ a.limit_min }};
 let pyP = null, attemptId = null, mode = '', t0 = 0, timer = null, done = false, running = false;
 const flags = [], history = [];
 let pasteCount = 0, copied = '';
+const COMP = {{ 'true' if comp_skin else 'false' }};  // true only for a student during their open competition window
 const code = document.getElementById('code'), code2 = document.getElementById('code2');
 const gutter = CodeEdit.attach(code);
 const gutter2 = code2 ? CodeEdit.attach(code2) : null;
@@ -145,18 +146,31 @@ document.getElementById('bdrill').addEventListener('click', () => begin('drill')
 
 // Whole-chunk paste detection. A paste is fine if the text already exists in this cell
 // (copying your own code to adapt it), otherwise it is flagged for the teacher.
+function foreign(text, history) {
+  const n = norm(text);
+  if (!n) return false;
+  const chunk = text.length >= 25 || text.split('\n').length >= 2;
+  if (!chunk) return false;
+  if (copied && n === copied) return false;
+  if (history.some(v => norm(v).includes(n))) return false;
+  return true;
+}
 function judge(text, how, history) {
   pasteCount++;
-  const n = norm(text);
-  if (!n) return;
-  const chunk = text.length >= 25 || text.split('\n').length >= 2;
-  if (!chunk) return;
-  if (copied && n === copied) return;
-  if (history.some(v => norm(v).includes(n))) return;
+  if (!foreign(text, history)) return;
   flags.push(how + ' of ' + text.length + ' chars not already in the cell, at ' + fmt(performance.now() - t0));
   const pn = document.getElementById('pastenote');
   pn.textContent = 'A pasted chunk that was not already in this cell was detected. The page cannot tell where it came from, so this attempt is marked for your teacher to review and will not be ranked until they clear it.';
   show('pastenote', true);
+}
+// Competition only: a pasted or dropped chunk that is not your own code from this cell is refused outright.
+function blockedInComp(e, text, history) {
+  if (!COMP || !foreign(text, history)) return false;
+  e.preventDefault();
+  const pn = document.getElementById('pastenote');
+  pn.textContent = 'Pasting code from outside this cell is blocked during the sprint. Type it out. Copying and pasting your own code inside this cell is fine.';
+  show('pastenote', true);
+  return true;
 }
 function bindCell(el, g) {
   const history = [];
@@ -166,12 +180,16 @@ function bindCell(el, g) {
     if (s) copied = norm(s);
   }));
   el.addEventListener('paste', e => {
+    const txt = (e.clipboardData || window.clipboardData).getData('text') || '';
+    if (blockedInComp(e, txt, history)) return;
     justPasted = true;
-    judge((e.clipboardData || window.clipboardData).getData('text') || '', 'Paste', history);
+    judge(txt, 'Paste', history);
   });
   el.addEventListener('drop', e => {
+    const txt = (e.dataTransfer && e.dataTransfer.getData('text')) || '';
+    if (blockedInComp(e, txt, history)) return;
     justPasted = true;
-    judge((e.dataTransfer && e.dataTransfer.getData('text')) || '', 'Drop', history);
+    judge(txt, 'Drop', history);
   });
   el.addEventListener('input', e => {
     if (justPasted) { justPasted = false; }
