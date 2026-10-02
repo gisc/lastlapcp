@@ -345,9 +345,27 @@ def init_db():
     if "rubric" not in t3pcols:
         db.execute("ALTER TABLE t3_parts ADD COLUMN rubric TEXT NOT NULL DEFAULT ''")
     db.commit()
+    backfill_edge_flags(db)
     seed_questions(db)
     seed_t3(db)
     db.close()
+
+def backfill_edge_flags(db):
+    """Flag earlier passed stack/queue attempts whose code has no empty check on pop/peek/dequeue.
+    Static read only, idempotent, never touches cleared attempts, code or times."""
+    rows = db.execute(
+        """SELECT id, algo, code, flag_note FROM speed_attempts
+           WHERE passed=1 AND cleared=0 AND algo IN ('stack','queue') AND code<>'' AND flag_note NOT LIKE '%Edge case:%'""").fetchall()
+    n = 0
+    for r in rows:
+        notes = speed_data.edge_notes(r["algo"], r["code"])
+        if notes:
+            note = "; ".join([x for x in [r["flag_note"]] if x] + ["Edge case: " + x for x in notes])
+            db.execute("UPDATE speed_attempts SET flagged=1, flag_note=? WHERE id=?", (note, r["id"]))
+            n += 1
+    if n:
+        db.commit()
+    return n
 
 # ---------------- tier 3 theory grader ----------------
 # Free-text "write everything you know" answers are graded server-side against a
@@ -1229,6 +1247,7 @@ def speed_run(slug, aid):
         # Student code is never executed on the server. The pass/fail comes from the browser,
         # so rankings rely on suspicion flags (paste, logic check) and teacher review.
         flags += ["Logic check: " + n for n in speed_data.logic_notes(slug, code)]
+        flags += ["Edge case: " + n for n in speed_data.edge_notes(slug, code)]
     flagged = 1 if flags else 0
     now = datetime.now(timezone.utc)
     ms = int((now - datetime.fromisoformat(row["started_at"])).total_seconds() * 1000) if passed else 0

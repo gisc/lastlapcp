@@ -1392,6 +1392,42 @@ def logic_notes(slug, code):
 
 
 _INSTR_CACHE = {}
+# Drills whose tests never insist on what happens when you remove from an empty structure.
+EDGE_REMOVERS = {"stack": ("pop", "peek"), "queue": ("dequeue", "peek")}
+
+def edge_notes(slug, code):
+    """Edge-case notes for teacher review. Static read of the code only (nothing is run).
+    A removal method counts as handling the empty case if it has any guard of its own (an if, a
+    conditional expression, try/except or an and/or test), or hands over to another method of the
+    class that does. A literal is_empty() call is not required."""
+    names = EDGE_REMOVERS.get(slug)
+    if not names:
+        return []
+    try:
+        tree = _ast.parse(code)
+    except SyntaxError:
+        return []
+    methods = {}
+    for c in _ast.walk(tree):
+        if isinstance(c, _ast.ClassDef):
+            for f in c.body:
+                if isinstance(f, _ast.FunctionDef):
+                    methods.setdefault(f.name, f)
+    def own_guard(f):
+        return any(isinstance(n, (_ast.If, _ast.IfExp, _ast.Try, _ast.BoolOp)) for n in _ast.walk(f))
+    def guarded(f, depth=0):
+        if own_guard(f):
+            return True
+        if depth < 2:
+            for n in _ast.walk(f):
+                if (isinstance(n, _ast.Call) and isinstance(n.func, _ast.Attribute) and isinstance(n.func.value, _ast.Name)
+                        and n.func.value.id == "self" and n.func.attr in methods and methods[n.func.attr] is not f
+                        and guarded(methods[n.func.attr], depth + 1)):
+                    return True
+        return False
+    return [m + "() has no check for an empty %s" % ("stack" if slug == "stack" else "queue")
+            for m in names if m in methods and not guarded(methods[m])]
+
 def instrument(slug):
     """Competition progress marks: after every assert in the checker add _CK.add(n). Returns (tests_text, total_asserts).
     A failed run's progress = distinct asserts that passed / total. Checks stop at the first failure, so it is a rough guide."""
