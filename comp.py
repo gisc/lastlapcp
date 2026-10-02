@@ -24,10 +24,15 @@ RULES = [
 ]
 EXAMPLE_TITLE = "Example"
 EXAMPLE = [
-    "Mia finishes Bubble sort in 2:10, Linear search in 1:30 and Stack in 3:00. That is 3 laps, total 6:40.",
-    "She retries Bubble sort and does it in 1:50. Still 3 laps, but her total drops to 6:20.",
-    "Sam finishes 4 drills in a total of 14:00. Sam ranks above Mia: 4 laps beats 3, even though Sam's total is longer.",
-    "Leo also finishes 3 drills, in a slower 7:00, but has partial credit 0.4 on a 4th. Mia has 0.2. Leo ranks above Mia: laps are tied, so partial credit decides before time.",
+    "Mia finishes Bubble sort in 2:10, Linear search in 1:30, Stack in 3:00 and Queue in 4:00. That is 4 laps, total 10:40.",
+    "She retries Bubble sort and does it in 1:50. Still 4 laps, but her total drops to 10:20.",
+    "Sam finishes 3 drills in a total of 6:00. Mia ranks above Sam: 4 laps beats 3, even though Sam's total is shorter.",
+    "Leo also finishes 3 drills, in a slower 7:00, but has partial credit 0.4 on a 4th. Sam has 0.2. Leo ranks above Sam: laps are tied, so partial credit decides before time.",
+]
+EXAMPLE_TABLE = [  # rank, student, laps, partial, total time (example only, not real students)
+    (1, "Mia", 4, "0.0", "10:20"),
+    (2, "Leo", 3, "0.4", "7:00"),
+    (3, "Sam", 3, "0.2", "6:00"),
 ]
 
 # Set True only when the teacher has confirmed the windows.

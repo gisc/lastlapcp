@@ -49,6 +49,11 @@
   <ol class="muted comprules">{% for r in c.RULES %}<li>{{ r }}</li>{% endfor %}</ol>
   <h2>{{ c.EXAMPLE_TITLE }}</h2>
   <ul class="muted comprules">{% for r in c.EXAMPLE %}<li>{{ r }}</li>{% endfor %}</ul>
+  <p class="muted small">What the board would look like for this example (sample only, not real students):</p>
+  <div class="tmapwrap"><table class="tmap">
+    <tr><th>#</th><th>Student</th><th>Laps</th><th>Partial</th><th>Total time</th></tr>
+    {% for rk, nm, lp, pa, tt in c.EXAMPLE_TABLE %}<tr><td>{{ rk }}</td><td>{{ nm }}</td><td><b>{{ lp }}</b></td><td>{{ pa }}</td><td>{{ tt }}</td></tr>{% endfor %}
+  </table></div>
 </div>
 <div class="card">
   <h2>Sprint board</h2>
