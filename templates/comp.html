@@ -9,7 +9,7 @@
     <tr><th>Class</th><th>Window (SGT)</th><th>Minutes</th><th>Status</th></tr>
     {% for x in wins %}<tr><td>{{ x.label }}</td><td>{{ x.start }} - {{ x.end }}</td><td>{{ x.mins }}</td><td>{{ x.state }}</td></tr>{% endfor %}
   </table></div>
-  <p class="muted small">Windows are the lesson times you confirmed (25S21 12:30-14:00, 25S11+25S22 14:00-15:30). Each student starts their own 75-minute clock with a Start button, capped at their class cutoff. Lap rule: passed, unflagged drills that started and finished inside the student's own clock. Ranking: most laps, then earliest last lap. Held attempts stay off. Teachers are never counted.</p>
+  <p class="muted small">Windows are the lesson times you confirmed (25S21 12:30-14:00, 25S11+25S22 14:00-15:30). Each student starts their own 75-minute clock with a Start button, capped at their class cutoff. Valid attempt: passed, unflagged drills that started and finished inside the student's own clock. Ranking (confirmed): most different drills, then the lowest total of each drill's best valid time. Repeats only improve time. Held attempts stay off. Teachers are never counted.</p>
   <p class="muted"><b>Below is exactly what a student will see.</b></p>
 </div>
 {% endif %}
@@ -39,10 +39,10 @@
   <h2>Sprint board</h2>
   {% if board %}
   <div class="tmapwrap"><table class="tmap">
-    <tr><th>#</th><th>Student</th><th>Class</th><th>Laps</th><th>Drills</th></tr>
-    {% for r in board %}<tr {% if r.uid == me %}class="me"{% endif %}><td>{{ r.rank }}</td><td>{{ r.name }}{% if r.uid == me %} (you){% endif %}</td><td>{{ r.cls }}</td><td><b>{{ r.laps }}</b></td><td>{{ r.drills }}</td></tr>{% endfor %}
+    <tr><th>#</th><th>Student</th><th>Class</th><th>Drills</th><th>Total time</th></tr>
+    {% for r in board %}<tr {% if r.uid == me %}class="me"{% endif %}><td>{{ r.rank }}</td><td>{{ r.name }}{% if r.uid == me %} (you){% endif %}</td><td>{{ r.cls }}</td><td><b>{{ r.drills }}</b></td><td>{{ r.total|fmt_ms }}</td></tr>{% endfor %}
   </table></div>
-  {% else %}<p class="muted">No laps yet. Be the first on the board.</p>{% endif %}
+  {% else %}<p class="muted">Nothing on the board yet. Be the first lap.</p>{% endif %}
 </div>
 <div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
 {% if not preview and joined and not done %}

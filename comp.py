@@ -7,18 +7,17 @@ SGT = timezone(timedelta(hours=8))
 
 NAME = "Pit Stop Sprint"
 TAGLINE = "How many laps can you stack before the chequered flag?"
-BLURB = ("Every speed drill you finish is one lap. Play any drills, as often as you like. "
-         "Your lap count on the board is all that matters, so a fast fix-and-retry beats a perfect first go. "
+BLURB = ("Finish as many different speed drills as you can, as fast as you can. "
+         "Each drill is one lap. Retry a drill to beat your own time, and it still counts as one lap. "
          "Stuck? Read the message, tweak, run again. Have fun with it.")
 RULES = ["Press Start when you are ready. You get 75 minutes, or until the end of your lesson if that comes first.",
-         "A lap is a drill whose checks all pass. Re-running and retrying is fine.",
-         "Most laps tops the board. Ties go to whoever got there first.",
+         "A lap is a different drill with all checks passing. Retrying the same drill can improve your time but is still one lap.",
+         "Ranking: most different drills first, then the lowest total of your best times.",
          "Drills held by your teacher for review are left off until cleared."]
 
 # Set True only when the teacher has confirmed the windows.
 CONFIRMED = False
 PERSONAL_MIN = 75
-UNIQUE_DRILLS = False   # False: every passed drill is a lap (repeats count). True: each drill counts once.
 
 def _w(day, a, b):
     return (datetime.fromisoformat(f"{day}T{a}:00").replace(tzinfo=SGT),
@@ -57,7 +56,7 @@ def get_join(db, uid):
     return datetime.fromisoformat(r["joined_at"]).astimezone(SGT) if r else None
 
 def standings(db, roster_lookup, norm_email):
-    """One board across classes. A lap = passed, unflagged (or cleared) attempt that started and finished
+    """One board across classes. A valid attempt = passed, unflagged (or cleared) attempt that started and finished
     inside that student's own clock (joined_at to min(joined_at + 75 min, class cutoff))."""
     roster = roster_lookup(db)
     rows = db.execute(
@@ -78,12 +77,14 @@ def standings(db, roster_lookup, norm_email):
             continue
         if s < j or f > personal_end(w, j):
             continue
-        if UNIQUE_DRILLS and r["algo"] in per.get(r["user_id"], {"algos": ()})["algos"]:
-            continue
         p = per.setdefault(r["user_id"], {"uid": r["user_id"], "name": rn or r["name"] or "Student",
-                                          "cls": rc, "laps": 0, "last": f, "best": r["elapsed_ms"], "algos": set()})
-        p["laps"] += 1; p["last"] = f; p["best"] = min(p["best"], r["elapsed_ms"]); p["algos"].add(r["algo"])
-    board = sorted(per.values(), key=lambda p: (-p["laps"], p["last"]))
+                                          "cls": rc, "bests": {}})
+        cur = p["bests"].get(r["algo"])
+        if cur is None or r["elapsed_ms"] < cur:
+            p["bests"][r["algo"]] = r["elapsed_ms"]
+    for p in per.values():
+        p["drills"] = len(p["bests"]); p["total"] = sum(p["bests"].values())
+    board = sorted(per.values(), key=lambda p: (-p["drills"], p["total"], p["name"]))
     for i, p in enumerate(board, 1):
-        p["rank"] = i; p["drills"] = len(p["algos"])
+        p["rank"] = i
     return board
