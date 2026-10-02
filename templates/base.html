@@ -9,6 +9,7 @@
 <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
 <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon.svg') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% if comp_skin %}<link rel="stylesheet" href="{{ url_for('static', filename='comp_skin.css') }}">{% endif %}
 </head>
 <body>
 <header class="topbar">

@@ -1,0 +1,9 @@
+/* Pit Stop Sprint session skin: teal and coral. Loaded only while a student's competition window is open (and on the teacher preview). */
+:root { --navy: #0b6b63; --navy2: #064b4a; --bg: #07302f; --gold: #ff7a59; --muted: #5d6f6e; --ink: #17302f; }
+body { background: linear-gradient(180deg, #064b4a, #07302f); }
+.tag.tier { background: #0b6b63; color: #fff; }
+.tag.paper { background: #ff7a59; color: #3a1307; }
+.btn.speedbtn { background: #ff7a59; color: #3a1307; }
+.btn.ghost { background: #dff1ee; color: #0b6b63; }
+.tmap th { background: #e6f5f2; }
+.expl { background: #eef8f6; border-left-color: #0b6b63; }

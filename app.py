@@ -530,6 +530,22 @@ def load_question(db, qid):
     opts = db.execute("SELECT * FROM options WHERE question_id=? ORDER BY ord", (qid,)).fetchall()
     return q, opts
 
+@app.context_processor
+def _comp_skin():
+    """Session-only colour skin while the student's competition window is open (never when CONFIRMED is off)."""
+    try:
+        if request.path.startswith("/static") or not session.get("uid"):
+            return {}
+        if request.path == "/teacher/comp":
+            return {"comp_skin": True}
+        u = current_user()
+        if not u or u["role"] == "teacher" or not comp.CONFIRMED:
+            return {}
+        cls = _roster_lookup(get_db()).get(_norm_email(u["email"]), (None, None))[1]
+        return {"comp_skin": bool(comp.student_window(cls, datetime.now(SGT)))}
+    except Exception:
+        return {}
+
 # ---------------- routes ----------------
 
 @app.route("/")
