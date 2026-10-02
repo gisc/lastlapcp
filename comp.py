@@ -31,7 +31,7 @@ EXAMPLE = [
 ]
 
 # Set True only when the teacher has confirmed the windows.
-CONFIRMED = False
+CONFIRMED = True
 PERSONAL_MIN = 75
 
 def _w(day, a, b):
