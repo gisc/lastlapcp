@@ -9,6 +9,12 @@
   <p class="muted">{{ comp.TAGLINE }} Open until {{ cw.end.strftime('%H:%M') }}.</p>
   <a class="btn big speedbtn" href="{{ url_for('comp_page') }}">Join the sprint</a>
 </div>
+{% elif u['role'] == 'teacher' and comp.CONFIRMED %}
+<div class="card compcard">
+  <h2>&#127937; {{ comp.NAME }} (teacher view)</h2>
+  <p class="muted">Students see this card only in their class window. You are never ranked and have no Start.</p>
+  <a class="btn big speedbtn" href="{{ url_for('teacher_comp') }}">Open competition view</a>
+</div>
 {% endif %}
 <div class="card hero">
   <div class="hello">Hi {{ u['name'].split(' ')[0] if u['name'] else u['email'] }}</div>
