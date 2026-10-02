@@ -15,7 +15,7 @@ DEFINE = [
     ("Lap", "one different drill you finish with all checks passing. Doing the same drill again is still one lap."),
 ]
 RULES = [
-    "Press Start when you are ready. You get 75 minutes. If your lesson ends sooner, your clock stops at the end of your lesson.",
+    "Press Start when you are ready. You get 75 minutes. Hard stop by the end of your scheduled lesson time.",
     "A drill only counts if you start it and finish it while your clock is running. Anything started before you press Start, or finished after your clock ends, does not count.",
     "Ranking: most laps first. If laps are tied, the higher partial credit wins. If still tied, the lowest total time wins.",
     "Total time is the sum of your best time on each drill you finished. A faster retry replaces your old time for that drill.",
