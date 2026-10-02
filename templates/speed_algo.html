@@ -34,6 +34,7 @@
     <div id="status" class="verdict" style="display:none"></div>
     <pre id="output" class="codeblock" style="display:none"></pre>
     <div id="pastenote" class="muted small" style="display:none"></div>
+    <div id="restored" class="muted small" style="display:none">Your unsent code from earlier in this browser was put back.</div>
     <div id="after" style="display:none"><a class="btn big" href="">Try again</a></div>
   </div>
 </div>
@@ -94,7 +95,6 @@
   });
 })();
 </script>
-<script src="{{ url_for('static', filename='pyodide/pyodide.js') }}"></script>
 <script src="{{ url_for('static', filename='codeedit.js') }}"></script>
 <script>
 const TESTS = {{ tests|tojson }};
@@ -110,11 +110,46 @@ const code = document.getElementById('code'), code2 = document.getElementById('c
 const gutter = CodeEdit.attach(code);
 const gutter2 = code2 ? CodeEdit.attach(code2) : null;
 const norm = s => (s || '').replace(/\s+/g, ' ').trim();
-function getPy() {
-  if (!pyP) pyP = loadPyodide({ indexURL: "{{ url_for('static', filename='pyodide') }}/" });
-  return pyP;
+const WORKER_URL = "{{ url_for('static', filename='pyworker.js') }}?v=1";
+const RUN_LIMIT_MS = (KIND === 'sql' || KIND === 'webapp' || KIND === 'script') ? 30000 : 12000;
+let wk = null, wkReady = null;
+function startWorker() {
+  try {
+    const w = new Worker(WORKER_URL);
+    wk = w;
+    wkReady = new Promise((res, rej) => {
+      w.onmessage = ev => { if (ev.data && ev.data.t === 'ready') res(); else if (ev.data && ev.data.t === 'initfail') rej(new Error(ev.data.msg)); };
+      w.onerror = () => rej(new Error('worker failed to start'));
+    });
+    wkReady.catch(() => {});
+  } catch (err) { wkReady = Promise.reject(err); wkReady.catch(() => {}); }
 }
-getPy().catch(() => {});
+startWorker();
+function runInWorker(job) {
+  return wkReady.then(() => new Promise(resolve => {
+    const w = wk;
+    const to = setTimeout(() => { w.terminate(); startWorker(); resolve({ timeout: true }); }, RUN_LIMIT_MS);
+    w.onmessage = ev => { if (ev.data && ev.data.t === 'done') { clearTimeout(to); resolve(ev.data); } };
+    w.onerror = () => { clearTimeout(to); resolve({ crashed: true }); };
+    w.postMessage(job);
+  }));
+}
+// Unsent code is kept in this browser only (never sent anywhere), per user and drill, for 6 hours.
+const DKEY = 'llcp-draft:' + {{ (session.get('uid') or 0)|tojson }} + ':' + SLUG;
+function saveDraft() {
+  try { localStorage.setItem(DKEY, JSON.stringify({ c: code.value, c2: code2 ? code2.value : '', ts: Date.now() })); } catch (err) {}
+}
+function clearDraft() { try { localStorage.removeItem(DKEY); } catch (err) {} }
+function restoreDraft() {
+  try {
+    const d = JSON.parse(localStorage.getItem(DKEY) || 'null');
+    if (!d || Date.now() - d.ts > 6 * 3600 * 1000 || !(d.c || d.c2)) return;
+    code.value = d.c || ''; if (code2) code2.value = d.c2 || '';
+    gutter.refresh(); if (gutter2) gutter2.refresh();
+    code.dispatchEvent(new Event('input')); if (code2) code2.dispatchEvent(new Event('input'));
+    const r = document.getElementById('restored'); r.style.display = 'block';
+  } catch (err) {}
+}
 function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
 function fmt(ms) { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function tick() {
@@ -144,6 +179,7 @@ async function begin(m) {
   } catch (e) { alert('Could not start - check your connection.'); location.reload(); return; }
   show('intro', false); show('work', true);
   t0 = performance.now(); tick(); timer = setInterval(tick, 250);
+  restoreDraft();
   code.focus();
 }
 document.getElementById('bpractice').addEventListener('click', () => begin('practice'));
@@ -217,6 +253,8 @@ function bindCell(el, g) {
 }
 bindCell(code, gutter);
 if (code2) bindCell(code2, gutter2);
+code.addEventListener('input', saveDraft);
+if (code2) code2.addEventListener('input', saveDraft);
 
 document.getElementById('run').addEventListener('click', async () => {
   if (done || running) return;
@@ -228,34 +266,27 @@ document.getElementById('run').addEventListener('click', async () => {
   gutter.mark(0);
   const nStudent = code.value.split('\n').length;
   try {
-    const py = await getPy();
-    py.globals.set('_SRC', code.value);
-    if (code2) py.globals.set('_HTML', code2.value);
-    const lines = [];
-    py.setStdout({ batched: s => lines.push(s) });
-    py.setStderr({ batched: s => lines.push(s) });
-    try {
-      py.runPython('_CK = set()');
-      if (PKGS.length) await py.loadPackage(PKGS);
-      if (KIND === 'script') await py.runPythonAsync(RESETDB);
-      if (KIND === 'sql' || KIND === 'webapp') await py.runPythonAsync(TESTS);
-      else await py.runPythonAsync(code.value + '\n\n' + TESTS);
-      passed = true;
-    } catch (err) {
-      const raw = (err && err.message) || String(err);
-      const keep = raw.split('\n').filter(l => {
-        const t = l.trim();
-        if (!t || t.startsWith('Traceback')) return false;
-        if (l.includes('python312.zip') || l.includes('_pyodide') || l.includes('_ban') || l.includes('_res')) return false;
-        if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
-        return true;
-      });
-      const fx = CodeEdit.fixTrace(keep.slice(-5).join('\n'), nStudent);
-      text = fx.text;
-      if (fx.line) gutter.mark(fx.line);
+    const res = await runInWorker({ code: code.value, html: code2 ? code2.value : null, tests: TESTS, kind: KIND, pkgs: PKGS, resetdb: RESETDB });
+    if (res.timeout) {
+      text = 'Your code ran for more than ' + (RUN_LIMIT_MS / 1000) + ' seconds without finishing, so it was stopped. Look for a loop that never ends: a while condition that never becomes False, or a loop variable that never changes. The clock keeps running.';
+    } else if (res.crashed) {
+      text = 'The test runner stopped unexpectedly. Check your code and press the button again.';
+    } else {
+      passed = res.passed; ckDone = res.ck || 0;
+      if (!passed) {
+        const keep = (res.raw || '').split('\n').filter(l => {
+          const t = l.trim();
+          if (!t || t.startsWith('Traceback')) return false;
+          if (l.includes('python312.zip') || l.includes('_pyodide') || l.includes('_ban') || l.includes('_res')) return false;
+          if (t.startsWith('await ') || t.startsWith('coroutine') || t.startsWith('^') || t.startsWith('eval(')) return false;
+          return true;
+        });
+        const fx = CodeEdit.fixTrace(keep.slice(-5).join('\n'), nStudent);
+        text = fx.text;
+        if (fx.line) gutter.mark(fx.line);
+      }
+      if (res.lines && res.lines.length) text = (text ? text + '\n' : '') + res.lines.join('\n');
     }
-    try { ckDone = py.runPython('len(_CK)'); } catch (e) {}
-    if (lines.length) text = (text ? text + '\n' : '') + lines.join('\n');
   } catch (err) { text = 'Could not start the Python runtime: ' + ((err && err.message) || err); }
   let j = null;
   try {
@@ -265,7 +296,7 @@ document.getElementById('run').addEventListener('click', async () => {
   } catch (e) {}
   running = false;
   if (passed && j && j.done) {
-    done = true; clearInterval(timer);
+    done = true; clearInterval(timer); clearDraft();
     const ms = j.ms;
     const c = document.getElementById('clock');
     c.textContent = (ms / 1000 >= 60 ? Math.floor(ms / 60000) + ':' : '0:') + String(((ms / 1000) % 60).toFixed(1)).padStart(4, '0');
