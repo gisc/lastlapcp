@@ -17,7 +17,7 @@ CONFIRMED = True
 RANK_ASC = False
 
 RULES = [
-    "Only attempts from 12 noon on Monday 5 October until 10:00 pm on Tuesday 6 October count. There is no personal clock: take as long as you need on each drill.",
+    "Only attempts from 12 noon on Monday 5 October until 10:00 pm on Tuesday 6 October count.",
     "Each of the 19 drills is one tile. Do a drill as normal on its own page and pass all the checks.",
     "A tile uses your fastest finish for that drill in this window. Green: within the drill's limit (5 minutes, or 8 for the two binary search trees). Orange: up to 1 minute over. Red: more than 1 minute over. White (empty): not finished yet.",
     "You can retry a drill. A faster finish replaces the colour of your old one.",
