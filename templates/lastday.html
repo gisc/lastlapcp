@@ -2,7 +2,7 @@
 {% block title %}LastLapCP - {{ ld.NAME }}{% endblock %}
 {% block content %}
 <div class="card compcard">
-  <h1>&#127937; {{ ld.NAME }}</h1>
+  <h1>{{ ld.NAME }}</h1>
   <p class="muted">{{ ld.TAGLINE }}</p>
   {% if preview %}<p class="muted small"><b>Teacher view.</b> {% if state == 'open' %}Open now until {{ closes }}.{% elif state == 'upcoming' %}Opens {{ opens }}.{% else %}Closed since {{ closes }}.{% endif %} Students in {{ ld.CLASS_ORDER|join(', ') }} see this page only while it is open.</p>
   {% else %}<p class="muted small">Open until {{ closes }}.</p>{% endif %}
@@ -22,7 +22,7 @@
     <tr><th>#</th><th>Student</th>{% for a in algos %}<th class="ldh">{{ loop.index }}</th>{% endfor %}<th>Done</th></tr>
     {% for r in rows if r.cls == cls %}
     <tr {% if r.uid and r.uid == me %}class="me"{% endif %}>
-      <td>{% if r.done %}{{ r.rank }}{% else %}&ndash;{% endif %}</td>
+      <td>{{ r.rank }}</td>
       <td class="ldname">{{ r.name }}{% if r.uid and r.uid == me %} (you){% endif %}</td>
       {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) if not preview else '#' }}" title="{{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
       <td><b>{{ r.done }}</b>/{{ algos|length }}</td>

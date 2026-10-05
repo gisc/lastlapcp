@@ -12,6 +12,9 @@ OPENS = datetime.fromisoformat("2026-10-05T11:30:00").replace(tzinfo=SGT)
 CLOSES = datetime.fromisoformat("2026-10-06T22:00:00").replace(tzinfo=SGT)
 CLASS_ORDER = ("25S11", "25S21", "25S22")
 CONFIRMED = True
+# Ranking within a class: True = fewer tiles first (ascending, the user's word); False = most first.
+# The user confirmed: descending, more tiles means higher on the board.
+RANK_ASC = False
 
 RULES = [
     "Open from now until 10:00 pm on Tuesday 6 October. There is no personal clock: take as long as you need on each drill.",
@@ -25,7 +28,7 @@ def is_open(now):
     return CONFIRMED and OPENS <= now < CLOSES
 
 def board(db, roster_lookup, norm_email, algos, tile_band):
-    """Rows for every roster student in CLASS_ORDER: class order first, then (greens, oranges, reds, total time)."""
+    """Rows for every roster student in CLASS_ORDER: class order first, then greens, oranges, reds (see RANK_ASC); ties by name."""
     roster = roster_lookup(db)
     emails = {e: (n, c) for e, (n, c) in roster.items() if c in CLASS_ORDER}
     users = {norm_email(r["email"]): r["id"] for r in db.execute("SELECT id, email FROM users WHERE role='student'")}
@@ -55,7 +58,8 @@ def board(db, roster_lookup, norm_email, algos, tile_band):
         rows.append({"uid": users.get(e), "email": e, "name": name or e, "cls": cls, "tiles": tiles,
                      "g": cnt["green"], "o": cnt["orange"], "r": cnt["red"], "done": sum(cnt.values()),
                      "total": sum(v for v in b.values())})
-    rows.sort(key=lambda p: (CLASS_ORDER.index(p["cls"]), -p["g"], -p["o"], -p["r"], p["total"], p["name"].lower()))
+    sign = 1 if RANK_ASC else -1
+    rows.sort(key=lambda p: (CLASS_ORDER.index(p["cls"]), sign * p["g"], sign * p["o"], sign * p["r"], p["name"].lower()))
     rk = {}
     for p in rows:
         rk[p["cls"]] = rk.get(p["cls"], 0) + 1
