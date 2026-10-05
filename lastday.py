@@ -1,7 +1,7 @@
 """Last Drill: an open, no-clock board over the 19 speed drills. No student data here.
 Every roster student of the listed classes appears, attempted or not. A drill tile is coloured by the
 student's fastest valid finish inside the window (green within the drill's limit, orange up to 1 minute over,
-red beyond, grey = not finished yet)."""
+red beyond, white = not finished yet)."""
 from datetime import datetime, timedelta, timezone
 
 SGT = timezone(timedelta(hours=8))
@@ -19,7 +19,7 @@ RANK_ASC = False
 RULES = [
     "Open from 12 noon on Monday 5 October until 10:00 pm on Tuesday 6 October. Only attempts made in that window count. There is no personal clock: take as long as you need on each drill.",
     "Each of the 19 drills is one tile. Do a drill as normal on its own page and pass all the checks.",
-    "A tile uses your fastest finish for that drill in this window. Green: within the drill's limit (5 minutes, or 8 for the two binary search trees). Orange: up to 1 minute over. Red: more than 1 minute over. Grey: not finished yet.",
+    "A tile uses your fastest finish for that drill in this window. Green: within the drill's limit (5 minutes, or 8 for the two binary search trees). Orange: up to 1 minute over. Red: more than 1 minute over. White (empty): not finished yet.",
     "You can retry a drill. A faster finish replaces the colour of your old one.",
     "Attempts held for teacher review are left off until your teacher clears them.",
 ]

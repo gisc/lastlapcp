@@ -187,3 +187,5 @@ body.ldskin .kdot { border-color: #7d5a63; background: #fff; }
 body.ldskin .kdot.green { background: #1f8a4c; } body.ldskin .kdot.orange { background: #d17400; } body.ldskin .kdot.red { background: #b3121f; }
 body.ldskin .ldtable tr.me td { background: #ffd6dc; }
 body.ldskin .ldtable td, body.ldskin .ldtable th { border-bottom: 1px solid #f0c4cb; }
+body.ldskin main { max-width: 860px; }
+body.ldskin .topbar { max-width: 860px; }
