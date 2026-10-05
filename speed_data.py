@@ -1296,6 +1296,25 @@ for _a in ALGOS:
     _a["limit_ms"] = _a.get("limit_min", 5) * 60000
     _a["limit_min"] = _a.get("limit_min", 5)
 
+# Names students must reuse, shown beside the editor (reference only, never the solution).
+REFS = {
+ "relational-database": {"title": "Table and column names to use", "lines": [
+    "Student(StudentID, Name)", "Enrolment(EnrolID, StudentID, Course)"],
+    "note": "StudentID is the primary key of Student. EnrolID is the primary key of Enrolment, and Enrolment.StudentID is a foreign key to Student."},
+ "relational-database-sqlite3": {"title": "Table and column names to use", "lines": [
+    "Student(StudentID, Name, Grade)"],
+    "note": "Database file: data.db. Rows: (1, Ann, B) and (2, Ben, C)."},
+ "web-app": {"title": "Names to use", "lines": [
+    "app.py: Flask app with route \"/\", methods GET and POST, a list called students, render_template(\"index.html\", students=students)",
+    "app.py ends with: if __name__ == \"__main__\": app.run(debug=True)",
+    "index.html: <form method=\"post\"> with a text input (name=\"name\") and a submit button",
+    "index.html: a <table> with a Jinja loop: {% for student in students %} ... {% endfor %}, each student in a <td>"],
+    "note": "Any correct variant passes. These are only the names and tags the checks look for."},
+}
+for _s, _r in REFS.items():
+    for _a in ALGOS:
+        if _a["slug"] == _s:
+            _a["ref"] = _r
 BY_SLUG = {a["slug"]: a for a in ALGOS}
 
 def band(ms, slug=None):
