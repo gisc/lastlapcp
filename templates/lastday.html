@@ -26,7 +26,7 @@
       <td>{{ r.rank }}</td>
       <td class="ldname">{{ r.name }}{% if r.uid and r.uid == me %} (you){% endif %}</td>
       <td class="muted small">{{ r.cls }}</td>
-      {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) if not preview else '#' }}" title="{{ loop.index }}. {{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
+      {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) }}" title="{{ loop.index }}. {{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
       <td><b>{{ r.done }}</b>/{{ algos|length }}</td>
     </tr>
     {% else %}<tr><td colspan="{{ algos|length + 4 }}" class="muted">No students on the roster.</td></tr>{% endfor %}
