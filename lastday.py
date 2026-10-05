@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 SGT = timezone(timedelta(hours=8))
 NAME = "Last Drill"
 TAGLINE = "Finish every drill you can before the window closes. Tiles show how fast you were."
-# Window: opens when this goes live, closes 22:00 SGT on Tuesday 6 October 2026.
-OPENS = datetime.fromisoformat("2026-10-05T11:30:00").replace(tzinfo=SGT)
+# Window: fixed, opens 12:00 noon SGT Monday 5 October 2026, closes 22:00 SGT on Tuesday 6 October 2026.
+OPENS = datetime.fromisoformat("2026-10-05T12:00:00").replace(tzinfo=SGT)
 CLOSES = datetime.fromisoformat("2026-10-06T22:00:00").replace(tzinfo=SGT)
 CLASS_ORDER = ("25S11", "25S21", "25S22")
 CONFIRMED = True
@@ -17,7 +17,7 @@ CONFIRMED = True
 RANK_ASC = False
 
 RULES = [
-    "Open from now until 10:00 pm on Tuesday 6 October. There is no personal clock: take as long as you need on each drill.",
+    "Open from 12 noon on Monday 5 October until 10:00 pm on Tuesday 6 October. Only attempts made in that window count. There is no personal clock: take as long as you need on each drill.",
     "Each of the 19 drills is one tile. Do a drill as normal on its own page and pass all the checks.",
     "A tile uses your fastest finish for that drill in this window. Green: within the drill's limit (5 minutes, or 8 for the two binary search trees). Orange: up to 1 minute over. Red: more than 1 minute over. Grey: not finished yet.",
     "You can retry a drill. A faster finish replaces the colour of your old one.",
@@ -28,7 +28,7 @@ def is_open(now):
     return CONFIRMED and OPENS <= now < CLOSES
 
 def board(db, roster_lookup, norm_email, algos, tile_band):
-    """Rows for every roster student in CLASS_ORDER: class order first, then greens, oranges, reds (see RANK_ASC); ties by name."""
+    """Rows for every roster student in CLASS_ORDER: one combined list across all classes: greens, oranges, reds (see RANK_ASC); ties by name."""
     roster = roster_lookup(db)
     emails = {e: (n, c) for e, (n, c) in roster.items() if c in CLASS_ORDER}
     users = {norm_email(r["email"]): r["id"] for r in db.execute("SELECT id, email FROM users WHERE role='student'")}
@@ -59,9 +59,7 @@ def board(db, roster_lookup, norm_email, algos, tile_band):
                      "g": cnt["green"], "o": cnt["orange"], "r": cnt["red"], "done": sum(cnt.values()),
                      "total": sum(v for v in b.values())})
     sign = 1 if RANK_ASC else -1
-    rows.sort(key=lambda p: (CLASS_ORDER.index(p["cls"]), sign * p["g"], sign * p["o"], sign * p["r"], p["name"].lower()))
-    rk = {}
-    for p in rows:
-        rk[p["cls"]] = rk.get(p["cls"], 0) + 1
-        p["rank"] = rk[p["cls"]]
+    rows.sort(key=lambda p: (sign * p["g"], sign * p["o"], sign * p["r"], p["name"].lower()))
+    for i, p in enumerate(rows, 1):
+        p["rank"] = i
     return rows

@@ -15,21 +15,21 @@
   <h2>Drill key</h2>
   <p class="muted small ldnames">{% for a in algos %}<span><b>{{ loop.index }}</b> {{ a.title }}{% if a.limit_min != 5 %} ({{ a.limit_min }}m){% endif %}</span>{% endfor %}</p>
 </div>
-{% for cls in ld.CLASS_ORDER %}
 <div class="card">
-  <h2>{{ cls }}</h2>
+  <h2>Board</h2>
+  <p class="muted small">All classes are ranked together.</p>
   <div class="tmapwrap"><table class="ldtable">
-    <tr><th>#</th><th>Student</th>{% for a in algos %}<th class="ldh">{{ loop.index }}</th>{% endfor %}<th>Done</th></tr>
-    {% for r in rows if r.cls == cls %}
+    <tr><th>#</th><th>Student</th><th>Class</th>{% for a in algos %}<th class="ldh" title="{{ loop.index }}. {{ a.title }}">{{ loop.index }}</th>{% endfor %}<th>Done</th></tr>
+    {% for r in rows %}
     <tr {% if r.uid and r.uid == me %}class="me"{% endif %}>
       <td>{{ r.rank }}</td>
       <td class="ldname">{{ r.name }}{% if r.uid and r.uid == me %} (you){% endif %}</td>
-      {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) if not preview else '#' }}" title="{{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
+      <td class="muted small">{{ r.cls }}</td>
+      {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) if not preview else '#' }}" title="{{ loop.index }}. {{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
       <td><b>{{ r.done }}</b>/{{ algos|length }}</td>
     </tr>
-    {% else %}<tr><td colspan="{{ algos|length + 3 }}" class="muted">No students on the roster for this class.</td></tr>{% endfor %}
+    {% else %}<tr><td colspan="{{ algos|length + 4 }}" class="muted">No students on the roster.</td></tr>{% endfor %}
   </table></div>
 </div>
-{% endfor %}
 <div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
 {% endblock %}
