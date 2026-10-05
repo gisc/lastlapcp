@@ -18,7 +18,7 @@
 </div>
 <div class="card">
   <h2>Board</h2>
-  <p class="muted small">All classes are ranked together.</p>
+  <p class="muted small">On laptop, hover over a tile to see the task. Click tile to go to drill page.</p>
   <div class="tmapwrap"><table class="ldtable">
     <tr><th>#</th><th>Student</th><th>Class</th>{% for a in algos %}<th class="ldh" title="{{ loop.index }}. {{ a.title }}">{{ loop.index }}</th>{% endfor %}<th>Done</th></tr>
     {% for r in rows %}
