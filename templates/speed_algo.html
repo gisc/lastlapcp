@@ -26,7 +26,7 @@
   <div id="work" style="display:none">
     <div id="clock" class="sclock">0:00</div>
     <div id="clocklabel" class="muted center"></div>
-    {% if a.ref %}<div class="refbox"><b>{{ a.ref.title }}</b><ul>{% for l in a.ref.lines %}<li><code>{{ l }}</code></li>{% endfor %}</ul><p class="muted small">{{ a.ref.note }}</p></div>{% endif %}
+    {% if a.ref %}<div class="refbox"><b>{{ a.ref.title }}</b><ul>{% for l in a.ref.lines %}<li><code>{{ l }}</code></li>{% endfor %}</ul>{% if a.ref.note %}<p class="muted small">{{ a.ref.note }}</p>{% endif %}</div>{% endif %}
     {% if a.kind == 'webapp' %}<p class="muted small cell-label"><b>app.py</b></p>{% endif %}
     <textarea id="code" class="field code-input" rows="16" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type {{ 'the SQL script' if a.kind == 'sql' else a.fn }} here..."></textarea>
     {% if a.kind == 'webapp' %}<p class="muted small cell-label"><b>index.html</b></p>

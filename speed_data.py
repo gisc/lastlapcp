@@ -1305,11 +1305,8 @@ REFS = {
     "Student(StudentID, Name, Grade)"],
     "note": "Database file: data.db. Rows: (1, Ann, B) and (2, Ben, C)."},
  "web-app": {"title": "Names to use", "lines": [
-    "app.py: Flask app with route \"/\", methods GET and POST, a list called students, render_template(\"index.html\", students=students)",
-    "app.py ends with: if __name__ == \"__main__\": app.run(debug=True)",
-    "index.html: <form method=\"post\"> with a text input (name=\"name\") and a submit button",
-    "index.html: a <table> with a Jinja loop: {% for student in students %} ... {% endfor %}, each student in a <td>"],
-    "note": "Any correct variant passes. These are only the names and tags the checks look for."},
+    "app.py: students list (the list is called students)",
+    "index.html: name attribute (name=\"name\")"]},
 }
 for _s, _r in REFS.items():
     for _a in ALGOS:
