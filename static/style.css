@@ -171,3 +171,19 @@ pre.exampletest { white-space: pre-wrap; overflow-wrap: anywhere; }
 .ldtable tr.me td { background: #eef4ff; }
 .ldnames span { display: inline-block; margin: 0 10px 2px 0; }
 .ldkey { margin-top: 8px; }
+
+/* Last Drill skin: Singapore red buttons, light pink cards. Scoped to the Last Drill page and home card. */
+body.ldskin { background: linear-gradient(180deg, #8f0f22, #5a0813); --card: #fff0f2; --ink: #1d0c10; --muted: #4d3a40; }
+body.ldskin .brand { color: #fff; } body.ldskin .brand span { color: #ffd0d6; } body.ldskin .logout { color: #fff; text-decoration: underline; }
+body.ldskin .btn, body.ldskin .speedbtn, .ldcard .btn { background: #c8102e; color: #fff; border: 2px solid #8f0b20; font-weight: 700; }
+body.ldskin .btn.ghost { background: #fff; color: #8f0b20; border: 2px solid #c8102e; }
+body.ldskin h1, body.ldskin h2, .ldcard h2 { color: #8f0b20; }
+.ldcard { background: #fff0f2; }
+.ldcard .muted { color: #4d3a40; }
+body.ldskin .ldh { color: #4d3a40; font-weight: 700; }
+body.ldskin .ldc { background: #fff; border-color: #7d5a63; }
+body.ldskin .ldc.green { background: #1f8a4c; border-color: #14602f; } body.ldskin .ldc.orange { background: #d17400; border-color: #8a5200; } body.ldskin .ldc.red { background: #b3121f; border-color: #5e0710; }
+body.ldskin .kdot { border-color: #7d5a63; background: #fff; }
+body.ldskin .kdot.green { background: #1f8a4c; } body.ldskin .kdot.orange { background: #d17400; } body.ldskin .kdot.red { background: #b3121f; }
+body.ldskin .ldtable tr.me td { background: #ffd6dc; }
+body.ldskin .ldtable td, body.ldskin .ldtable th { border-bottom: 1px solid #f0c4cb; }
