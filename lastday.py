@@ -1,11 +1,11 @@
-"""Last Day Drill: an open, no-clock board over the 19 speed drills. No student data here.
+"""Last Drill: an open, no-clock board over the 19 speed drills. No student data here.
 Every roster student of the listed classes appears, attempted or not. A drill tile is coloured by the
 student's fastest valid finish inside the window (green within the drill's limit, orange up to 1 minute over,
 red beyond, grey = not finished yet)."""
 from datetime import datetime, timedelta, timezone
 
 SGT = timezone(timedelta(hours=8))
-NAME = "Last Day Drill"
+NAME = "Last Drill"
 TAGLINE = "Finish every drill you can before the window closes. Tiles show how fast you were."
 # Window: opens when this goes live, closes 22:00 SGT on Tuesday 6 October 2026.
 OPENS = datetime.fromisoformat("2026-10-05T11:30:00").replace(tzinfo=SGT)
