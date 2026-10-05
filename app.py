@@ -17,6 +17,7 @@ import papers_data
 import speed_data
 import speed_examples
 import comp
+import lastday
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 SGT = timezone(timedelta(hours=8))
@@ -600,10 +601,14 @@ def home():
                 WHERE p.question_id=? AND a.user_id=? AND a.passed=1""", (r["id"], u["id"])).fetchone()["c"]
         (t3t if r["kind"] == "theory" else t3).append(
             {"id": r["id"], "title": r["title"], "topic": r["topic"], "n": n, "done": done})
+    ld_open = False
+    if u["role"] != "teacher":
+        ld_cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+        ld_open = ld_cls in lastday.CLASS_ORDER and lastday.is_open(datetime.now(SGT))
     cw = None
     if u["role"] != "teacher":
         cw = comp.student_window(_roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1], datetime.now(SGT))
-    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t, exams=exams, cw=cw, comp=comp)
+    return render_template("home.html", u=u, stats=stats, topics=topics, t3=t3, t3t=t3t, exams=exams, cw=cw, comp=comp, ld_open=ld_open, ld=lastday)
 
 @app.route("/login")
 def login():
@@ -1382,6 +1387,32 @@ def comp_join():
     db.execute("INSERT OR IGNORE INTO comp_joins(user_id, joined_at) VALUES(?,?)", (u["id"], now.isoformat()))
     db.commit()
     return redirect(url_for("comp_page"))
+
+def _lastday_render(preview):
+    u = current_user()
+    db = get_db()
+    now = datetime.now(SGT)
+    rows = lastday.board(db, _roster_lookup, _norm_email, speed_data.ALGOS, _tile_band)
+    return render_template("lastday.html", ld=lastday, rows=rows, algos=speed_data.ALGOS, me=u["id"], preview=preview,
+                           state="open" if lastday.is_open(now) else ("upcoming" if now < lastday.OPENS else "closed"),
+                           opens=lastday.OPENS.strftime("%a %-d %b %H:%M"), closes=lastday.CLOSES.strftime("%a %-d %b %H:%M"))
+
+@app.route("/lastday")
+@login_required
+def lastday_page():
+    u = current_user()
+    if u["role"] == "teacher":
+        return redirect(url_for("teacher_lastday"))
+    db = get_db()
+    cls = _roster_lookup(db).get(_norm_email(u["email"]), (None, None))[1]
+    if cls not in lastday.CLASS_ORDER or not lastday.is_open(datetime.now(SGT)):
+        abort(404)
+    return _lastday_render(False)
+
+@app.route("/teacher/lastday")
+@teacher_required
+def teacher_lastday():
+    return _lastday_render(True)
 
 @app.route("/teacher/comp")
 @teacher_required

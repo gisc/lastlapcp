@@ -159,3 +159,15 @@ h3.sub { margin: 14px 0 8px; font-size: 15px; color: #33415c; }
 @media (min-width: 560px) { .tilegrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .tile .tname { white-space: normal; overflow: visible; text-overflow: clip; display: block; }
 pre.exampletest { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Last Day Drill board */
+.ldtable { border-collapse: separate; border-spacing: 0; font-size: .8rem; width: 100%; }
+.ldtable th, .ldtable td { padding: 3px 2px; text-align: center; white-space: nowrap; }
+.ldtable th:nth-child(2), .ldtable td.ldname { text-align: left; padding-left: 6px; padding-right: 8px; }
+.ldh { font-size: .68rem; color: #5c6b82; }
+.ldcell { padding: 2px 1px; }
+.ldc { display: block; width: 17px; height: 22px; border-radius: 4px; background: #e7edf5; border: 1px solid #c3cddd; }
+.ldc.green { background: #2ea05f; border-color: #217a47; } .ldc.orange { background: #e08a00; border-color: #b06d00; } .ldc.red { background: #d12a2a; border-color: #a11e1e; }
+.ldtable tr.me td { background: #eef4ff; }
+.ldnames span { display: inline-block; margin: 0 10px 2px 0; }
+.ldkey { margin-top: 8px; }

@@ -3,6 +3,19 @@
 {% if u['role'] == 'teacher' %}
 <div class="card center"><a class="btn" href="{{ url_for('teacher') }}">Teacher dashboard</a></div>
 {% endif %}
+{% if ld_open %}
+<div class="card compcard">
+  <h2>&#127937; {{ ld.NAME }} is on</h2>
+  <p class="muted">{{ ld.TAGLINE }} Open until {{ ld.CLOSES.strftime('%-I:%M %p, %a %-d %b') }}.</p>
+  <a class="btn big speedbtn" href="{{ url_for('lastday_page') }}">See the Last Day board</a>
+</div>
+{% elif u['role'] == 'teacher' and ld.CONFIRMED %}
+<div class="card compcard">
+  <h2>&#127937; {{ ld.NAME }} (teacher view)</h2>
+  <p class="muted">Students in 25S11, 25S21 and 25S22 see this card while it is open.</p>
+  <a class="btn big speedbtn" href="{{ url_for('teacher_lastday') }}">Open Last Day board</a>
+</div>
+{% endif %}
 {% if cw %}
 <div class="card compcard">
   <h2>&#127937; {{ comp.NAME }} is on</h2>

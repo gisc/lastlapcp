@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}LastLapCP - {{ ld.NAME }}{% endblock %}
+{% block content %}
+<div class="card compcard">
+  <h1>&#127937; {{ ld.NAME }}</h1>
+  <p class="muted">{{ ld.TAGLINE }}</p>
+  {% if preview %}<p class="muted small"><b>Teacher view.</b> {% if state == 'open' %}Open now until {{ closes }}.{% elif state == 'upcoming' %}Opens {{ opens }}.{% else %}Closed since {{ closes }}.{% endif %} Students in {{ ld.CLASS_ORDER|join(', ') }} see this page only while it is open.</p>
+  {% else %}<p class="muted small">Open until {{ closes }}.</p>{% endif %}
+  <a class="btn big speedbtn" href="{{ url_for('speed_index') }}">Go to the drills</a>
+  <h2>How it works</h2>
+  <ol class="muted comprules">{% for r in ld.RULES %}<li>{{ r }}</li>{% endfor %}</ol>
+  <p class="muted small ldkey"><span class="kdot green"></span>within the limit <span class="kdot orange"></span>up to 1 min over <span class="kdot red"></span>more than 1 min over <span class="kdot todo"></span>not finished yet</p>
+</div>
+<div class="card">
+  <h2>Drill key</h2>
+  <p class="muted small ldnames">{% for a in algos %}<span><b>{{ loop.index }}</b> {{ a.title }}{% if a.limit_min != 5 %} ({{ a.limit_min }}m){% endif %}</span>{% endfor %}</p>
+</div>
+{% for cls in ld.CLASS_ORDER %}
+<div class="card">
+  <h2>{{ cls }}</h2>
+  <div class="tmapwrap"><table class="ldtable">
+    <tr><th>#</th><th>Student</th>{% for a in algos %}<th class="ldh">{{ loop.index }}</th>{% endfor %}<th>Done</th></tr>
+    {% for r in rows if r.cls == cls %}
+    <tr {% if r.uid and r.uid == me %}class="me"{% endif %}>
+      <td>{% if r.done %}{{ r.rank }}{% else %}&ndash;{% endif %}</td>
+      <td class="ldname">{{ r.name }}{% if r.uid and r.uid == me %} (you){% endif %}</td>
+      {% for t in r.tiles %}<td class="ldcell"><a class="ldc {{ t.band }}" href="{{ url_for('speed_algo', slug=t.slug) if not preview else '#' }}" title="{{ t.title }}: {% if t.best is not none %}{{ t.best|fmt_ms_up }}{% else %}not finished{% endif %} (limit {{ t.limit_min }}m)"></a></td>{% endfor %}
+      <td><b>{{ r.done }}</b>/{{ algos|length }}</td>
+    </tr>
+    {% else %}<tr><td colspan="{{ algos|length + 3 }}" class="muted">No students on the roster for this class.</td></tr>{% endfor %}
+  </table></div>
+</div>
+{% endfor %}
+<div class="card center"><a class="btn ghost" href="{{ url_for('home') }}">Home</a></div>
+{% endblock %}
