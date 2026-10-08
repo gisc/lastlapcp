@@ -1611,5 +1611,9 @@ def t3_edit(qid):
                            nblocks=max(len(parts) + 1, 3), natt=natt)
 
 
+# Study-buddy agents preview (teacher-only, fake data; see buddy.py)
+import buddy
+buddy.init(app, DB_PATH, current_user, grade_theory)
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8000")))
