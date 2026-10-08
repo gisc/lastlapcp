@@ -222,7 +222,7 @@ def _ensure_worker():
 # ---------------- views ----------------
 
 CSS = """<style>
-.bd{max-width:640px;margin:0 auto;padding:12px}.bd h1{font-size:1.3rem;margin:.2rem 0}
+.bd{max-width:640px;margin:0 auto;padding:12px}.bd h1{font-size:1.3rem;margin:.2rem 0;color:#fff}
 .bd .card{background:#fff;border:1px solid #d6dbe6;border-radius:12px;padding:12px;margin:10px 0}
 .bd .warn{background:#fff4d6;border-color:#e6c460}.bd textarea{width:100%;min-height:130px;font:inherit;padding:8px;box-sizing:border-box}
 .bd select,.bd button,.bd input{font:inherit;padding:8px 10px;margin:4px 0}.bd button{border-radius:8px;border:0;background:#1a3a6b;color:#fff}
