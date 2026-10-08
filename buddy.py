@@ -14,7 +14,15 @@ from flask import Blueprint, abort, jsonify, redirect, render_template_string, r
 
 bp = Blueprint("buddy", __name__, url_prefix="/buddy")
 
-PREVIEW_EMAILS = {e.strip().lower() for e in os.environ.get(
+def _norm_email(e):
+    e = (e or "").strip().lower()
+    local, sep, domain = e.partition("@")
+    if sep and domain in ("gmail.com", "googlemail.com"):
+        return local.replace(".", "") + "@gmail.com"
+    return e
+
+
+PREVIEW_EMAILS = {_norm_email(e) for e in os.environ.get(
     "BUDDY_PREVIEW_EMAILS", "soongchee.gi@gmail.com").split(",") if e.strip()}
 OLLAMA_URL = os.environ.get("BUDDY_OLLAMA_URL", "http://10.233.98.0:11435")
 OLLAMA_MODEL = os.environ.get("BUDDY_MODEL", "qwen3.8:27b")
@@ -107,7 +115,7 @@ def _gate():
     u = _deps["current_user"]()
     if not u:
         return redirect(url_for("login"))
-    if u["role"] != "teacher" or (u["email"] or "").strip().lower() not in PREVIEW_EMAILS:
+    if u["role"] != "teacher" or _norm_email(u["email"]) not in PREVIEW_EMAILS:
         abort(404)
     _ensure_worker()
 
