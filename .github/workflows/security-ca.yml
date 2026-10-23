@@ -1,0 +1,74 @@
+name: LastLapCP certificate security layer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  security-layer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare exact-base security layer
+        shell: bash
+        run: |
+          cat > /tmp/Dockerfile.security <<'DOCKERFILE'
+          FROM ghcr.io/gisc/lastlapcp@sha256:33bd354116a3a0caa7bd81946ae6253b987055f695393d1f606f4fa582447307
+          USER root
+          RUN set -eux; \
+              dpkg-query -W -f='${Package} ${Version}\n' | sort > /tmp/packages.before; \
+              apt-get update; \
+              apt-get install -y --no-install-recommends ca-certificates=20250419+deb13u1; \
+              dpkg-query -W -f='${Package} ${Version}\n' | sort > /tmp/packages.after; \
+              diff -u /tmp/packages.before /tmp/packages.after > /tmp/packages.diff || test "$?" = 1; \
+              cat /tmp/packages.diff; \
+              test "$(grep -E '^[+-][^+-]' /tmp/packages.diff | grep -v -E '^[+-]ca-certificates ' | wc -l)" = 0; \
+              rm -rf /var/lib/apt/lists/* /tmp/packages.before /tmp/packages.after /tmp/packages.diff
+          RUN python -S - <<'PY'
+          import hashlib, pathlib, urllib.request
+          wheels = [
+              ('https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl', 'fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70'),
+              ('https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl', '42d35340cc5b9ba78e818ddbff0c5b1c2b779de448a340fd1b989f5fa8670e1b'),
+          ]
+          pathlib.Path('/tmp/security-wheels').mkdir()
+          for url, expected in wheels:
+              data = urllib.request.urlopen(url).read()
+              assert hashlib.sha256(data).hexdigest() == expected
+              pathlib.Path('/tmp/security-wheels', url.rsplit('/', 1)[1]).write_bytes(data)
+          PY
+          RUN python -m pip install --no-cache-dir --no-index --no-deps /tmp/security-wheels/*.whl && rm -rf /tmp/security-wheels
+          DOCKERFILE
+      - name: Build without cache, do not publish yet
+        run: docker build --platform linux/amd64 --no-cache -f /tmp/Dockerfile.security -t lastlapcp-security:test .
+      - name: Verify versions, app identity and temporary database startup
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE=ghcr.io/gisc/lastlapcp@sha256:33bd354116a3a0caa7bd81946ae6253b987055f695393d1f606f4fa582447307
+          for IMG in "$BASE" lastlapcp-security:test; do
+            docker run --rm --entrypoint sh "$IMG" -c 'cd /app; find . -type f ! -path "*/__pycache__/*" ! -name "*.pyc" -exec sha256sum {} + | sort' > "/tmp/$(echo "$IMG" | sha256sum | cut -c1-16).app"
+          done
+          diff -u /tmp/*.app
+          docker run --rm --entrypoint python lastlapcp-security:test -c "import pip,certifi,ssl,flask,requests,authlib; assert pip.__version__=='26.2.2'; assert certifi.__version__=='2026.10.19'; print(pip.__version__,certifi.__version__,ssl.get_default_verify_paths())"
+          docker run --rm --entrypoint sh lastlapcp-security:test -c 'set -eu; dpkg-query -W ca-certificates | grep -F 20250419+deb13u1; ! openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"; ! openssl crl2pkcs7 -nocrl -certfile /usr/local/lib/python3.12/site-packages/certifi/cacert.pem | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"'
+          docker run -d --name lastlapcp-security-test --tmpfs /data -p 127.0.0.1:18000:8000 -e SECRET_KEY=temporary-security-test-only lastlapcp-security:test
+          trap 'docker logs lastlapcp-security-test; docker rm -f lastlapcp-security-test' EXIT
+          curl --fail --retry 12 --retry-connrefused --retry-delay 2 http://127.0.0.1:18000/ > /tmp/home.html
+          grep -qi lastlap /tmp/home.html
+          docker exec lastlapcp-security-test python -c "import sqlite3; c=sqlite3.connect('/data/lastlapcp.db'); assert c.execute('PRAGMA integrity_check').fetchone()[0]=='ok'; print('temporary database integrity: ok')"
+      - name: Publish tested dedicated security tag only
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG=ghcr.io/gisc/lastlapcp:security-ca-20261024-${{ github.run_number }}
+          docker tag lastlapcp-security:test "$TAG"
+          docker push "$TAG" | tee /tmp/security-push.txt
+          printf 'Tested image: `%s`\n\n' "$TAG" >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/security-push.txt >> "$GITHUB_STEP_SUMMARY"
