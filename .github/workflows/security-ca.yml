@@ -60,7 +60,7 @@ jobs:
           docker run --rm --entrypoint sh lastlapcp-security:test -c 'set -eu; dpkg-query -W ca-certificates | grep -F 20250419+deb13u1; ! openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"; ! openssl crl2pkcs7 -nocrl -certfile /usr/local/lib/python3.12/site-packages/certifi/cacert.pem | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"'
           docker run -d --name lastlapcp-security-test --tmpfs /data -p 127.0.0.1:18000:8000 -e SECRET_KEY=temporary-security-test-only lastlapcp-security:test
           trap 'docker logs lastlapcp-security-test; docker rm -f lastlapcp-security-test' EXIT
-          curl --fail --retry 12 --retry-all-errors --retry-delay 2 --max-time 10 http://127.0.0.1:18000/ > /tmp/home.html
+          curl --location --fail --retry 12 --retry-all-errors --retry-delay 2 --max-time 10 http://127.0.0.1:18000/ > /tmp/home.html
           grep -qi lastlap /tmp/home.html
           docker exec lastlapcp-security-test python -c "import sqlite3; c=sqlite3.connect('/data/lastlapcp.db'); assert c.execute('PRAGMA integrity_check').fetchone()[0]=='ok'; print('temporary database integrity: ok')"
       - name: Publish tested dedicated security tag only
