@@ -43,7 +43,7 @@ jobs:
               assert hashlib.sha256(data).hexdigest() == expected
               pathlib.Path('/tmp/security-wheels', url.rsplit('/', 1)[1]).write_bytes(data)
           PY
-          RUN python -m pip install --no-cache-dir --no-index --no-deps /tmp/security-wheels/*.whl && rm -rf /tmp/security-wheels
+          RUN python -m pip install --no-cache-dir --no-index --no-deps /tmp/security-wheels/*.whl && rm /usr/local/lib/python3.12/ensurepip/_bundled/pip-*.whl && cp /tmp/security-wheels/pip-26.2.2-py3-none-any.whl /usr/local/lib/python3.12/ensurepip/_bundled/ && sed -i 's/_PIP_VERSION = "25.0.1"/_PIP_VERSION = "26.2.2"/' /usr/local/lib/python3.12/ensurepip/__init__.py && rm -rf /tmp/security-wheels
           DOCKERFILE
       - name: Build without cache, do not publish yet
         run: docker build --platform linux/amd64 --no-cache -f /tmp/Dockerfile.security -t lastlapcp-security:test .
@@ -56,11 +56,11 @@ jobs:
             docker run --rm --entrypoint sh "$IMG" -c 'cd /app; find . -type f ! -path "*/__pycache__/*" ! -name "*.pyc" -exec sha256sum {} + | sort' > "/tmp/$(echo "$IMG" | sha256sum | cut -c1-16).app"
           done
           diff -u /tmp/*.app
-          docker run --rm --entrypoint python lastlapcp-security:test -c "import pip,certifi,ssl,flask,requests,authlib; assert pip.__version__=='26.2.2'; assert certifi.__version__=='2026.10.19'; print(pip.__version__,certifi.__version__,ssl.get_default_verify_paths())"
+          docker run --rm --entrypoint python lastlapcp-security:test -c "import pip,certifi,ssl,flask,requests,authlib,ensurepip; assert ensurepip.version()=='26.2.2'; assert pip.__version__=='26.2.2'; assert certifi.__version__=='2026.10.19'; print(pip.__version__,certifi.__version__,ssl.get_default_verify_paths())"
           docker run --rm --entrypoint sh lastlapcp-security:test -c 'set -eu; dpkg-query -W ca-certificates | grep -F 20250419+deb13u1; ! openssl crl2pkcs7 -nocrl -certfile /etc/ssl/certs/ca-certificates.crt | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"; ! openssl crl2pkcs7 -nocrl -certfile /usr/local/lib/python3.12/site-packages/certifi/cacert.pem | openssl pkcs7 -print_certs -noout | grep -E "emSign.*Root CA - G3|AAA Certificate Services"'
           docker run -d --name lastlapcp-security-test --tmpfs /data -p 127.0.0.1:18000:8000 -e SECRET_KEY=temporary-security-test-only lastlapcp-security:test
           trap 'docker logs lastlapcp-security-test; docker rm -f lastlapcp-security-test' EXIT
-          curl --fail --retry 12 --retry-connrefused --retry-delay 2 http://127.0.0.1:18000/ > /tmp/home.html
+          curl --fail --retry 12 --retry-all-errors --retry-delay 2 --max-time 10 http://127.0.0.1:18000/ > /tmp/home.html
           grep -qi lastlap /tmp/home.html
           docker exec lastlapcp-security-test python -c "import sqlite3; c=sqlite3.connect('/data/lastlapcp.db'); assert c.execute('PRAGMA integrity_check').fetchone()[0]=='ok'; print('temporary database integrity: ok')"
       - name: Publish tested dedicated security tag only
